@@ -7,7 +7,7 @@
   "required": ["p", "v", "op", "offer_target_type", "buyer", "price", "currency", "offer_fee", "fee_recipient"],
   "additionalProperties": true,
   "properties": {
-    "p":                 { "const": "Ð:MP" },
+    "p":                 { "const": "dmp" },
     "v":                 { "const": "1.0" },
     "op":                { "const": "offer" },
     "offer_target_type": { "enum": ["inscription", "collection"] },

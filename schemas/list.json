@@ -5,7 +5,7 @@
   "type": "object",
   "properties": {
     "p": {
-      "const": "Ð:MP",
+      "const": "dmp",
       "description": "Protocol identifier"
     },
     "v": {

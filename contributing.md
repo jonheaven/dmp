@@ -1,4 +1,4 @@
-# Contributing to the Dogenals Marketplace Protocol
+# Contributing to the Doginals Marketplace Protocol
 
 Thank you for your interest in improving ÐMP. This document explains how the spec evolves, what kinds of contributions are welcome, and how to submit them.
 

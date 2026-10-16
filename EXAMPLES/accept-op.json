@@ -1,6 +1,6 @@
 {
   "_comment": "ÐMP v1.0 seller acceptance of offer or counteroffer",
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "accept",
   "target_op": "offer",

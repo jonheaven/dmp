@@ -7,7 +7,7 @@
   "required": ["p", "v", "op", "slug", "creator_address", "type"],
   "additionalProperties": true,
   "properties": {
-    "p":               { "const": "Ð:MP" },
+    "p":               { "const": "dmp" },
     "v":               { "const": "1.0" },
     "op":              { "const": "collection" },
     "slug":            { "type": "string", "pattern": "^[a-z0-9-]{1,64}$" },

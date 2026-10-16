@@ -2,7 +2,7 @@
   "_comment": "ÐMP Vote Operation — DAO governance vote receipt for a collection-update proposal",
   "_doc": "A vote op is inscribed by the DAO operator to record the result of a community governance vote on a proposed collection change. It is only relevant for collections that set requires_vote: true in their manifest. The vote op inscription ID is referenced by a subsequent collection-update via vote_proof.vote_inscription_id.",
 
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "vote",
 

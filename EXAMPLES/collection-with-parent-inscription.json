@@ -1,6 +1,6 @@
 {
   "_comment": "ÐMP v1.0+ root collection with optional parent_inscription_id (ÐMP metadata). Strong on-chain parent: DRC-721 'parent' in the ord tag trailer + UTXO validation — see ../../dogenals-core/README.md",
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "collection",
   "slug": "pups-child",

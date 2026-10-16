@@ -1,4 +1,4 @@
-# Dogenals Marketplace Protocol (ÐMP)
+# Doginals Marketplace Protocol (ÐMP)
 ## Philosophy and Design Decisions
 
 Last Updated: 2026-09-03
@@ -101,7 +101,7 @@ Basic chain indexing tells you the ownership path.
 
 ## 4. Incentives and Multi-Marketplace Ecosystem
 
-ÐMP is designed as a shared public on-chain layer for the Dogenals ecosystem — not as a replacement for any marketplace. Building and running a successful marketplace requires real effort: reliable indexing, smooth user experience, liquidity, marketing, support, and community trust. Marketplace operators deserve to earn for the value they deliver.
+ÐMP is designed as a shared public on-chain layer for Doginals markets — not as a replacement for any marketplace. Building and running a successful marketplace requires real effort: reliable indexing, smooth user experience, liquidity, marketing, support, and community trust. Marketplace operators deserve to earn for the value they deliver.
 
 ÐMP gives every operator the choice to adopt a unified, portable on-chain standard while keeping complete control over their own frontend, branding, fees, and business model.
 

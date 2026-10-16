@@ -2,7 +2,7 @@
   "_comment": "ÐMP Settle Operation — Fixed-Price Settlement with Platform Fee",
   "_doc": "Demonstrates a v1.0 settle that includes the platform_fee field introduced in v1.0. A marketplace emits this settle to record both the sale and their fee collection. The platform_fee must appear as an actual output in the settlement_txid for the indexer to consider it valid.",
 
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "settle",
 

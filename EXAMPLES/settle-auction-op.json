@@ -2,7 +2,7 @@
   "_comment": "ÐMP Settle Operation — Auction Settlement",
   "_doc": "An auction settle records the completion of an auction. The winning bid is identified by bid_id. For time_based auctions, the settle MUST be inscribed after the auction's expiry block; for seller_can_accept_early auctions, it may be inscribed anytime after the winning bid. The settlement_txid refers to the on-chain transaction that transferred the inscription to the buyer and paid the seller.",
 
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "settle",
 

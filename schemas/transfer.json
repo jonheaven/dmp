@@ -7,7 +7,7 @@
   "required": ["p", "v", "op", "inscription_id", "from_address", "to_address", "transfer_type", "transfer_txid"],
   "additionalProperties": true,
   "properties": {
-    "p":              { "const": "Ð:MP" },
+    "p":              { "const": "dmp" },
     "v":              { "const": "1.0" },
     "op":             { "const": "transfer" },
     "inscription_id": { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },

@@ -13,7 +13,7 @@
       "schema": "schemas/list.json",
       "expect": "pass",
       "payload": {
-        "p": "Ð:MP",
+        "p": "dmp",
         "v": "1.0",
         "op": "list",
         "inscription_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaai0",
@@ -30,7 +30,7 @@
       "schema": "schemas/offer.json",
       "expect": "pass",
       "payload": {
-        "p": "Ð:MP",
+        "p": "dmp",
         "v": "1.0",
         "op": "offer",
         "offer_target_type": "inscription",
@@ -67,7 +67,7 @@
       "schema": "schemas/cancel.json",
       "expect": "pass",
       "payload": {
-        "p": "Ð:MP",
+        "p": "dmp",
         "v": "1.0",
         "op": "cancel",
         "cancel_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccci0",
@@ -83,7 +83,7 @@
       "schema": "schemas/cancel.json",
       "expect": "fail",
       "payload": {
-        "p": "Ð:MP",
+        "p": "dmp",
         "v": "1.0",
         "op": "cancel",
         "cancel_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccci0",

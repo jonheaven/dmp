@@ -1,6 +1,6 @@
-# ÐMP — Dogenals Marketplace Protocol
+# ÐMP — Doginals Marketplace Protocol
 
-**This repository is the canonical public specification for ÐMP (`p: "Ð:MP"`).**
+**This repository is the canonical public specification for ÐMP (`p: "dmp"`).**
 
 ÐMP is the on-chain *record* of market intent: listings, auctions, bids, offers, settlements, transfers, and collection governance. Any indexer with a full node can *verify* those intents against UTXO movement; no venue’s API is the truth.
 
@@ -10,7 +10,7 @@ The **seller-signed PSDT** is the fill contract (Satoshi). The **inscription env
 | ---: | --- |
 | **Version** | v1.0+ · write budget [MUST-111+](spec.md#write-budget-l1-surface-at-scale) |
 | **Class** | Marketplace **intent and proof** layer (not custody, not a fungible token) |
-| **Durable payload** | JSON in a Dogecoin inscription with `"p": "Ð:MP"` |
+| **Durable payload** | JSON in a Dogecoin inscription with `"p": "dmp"` |
 | **Scale path** | Artifact + list/`psdt_hash` + sale tx; DogeTag/DOTC for chatter & receipts — not an inscription per click |
 | **Status** | v1.0 Launch Draft |
 | **Chain** | Dogecoin |
@@ -25,7 +25,7 @@ The **seller-signed PSDT** is the fill contract (Satoshi). The **inscription env
 
 Jon Heaven — GitHub [@jonheaven](https://github.com/jonheaven) · X [@jontype](https://x.com/jontype)
 
-If you ship this in a wallet, marketplace, or indexer, you are implementing **this** protocol. Keep `"p": "Ð:MP"` and the op shapes identical so every indexer sees one order book.
+If you ship this in a wallet, marketplace, or indexer, you are implementing **this** protocol. Emit `"p": "dmp"` (indexers also accept the styled alias `"Ð:MP"`) and keep the op shapes identical so every indexer sees one order book.
 
 ## Start here (pick your job)
 
@@ -39,9 +39,9 @@ If you ship this in a wallet, marketplace, or indexer, you are implementing **th
 
 ---
 
-## Position in the Dogenals Ecosystem
+## Position in the Doginals stack
 
-ÐMP is the marketplace sub-protocol under the Dogenals umbrella. It focuses exclusively on NFT marketplace operations and is the only Dogenals protocol designed for this purpose.
+ÐMP is the open marketplace intent/proof layer for Doginals (unique inscribed pieces). Fungibles stay on Ðunes / Treats. ÐMP focuses on NFT marketplace operations.
 
 | What ÐMP Does | What ÐMP Does NOT Do |
 | --- | --- |
@@ -80,7 +80,7 @@ If you ship this in a wallet, marketplace, or indexer, you are implementing **th
 
 | Field | Value |
 | --- | --- |
-| Protocol marker | `"p": "Ð:MP"` |
+| Protocol marker | `"p": "dmp"` |
 | Supported versions | `"1.0"` |
 | Durable storage | Ordinal inscription (scriptSig envelope) |
 | Scale signaling | DogeTag / DOTC `OP_RETURN`; `psdt_hash` off-band |
@@ -136,7 +136,7 @@ A ÐMP `list` inscription:
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "op": "list",
   "inscription_id": "<txid>i0",
   "seller": "DLfZ6VN5k7EyqjkqXZzd6mh6nQQZL1262b",
@@ -149,7 +149,7 @@ A ÐMP `settle` inscription (6+ blocks after the transfer):
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "settle",
   "list_id": "list_20260401_abc123",

@@ -2,7 +2,7 @@
   "_comment": "ÐMP Collection Manifest — Dynamic Supply (type: dynamic, criteria: rule_based)",
   "_doc": "This is the canonical form for an ever-expanding collection like DogeMaps DNS registrations. No supply cap is set. Membership is determined by evaluating rules against each inscription's metadata — any indexer can independently verify membership without a signed update from the creator.",
 
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "collection",
 

@@ -7,7 +7,7 @@
   "required": ["p", "v", "op", "target_op", "target_id", "seller"],
   "additionalProperties": true,
   "properties": {
-    "p":             { "const": "Ð:MP" },
+    "p":             { "const": "dmp" },
     "v":             { "const": "1.0" },
     "op":            { "const": "accept" },
     "target_op":     { "enum": ["offer", "counteroffer"] },

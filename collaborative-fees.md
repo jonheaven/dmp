@@ -63,7 +63,7 @@ Optional on `op: "list"` (and auction lists). Unknown fields remain ignored by o
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "list",
   "inscription_id": "aaaabbbbccccddddeeeeffff0000111122223333444455556666777788889999i0",

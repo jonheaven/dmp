@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "protocol": "Ð:MP",
+  "protocol": "dmp",
   "description": "Extended list-operation conformance vectors for ÐMP.",
   "vectors": [
     {
@@ -9,7 +9,7 @@
       "schema": "schemas/list.json",
       "expect": "pass",
       "payload": {
-        "p": "Ð:MP",
+        "p": "dmp",
         "v": "1.0",
         "op": "list",
         "inscription_id": "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdefi0",
@@ -24,7 +24,7 @@
       "schema": "schemas/list.json",
       "expect": "pass",
       "payload": {
-        "p": "Ð:MP",
+        "p": "dmp",
         "op": "list",
         "inscription_id": "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdefi0",
         "price": "100000000",
@@ -37,7 +37,7 @@
       "schema": "schemas/list.json",
       "expect": "pass",
       "payload": {
-        "p": "Ð:MP",
+        "p": "dmp",
         "v": "1.0",
         "op": "list",
         "inscription_id": "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890i0",
@@ -53,7 +53,7 @@
       "schema": "schemas/list.json",
       "expect": "fail",
       "payload": {
-        "p": "Ð:MP",
+        "p": "dmp",
         "v": "1.0",
         "op": "list",
         "inscription_id": "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdefi0",

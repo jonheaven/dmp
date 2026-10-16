@@ -1,20 +1,21 @@
 <!-- markdownlint-disable MD024 -->
-# ÐMP — Dogenals Marketplace Protocol Specification
+# ÐMP — Doginals Marketplace Protocol Specification
 
 Version: v1.0 (Draft)
 Status: Pre-launch draft
-Last Updated: 2026-09-03
+Last Updated: 2026-10-14
 Chain: Dogecoin (and compatible Dogecoin-fork chains)
 **Canonical public spec:** [github.com/jonheaven/dmp-spec](https://github.com/jonheaven/dmp-spec)
 
-ÐMP is part of the first Dogenals launch drop. It has not been minted or battle-tested as a Dogenals protocol yet;
-implementations SHOULD treat it as a precise target for independent testing.
+ÐMP is an open Doginals marketplace protocol. Implementations SHOULD treat it as a precise target for
+independent testing until battle-tested on mainnet.
 
 ### Naming (informative)
 
-- **Display name (user-facing):** **ÐMP** (Dogenals Marketplace Protocol).
+- **Display name (user-facing):** **ÐMP** (Doginals Marketplace Protocol).
 - **Path:** `spec/protocols/dmp/` (studio copy). Public canonical: **[jonheaven/dmp-spec](https://github.com/jonheaven/dmp-spec)**.
-- **On-chain marker:** `p: "Ð:MP"`.
+- **On-chain marker:** `p: "dmp"` (styled alias `"Ð:MP"` accepted by indexers).
+- **Carrier:** Doginals push-only `ord` envelope (same as community Doginals). The experimental `dog` marker is **not** required for ÐMP (reserved for the GDR / eternal.dog lab).
 - **Stable assets:** Schema filenames and `$id` URLs remain unchanged for compatibility.
 
 ---
@@ -67,11 +68,11 @@ implementations SHOULD treat it as a precise target for independent testing.
 
 ## 1. Introduction
 
-The Dogenals Marketplace Protocol (ÐMP) is an open, on-chain standard for Dogecoin **NFT / Doginal**
+The Doginals Marketplace Protocol (ÐMP) is an open, on-chain standard for Dogecoin **NFT / Doginal**
 marketplace actions. ÐMP Intents are permanent receipts for market behavior: list, bid, auction, offer,
 counteroffer, accept, decline, settle, cancel, transfer, and collection governance.
 
-Authoritative ÐMP JSON is carried in a Doginal inscription envelope (`p: "Ð:MP"`). That is the durable
+Authoritative ÐMP JSON is carried in a Doginal inscription envelope (`p: "dmp"`). That is the durable
 record format — **not** the required wire for every market click. High-churn buy interest, live books, and
 optional sale receipts use OP_RETURN paths (DogeTag, DOTC) and off-band PSDT bytes; see **Write budget**.
 
@@ -142,7 +143,7 @@ MAY reference that txid.
 
 **SHOULD-113 (write budget):** Venues and wallets SHOULD prefer the cheapest conforming path:
 
-| Write | Fat envelope (`Ð:MP` inscription)? | Preferred default at scale |
+| Write | Fat envelope (`dmp` inscription)? | Preferred default at scale |
 | --- | --- | --- |
 | Collection genesis / `collection-update` | Yes (rare) | Inscription |
 | List / auction terms | Sometimes | Compact inscription; prefer `psdt_hash` over embedded `psdt` when the parent tx is fat |
@@ -180,7 +181,7 @@ for unique pieces. Do not answer L1-scale critiques by pretending Runes-style ed
 - **Inscription ID**: `<txid>i<vout>` where txid is the 64-char lowercase hex transaction ID of the first
   transaction in the inscription chain, and vout is the u32 output index where the inscription sat lands
   (typically 0 for standard single-output inscriptions).
-- **ÐMP Intent**: inscription whose JSON includes `p = "Ð:MP"`.
+- **ÐMP Intent**: inscription whose JSON includes `p = "dmp"`.
 - **Op**: operation type in `op`.
 - **Manifest**: collection op with creator signature and criteria.
 - **UTXO**: unspent transaction output controlling inscription ownership.
@@ -198,7 +199,7 @@ for unique pieces. Do not answer L1-scale critiques by pretending Runes-style ed
 
 Every ÐMP Intent MUST include:
 
-- `p`: `"Ð:MP"` (legacy lowercase `"dmp"` MAY be accepted by indexers)
+- `p`: `"dmp"` (ASCII wire). Styled alias `"Ð:MP"` MUST be accepted by indexers.
 - `op`: operation identifier
 
 `v` MAY be omitted (defaults to `"1.0"`).
@@ -270,7 +271,7 @@ Declares seller intent to sell an inscription.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "op": "list",
   "inscription_id": "<txid>i<vout>",
   "price": "<koinu>",
@@ -303,7 +304,7 @@ Optional (only when they change behavior): `v`, `ts`, `expiry`, `royalty_address
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "list",
   "inscription_id": "aaaabbbbccccddddeeeeffff0000111122223333444455556666777788889999i0",
@@ -327,7 +328,7 @@ Expresses purchase intent against a listing or auction target.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "bid",
   "inscription_id": "<txid>i<vout>",
@@ -361,7 +362,7 @@ Expresses purchase intent against a listing or auction target.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "bid",
   "inscription_id": "aaaabbbbccccddddeeeeffff0000111122223333444455556666777788889999i0",
@@ -385,7 +386,7 @@ identity is irrelevant to validity. Indexers verify validity entirely from `sett
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "settle",
   "inscription_id": "<txid>i<vout>",
@@ -437,7 +438,7 @@ identity is irrelevant to validity. Indexers verify validity entirely from `sett
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "settle",
   "inscription_id": "aaaabbbbccccddddeeeeffff0000111122223333444455556666777788889999i0",
@@ -462,7 +463,7 @@ Cancels a list, bid, auction, offer, or counteroffer intent.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "cancel",
   "cancel_id": "<target op inscription_id>",
@@ -534,7 +535,7 @@ When `co_sellers` is absent or empty, cancel authorization follows Section 8.4 o
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "cancel",
   "cancel_id": "c0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffi0",
@@ -578,7 +579,7 @@ the same job. See [drc721-and-dmp.md](../../comparisons/drc721-and-dmp.md). In p
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "collection",
   "slug": "doge-punks",
@@ -627,7 +628,7 @@ the same job. See [drc721-and-dmp.md](../../comparisons/drc721-and-dmp.md). In p
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "collection",
   "slug": "doge-punks",
@@ -674,7 +675,7 @@ operation). Parent provenance is fixed on the [root `collection` op](#45-collect
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "collection-update",
   "collection_id": "<root collection inscription_id>",
@@ -709,7 +710,7 @@ The later op is treated as an orphaned branch and MUST be rejected by indexers.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "collection-update",
   "collection_id": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2i0",
@@ -737,7 +738,7 @@ DAO governance receipt used when a collection has `requires_vote = true`.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "vote",
   "collection_id": "<collection inscription_id>",
@@ -761,7 +762,7 @@ DAO governance receipt used when a collection has `requires_vote = true`.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "vote",
   "collection_id": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2i0",
@@ -790,7 +791,7 @@ even without a list op.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "auction",
   "inscription_id": "<txid>i<vout>",
@@ -826,7 +827,7 @@ even without a list op.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "auction",
   "inscription_id": "1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffffi0",
@@ -852,7 +853,7 @@ Private push-style offer targeted to a specific inscription or collection.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "offer",
   "offer_target_type": "inscription",
@@ -899,7 +900,7 @@ Private push-style offer targeted to a specific inscription or collection.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "offer",
   "offer_target_type": "inscription",
@@ -922,7 +923,7 @@ Private push-style offer targeted to a specific inscription or collection.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "counteroffer",
   "offer_id": "<offer inscription_id>",
@@ -940,7 +941,7 @@ Private push-style offer targeted to a specific inscription or collection.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "accept",
   "target_op": "offer",
@@ -956,7 +957,7 @@ Private push-style offer targeted to a specific inscription or collection.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "decline",
   "target_op": "offer",
@@ -983,7 +984,7 @@ Private push-style offer targeted to a specific inscription or collection.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "counteroffer",
   "offer_id": "c0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffeec0ffi0",
@@ -998,7 +999,7 @@ Private push-style offer targeted to a specific inscription or collection.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "accept",
   "target_op": "offer",
@@ -1012,7 +1013,7 @@ Private push-style offer targeted to a specific inscription or collection.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "decline",
   "target_op": "offer",
@@ -1037,7 +1038,7 @@ wants to document on-chain retroactively or prospectively.
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "transfer",
   "inscription_id": "<txid>i<vout>",
@@ -1077,7 +1078,7 @@ When a valid `transfer` op is indexed:
 
 ```json
 {
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "transfer",
   "inscription_id": "aaaabbbbccccddddeeeeffff0000111122223333444455556666777788889999i0",
@@ -1124,7 +1125,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
   "type": "object",
   "required": ["p", "v", "op", "inscription_id", "price", "seller"],
   "properties": {
-    "p": { "const": "Ð:MP" },
+    "p": { "const": "dmp" },
     "v": { "const": "1.0" },
     "op": { "const": "list" },
     "inscription_id": { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },
@@ -1141,7 +1142,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
   "type": "object",
   "required": ["p", "v", "op", "price", "bidder"],
   "properties": {
-    "p": { "const": "Ð:MP" },
+    "p": { "const": "dmp" },
     "v": { "const": "1.0" },
     "op": { "const": "bid" },
     "inscription_id": { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },
@@ -1162,7 +1163,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
   "type": "object",
   "required": ["p", "v", "op", "inscription_id", "seller", "buyer", "price", "settlement_txid"],
   "properties": {
-    "p": { "const": "Ð:MP" },
+    "p": { "const": "dmp" },
     "v": { "const": "1.0" },
     "op": { "const": "settle" },
     "inscription_id": { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },
@@ -1179,7 +1180,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
   "type": "object",
   "required": ["p", "v", "op", "cancel_id", "cancel_type", "reason"],
   "properties": {
-    "p": { "const": "Ð:MP" },
+    "p": { "const": "dmp" },
     "v": { "const": "1.0" },
     "op": { "const": "cancel" },
     "cancel_id": { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },
@@ -1202,7 +1203,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
   "type": "object",
   "required": ["p", "v", "op", "slug", "creator_address", "type"],
   "properties": {
-    "p": { "const": "Ð:MP" },
+    "p": { "const": "dmp" },
     "v": { "const": "1.0" },
     "op": { "const": "collection" },
     "slug": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-z0-9-]+$" },
@@ -1221,7 +1222,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
   "type": "object",
   "required": ["p", "v", "op", "collection_id", "supersedes", "update_of", "patch"],
   "properties": {
-    "p": { "const": "Ð:MP" },
+    "p": { "const": "dmp" },
     "v": { "const": "1.0" },
     "op": { "const": "collection-update" },
     "collection_id": { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },
@@ -1237,7 +1238,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
   "type": "object",
   "required": ["p", "v", "op", "collection_id", "result", "vote_start", "vote_end"],
   "properties": {
-    "p": { "const": "Ð:MP" },
+    "p": { "const": "dmp" },
     "v": { "const": "1.0" },
     "op": { "const": "vote" },
     "result": { "enum": ["approved", "rejected"] },
@@ -1254,7 +1255,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
   "type": "object",
   "required": ["p", "v", "op", "inscription_id", "seller", "auction_mode", "min_bid_increment", "start_ts", "expiry"],
   "properties": {
-    "p": { "const": "Ð:MP" },
+    "p": { "const": "dmp" },
     "v": { "const": "1.0" },
     "op": { "const": "auction" },
     "auction_mode": { "enum": ["time_based", "seller_can_accept_early", "no_early_accept"] },
@@ -1272,7 +1273,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
   "type": "object",
   "required": ["p", "v", "op", "offer_target_type", "buyer", "price", "offer_fee", "fee_recipient"],
   "properties": {
-    "p": { "const": "Ð:MP" },
+    "p": { "const": "dmp" },
     "v": { "const": "1.0" },
     "op": { "const": "offer" },
     "offer_target_type": { "enum": ["inscription", "collection"] },
@@ -1299,7 +1300,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
   "type": "object",
   "required": ["p", "v", "op", "offer_id", "seller", "counter_price"],
   "properties": {
-    "p": { "const": "Ð:MP" },
+    "p": { "const": "dmp" },
     "v": { "const": "1.0" },
     "op": { "const": "counteroffer" },
     "offer_id": { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },
@@ -1315,7 +1316,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
   "type": "object",
   "required": ["p", "v", "op", "target_op", "target_id", "seller"],
   "properties": {
-    "p": { "const": "Ð:MP" },
+    "p": { "const": "dmp" },
     "v": { "const": "1.0" },
     "op": { "enum": ["accept", "decline"] },
     "target_op": { "enum": ["offer", "counteroffer"] },
@@ -1331,7 +1332,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
   "type": "object",
   "required": ["p", "v", "op", "inscription_id", "from_address", "to_address", "transfer_type", "transfer_txid"],
   "properties": {
-    "p": { "const": "Ð:MP" },
+    "p": { "const": "dmp" },
     "v": { "const": "1.0" },
     "op": { "const": "transfer" },
     "inscription_id": { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },
@@ -1593,7 +1594,7 @@ Any op failing a MUST rule is invalid.
 
 ### 13.1 Universal
 
-- MUST-001: `p` equals `"Ð:MP"` (indexers MAY also accept legacy `"dmp"`).
+- MUST-001: Emitters MUST set `p` to `"dmp"`. Indexers MUST also accept styled alias `"Ð:MP"`.
 - MUST-002: `v`, when present, is a recognized version. Indexers accept `"1.0"`. When `v` is absent, treat as `"1.0"`.
 - MUST-003: `op` is recognized.
 - MUST-004: valid UTF-8 JSON.

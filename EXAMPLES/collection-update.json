@@ -2,7 +2,7 @@
   "_comment": "ÐMP Collection Update — Metadata patch with supersedes chain",
   "_doc": "A collection-update appends a new record to the collection's update chain. It does NOT delete the original manifest — that remains on-chain permanently. The patch object contains only the fields being changed; all other fields retain their previous values. supersedes must point to the current chain head (the original manifest if this is the first update, or the previous update inscription ID).",
 
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "collection-update",
 

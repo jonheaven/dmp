@@ -7,7 +7,7 @@
   "required": ["p", "v", "op", "collection_id", "supersedes", "update_of", "patch"],
   "additionalProperties": true,
   "properties": {
-    "p":             { "const": "Ð:MP" },
+    "p":             { "const": "dmp" },
     "v":             { "const": "1.0" },
     "op":            { "const": "collection-update" },
     "collection_id": { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },

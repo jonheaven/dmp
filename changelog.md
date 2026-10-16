@@ -1,6 +1,6 @@
 # Launch Draft Summary
 
-ÐMP v1.0 is the first Dogenals Marketplace Protocol launch draft. The spec has not launched on-chain and does not
+ÐMP v1.0 is the Doginals Marketplace Protocol launch draft. The spec has not launched on-chain and does not
 carry compatibility obligations from earlier internal drafts.
 
 ## Included
@@ -16,6 +16,14 @@ carry compatibility obligations from earlier internal drafts.
 Future changes after public launch should be tracked here with clear versioning and migration guidance.
 
 ## Draft updates (pre-launch)
+
+### 2026-10-14 — Canonical wire marker `p:"dmp"` + Doginals naming
+
+- Emitters MUST set `p` to ASCII `"dmp"`.
+- Indexers MUST still accept styled alias `"Ð:MP"`.
+- Expansion is **Doginals Marketplace Protocol** (not “Dogenals”).
+- Branding in docs/UI remains **ÐMP**.
+- `dog` marker is out of scope for ÐMP — reserved for GDR / eternal.dog lab.
 
 ### 2026-09-03 — L1 write budget (UTXO-maxi hardening)
 

@@ -1,6 +1,6 @@
 {
   "_comment": "ÐMP v1.0 private offer with mandatory offer_fee",
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "offer",
   "offer_target_type": "inscription",

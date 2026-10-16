@@ -2,7 +2,7 @@
   "_comment": "ÐMP Bid Operation — Collection-Level Bid",
   "_doc": "A collection bid expresses a buyer's intent to purchase ANY inscription that is a valid member of a specific collection, at the stated price. The indexer must match this bid against any active listing for a member inscription. This is distinct from an inscription-specific bid which targets a single inscription_id.",
 
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "bid",
 

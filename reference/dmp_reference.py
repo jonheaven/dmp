@@ -219,8 +219,8 @@ def validate_envelope(
             _add(issues, "error", "MUST-BASE", f"Missing required top-level field: {field_name!r}")
 
     p = payload.get("p")
-    if p not in ("Ð:MP", "dmp"):
-        _add(issues, "error", "MUST-001", 'p must equal "Ð:MP".')
+    if p not in ("dmp", "Ð:MP"):
+        _add(issues, "error", "MUST-001", 'p must equal "dmp" (styled alias "Ð:MP" accepted).')
 
     v = payload.get("v", "1.0")
     if v not in SUPPORTED_VERSIONS:
@@ -590,7 +590,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "Valid fixed-price list (v1.0)",
         "expect": "pass",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "list",
+            "p": "dmp", "v": "1.0", "op": "list",
             "inscription_id": "aaaa" * 16 + "i0",
             "price": "100000000",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
@@ -602,7 +602,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "Valid lean list (MUST-109 defaults: no v/currency/chain)",
         "expect": "pass",
         "payload": {
-            "p": "Ð:MP", "op": "list",
+            "p": "dmp", "op": "list",
             "inscription_id": "aaaa" * 16 + "i0",
             "price": "100000000",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
@@ -613,7 +613,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "Valid bid with inscription_id (v1.0)",
         "expect": "pass",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "bid",
+            "p": "dmp", "v": "1.0", "op": "bid",
             "inscription_id": "bbbb" * 16 + "i0",
             "price": "150000000",
             "bidder": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
@@ -625,7 +625,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "Valid bid with collection_id (v1.0)",
         "expect": "pass",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "bid",
+            "p": "dmp", "v": "1.0", "op": "bid",
             "collection_id": "cccc" * 16 + "i0",
             "price": "200000000",
             "bidder": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
@@ -637,7 +637,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "Valid settle (v1.0)",
         "expect": "pass",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "settle",
+            "p": "dmp", "v": "1.0", "op": "settle",
             "inscription_id": "aaaa" * 16 + "i0",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
             "buyer": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
@@ -651,7 +651,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "Valid cancel (v1.0, no canceller)",
         "expect": "pass",  # warning only — no canceller is v1.0-valid
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "cancel",
+            "p": "dmp", "v": "1.0", "op": "cancel",
             "cancel_id": "cccc" * 16 + "i0",
             "cancel_type": "list",
             "reason": "seller_request",
@@ -663,7 +663,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "Valid cancel with canceller (v1.0)",
         "expect": "pass",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "cancel",
+            "p": "dmp", "v": "1.0", "op": "cancel",
             "cancel_id": "cccc" * 16 + "i0",
             "cancel_type": "list",
             "canceller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
@@ -676,7 +676,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "Valid auction (v1.0)",
         "expect": "pass",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "auction",
+            "p": "dmp", "v": "1.0", "op": "auction",
             "inscription_id": "1111" * 16 + "i0",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
             "auction_mode": "time_based",
@@ -691,7 +691,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "Valid offer (v1.0)",
         "expect": "pass",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "offer",
+            "p": "dmp", "v": "1.0", "op": "offer",
             "offer_target_type": "inscription",
             "inscription_id": "aaaa" * 16 + "i0",
             "buyer": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
@@ -708,7 +708,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "Valid transfer (v1.0)",
         "expect": "pass",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "transfer",
+            "p": "dmp", "v": "1.0", "op": "transfer",
             "inscription_id": "aaaa" * 16 + "i0",
             "from_address": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
             "to_address": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
@@ -723,7 +723,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "Valid settle with platform_fee (v1.0)",
         "expect": "pass",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "settle",
+            "p": "dmp", "v": "1.0", "op": "settle",
             "inscription_id": "aaaa" * 16 + "i0",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
             "buyer": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
@@ -751,7 +751,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "MUST-002: unknown version",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "9.9", "op": "list",
+            "p": "dmp", "v": "9.9", "op": "list",
             "inscription_id": "aaaa" * 16 + "i0",
             "price": "100000000",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
@@ -761,14 +761,14 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "id": "TV-103",
         "desc": "MUST-003: unknown op",
         "expect": "fail",
-        "payload": {"p": "Ð:MP", "v": "1.0", "op": "unknown_op"},
+        "payload": {"p": "dmp", "v": "1.0", "op": "unknown_op"},
     },
     {
         "id": "TV-104",
         "desc": "MUST-REQ: list missing inscription_id",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "list",
+            "p": "dmp", "v": "1.0", "op": "list",
             "price": "100000000",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
         },
@@ -778,7 +778,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "MUST-REQ: list missing price",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "list",
+            "p": "dmp", "v": "1.0", "op": "list",
             "inscription_id": "aaaa" * 16 + "i0",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
         },
@@ -788,7 +788,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "MUST-ONE-OF: bid missing both inscription_id and collection_id",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "bid",
+            "p": "dmp", "v": "1.0", "op": "bid",
             "price": "100000000",
             "bidder": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
         },
@@ -798,7 +798,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "FORMAT-ID: malformed inscription_id",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "list",
+            "p": "dmp", "v": "1.0", "op": "list",
             "inscription_id": "not-a-valid-id",
             "price": "100000000",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
@@ -809,7 +809,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "MUST-074: auction with invalid auction_mode",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "auction",
+            "p": "dmp", "v": "1.0", "op": "auction",
             "inscription_id": "1111" * 16 + "i0",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
             "auction_mode": "invalid_mode",
@@ -823,7 +823,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "MUST-075: auction expiry <= start_ts",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "auction",
+            "p": "dmp", "v": "1.0", "op": "auction",
             "inscription_id": "1111" * 16 + "i0",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
             "auction_mode": "time_based",
@@ -837,7 +837,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "MUST-082: offer with offer_fee = 0",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "offer",
+            "p": "dmp", "v": "1.0", "op": "offer",
             "offer_target_type": "inscription",
             "inscription_id": "aaaa" * 16 + "i0",
             "buyer": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
@@ -852,7 +852,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "MUST-083: offer missing fee_recipient",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "offer",
+            "p": "dmp", "v": "1.0", "op": "offer",
             "offer_target_type": "inscription",
             "inscription_id": "aaaa" * 16 + "i0",
             "buyer": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
@@ -866,7 +866,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "MUST-006: chain != dogecoin",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "list",
+            "p": "dmp", "v": "1.0", "op": "list",
             "inscription_id": "aaaa" * 16 + "i0",
             "price": "100000000",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
@@ -878,7 +878,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "MUST-106: cancel missing reason",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "cancel",
+            "p": "dmp", "v": "1.0", "op": "cancel",
             "cancel_id": "cccc" * 16 + "i0",
             "cancel_type": "list",
             "canceller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
@@ -891,7 +891,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "MUST-095: invalid transfer_type",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "transfer",
+            "p": "dmp", "v": "1.0", "op": "transfer",
             "inscription_id": "aaaa" * 16 + "i0",
             "from_address": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
             "to_address": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
@@ -904,7 +904,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "MUST-054: royalty_bps out of range",
         "expect": "fail",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "collection",
+            "p": "dmp", "v": "1.0", "op": "collection",
             "slug": "test-collection",
             "creator_address": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
             "type": "fixed",
@@ -916,7 +916,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "desc": "Unknown fields are silently ignored (MUST-005)",
         "expect": "pass",
         "payload": {
-            "p": "Ð:MP", "v": "1.0", "op": "list",
+            "p": "dmp", "v": "1.0", "op": "list",
             "inscription_id": "aaaa" * 16 + "i0",
             "price": "100000000",
             "seller": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",

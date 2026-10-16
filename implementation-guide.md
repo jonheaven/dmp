@@ -1,4 +1,4 @@
-# Dogenals Marketplace Protocol (ÐMP) Implementation Guide
+# Doginals Marketplace Protocol (ÐMP) Implementation Guide
 
 For indexers, wallets, marketplaces, and AI agents implementing ÐMP v1.0 and v1.0.
 
@@ -12,7 +12,7 @@ A ÐMP indexer must:
 
 1. Consume Dogecoin blocks in order via RPC (`getblock`, `getrawtransaction`).
 2. For each transaction, parse all Dogenals inscriptions from `script_sig` of the first input.
-3. Filter `p = "Ð:MP"` (legacy `"dmp"` MAY be accepted) and supported `v` (`"1.0"`, or omit → `"1.0"`).
+3. Filter `p = "dmp"` (styled alias `"Ð:MP"` MUST be accepted) and supported `v` (`"1.0"`, or omit → `"1.0"`).
 4. **Process inputs before outputs** in every transaction: apply UTXO-spend invalidations before
    ingesting new ÐMP intents from outputs in the same tx.
 5. Validate op-specific MUST rules from SPEC.md Section 13.

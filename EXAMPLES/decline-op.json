@@ -1,6 +1,6 @@
 {
   "_comment": "ÐMP v1.0 seller decline of offer or counteroffer",
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "decline",
   "target_op": "offer",

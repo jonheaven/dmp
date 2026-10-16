@@ -7,7 +7,7 @@
   "required": ["p", "v", "op", "inscription_id", "seller", "auction_mode", "min_bid_increment", "start_ts", "expiry"],
   "additionalProperties": true,
   "properties": {
-    "p":                 { "const": "Ð:MP" },
+    "p":                 { "const": "dmp" },
     "v":                 { "const": "1.0" },
     "op":                { "const": "auction" },
     "inscription_id":    { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },

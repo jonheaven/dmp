@@ -2,7 +2,7 @@
   "_comment": "ÐMP Collection Manifest — Fixed Supply (type: fixed, criteria: explicit)",
   "_doc": "This is the canonical form for a fixed-supply PFP or art collection. All member inscription IDs are listed explicitly. supply must equal the length of criteria.inscription_ids. supply_locked prevents future updates from increasing the cap.",
 
-  "p": "Ð:MP",
+  "p": "dmp",
   "v": "1.0",
   "op": "collection",
 
