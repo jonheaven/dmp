@@ -11,7 +11,7 @@ The **seller-signed PSDT** is the fill contract (Satoshi). The **inscription env
 | **Version** | v1.0+ · write budget [MUST-111+](spec.md#write-budget-l1-surface-at-scale) |
 | **Class** | Marketplace **intent and proof** layer (not custody, not a fungible token) |
 | **Durable payload** | JSON in a Dogecoin inscription with `"p": "dmp"` |
-| **Scale path** | Artifact + list/`psdt_hash` + sale tx; DogeTag/DOTC for chatter & receipts — not an inscription per click |
+| **Scale path** | Collection + list (PSDT or `psdt_hash`); the fill tx is the settle. DogeTag for bids. No fixed-price `settle` inscription |
 | **Status** | v1.0 Launch Draft |
 | **Chain** | Dogecoin |
 | **License** | [MIT](LICENSE) |
@@ -70,7 +70,7 @@ If you ship this in a wallet, marketplace, or indexer, you are implementing **th
 
 **DogeTag offer signaling.** Optional [ÐMP DogeTag Offers](dogetag-offers.md) use lightweight OP_RETURN signals plus small recipient DOGE outputs so wallets can detect buy interest even when a user is not connected to a marketplace. This is the preferred default for buy-interest pings (MUST-111).
 
-**DOTC receipts.** Completed live / private OTC deals MAY emit DOTC (`dotc|1|…` in `OP_RETURN` on the inscription-move tx) without a ÐMP inscription. A later ÐMP `settle` MAY reference that DOTC txid. DOTC is not a listing protocol.
+**DOTC receipts.** An optional `dotc|1|…` `OP_RETURN` on the fill tx labels the sale. A fixed-price ÐMP settle is that fill. DOTC is not a listing protocol and is not required.
 
 **L1 write budget.** See [spec.md Write budget](spec.md#write-budget-l1-surface-at-scale): collections ≠ fungible transfer spam; millions of users is not millions of envelopes.
 

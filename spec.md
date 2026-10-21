@@ -3,7 +3,7 @@
 
 Version: v1.0 (Draft)
 Status: Pre-launch draft
-Last Updated: 2026-10-20
+Last Updated: 2026-10-21
 Chain: Dogecoin (and compatible Dogecoin-fork chains)
 **Canonical public spec:** [github.com/jonheaven/dmp-spec](https://github.com/jonheaven/dmp-spec)
 
@@ -27,6 +27,7 @@ independent testing until battle-tested on mainnet.
    - Wire philosophy (Satoshi + Casey)
    - Size Guidelines
    - Write budget (L1 surface at scale)
+   - Chain is the story
    - Not Dunes / not BRC-20
    - Versioning
 2. Terminology
@@ -136,10 +137,12 @@ counteroffer, accept, decline, cancel, or page view. Indexers and venues that on
 remain conformant when they also index DogeTag / DOTC / payment txs; they MUST NOT claim that missing
 chatty envelopes make the protocol incomplete.
 
-**MUST-112:** Sale truth is the **payment + dog-move transaction** (`settlement_txid` / equivalent). A
-ÐMP `settle` inscription is an optional durable receipt that points at that tx — not a substitute for it.
-A DOTC (`dotc|1|…` in `OP_RETURN` on the move tx) MAY serve as the live receipt; a later `settle`
-MAY reference that txid.
+**MUST-112:** Fixed-price sale truth is the **fill transaction**: the dog moves and the locked
+`SIGHASH_SINGLE | ANYONECANPAY` output is paid. That transaction is the settle. A ÐMP `settle`
+inscription MUST NOT change the status of a fixed-price list. Auctions have no single locked fill;
+an auction `settle` inscription is only a pointer, and it MUST NOT change status unless the named
+transaction already moved the dog and paid the seller. A DOTC `OP_RETURN` (`dotc|1|…`) on the fill
+tx MAY label the sale. It is not required.
 
 **SHOULD-113 (write budget):** Venues and wallets SHOULD prefer the cheapest conforming path:
 
@@ -151,12 +154,35 @@ MAY reference that txid.
 | Bid / offer / decline chatter | No | [DogeTag](dogetag-offers.md) (~40-byte `OP_RETURN`) and/or venue off-chain book |
 | Durable negotiated `offer` / `accept` | Optional | Inscription when parties want provenance-grade negotiation |
 | Cancel | Cheap signal | Prefer spend/invalidation or compact signal; inscription `cancel` remains valid |
-| Sale (money + dog move) | N/A — always on L1 as a normal tx | Always |
-| `settle` / DOTC receipt | Optional | DOTC on the move tx, or **one** inscription per sale — not per click |
+| Sale (money + dog move) | No | The fill transaction. That is the settle |
+| `settle` inscription | No | Ignored for fixed-price. Auctions only, and only as a pointer at a fill that already paid |
+| DOTC receipt | No | Optional `OP_RETURN` on the fill tx |
 
 **Hybrid remains valid:** raw transfers without ÐMP still work; provenance shows a gap (honest UX).
 Hash-only `list` (`psdt_hash`, PSDT off-band) is valid per §3.4. Full inscription ops stay first-class
 when parties choose them; the write budget constrains *defaults*, not capability.
+
+### Chain is the story
+
+Dogecoin already records who holds the dog, who was paid, and how much. ÐMP does not inscribe that
+history a second time. The indexer builds the sale from the fill. An inscription is only for a fact
+the chain cannot see.
+
+| Fact | Where it lives |
+| --- | --- |
+| Who owns the dog | The dog's UTXO |
+| Fixed-price contract | The PSDT. Embed it, or inscribe `psdt_hash` and keep the bytes off-band |
+| Which dog, price, seller — PSDT embedded | The signed outpoint and the locked output. `inscription_id`, `price`, and `seller` MAY be omitted. If present they MUST match the lock |
+| Which dog, price, seller — hash-only | The list JSON. The bytes are not on chain, so the intent has to say them |
+| Creator royalty | Once, on the collection inscription. Not on every list or sale |
+| Bid / offer chatter | [DogeTag](dogetag-offers.md) `OP_RETURN`, or a venue book |
+| Cancel | Spend the dog to yourself. The old PSDT's input is gone (MUST-015). A `cancel` inscription is a label |
+| Sale | The fill transaction. Not a `settle` inscription |
+| Receipt label | Optional DOTC `OP_RETURN` on the fill tx (≤ 80 bytes) |
+
+**Do not shorten keys.** `price` versus `pr` saves less than a postage output. The bytes that cost
+are `nonWitnessUtxo` inside an embedded PSDT, and every inscription that did not need to exist.
+Omit fields the indexer can already see. Do not add a compact dialect.
 
 ### Not Dunes / not BRC-20
 
@@ -295,6 +321,7 @@ Optional (only when they change behavior): `v`, `ts`, `expiry`, `royalty_address
 
 #### Notes
 
+- When `psdt` is embedded, `inscription_id`, `price`, and `seller` MAY be omitted. The indexer reads the dog from the signed outpoint, and the price and seller from the locked output. If any of the three is present, it MUST match that lock. A hash-only list (`psdt_hash`, no `psdt`) MUST still include all three.
 - `listing_type` is optional (default `fixed_price`). Allowed values: `fixed_price`, `auction`.
 - `listing_marketplace` is a human tag. Pay the listing venue with `listing_fee_address` + `market_fee_bps`.
 - `auction_mode` is used when `listing_type` is `"auction"`.
@@ -387,8 +414,12 @@ Expresses purchase intent against a listing or auction target.
 
 ### 4.3 settle
 
-Records completed transfer and payment settlement. **Any party may inscribe a settle op** — the inscriber
-identity is irrelevant to validity. Indexers verify validity entirely from `settlement_txid` on-chain reality.
+Not used for fixed-price. The fill transaction is the settle (MUST-112). Indexers MUST ignore
+`op:"settle"` on a fixed-price list.
+
+Auctions have no single locked PSDT. An auction `settle` inscription points at the transaction the
+seller accepted. It changes status only when that transaction already moved the dog and paid the
+seller. A `settle` that does not is ignored. It MUST NOT leave the auction pending.
 
 #### Schema
 
@@ -1420,24 +1451,24 @@ ACTIVE states:
   auction_live    - auction op confirmed, within start_ts..expiry window, no settlement
 
 TERMINAL states:
-  settled         - sale transaction confirmed (>= 6 blocks) or a later settle op that points at it
+  settled         - fill transaction confirmed (>= 6 blocks). An auction settle op only counts when it points at that tx
   cancelled       - valid cancel op confirmed
   invalidated     - inscription UTXO spent without paying the list
-  expired         - listing_type=fixed_price and expiry timestamp passed with no settle
+  expired         - listing_type=fixed_price and expiry timestamp passed with no fill
   expired_no_sale - auction_mode=time_based and expiry passed with no valid settle
 
 PENDING states (provisional, not confirmed):
-  pending_settle  - sale tx (or settle op) seen, awaiting confirmation depth
+  pending_settle  - fill tx seen, awaiting 6 confirmations. A settle inscription cannot enter this state on a fixed-price list
   pending_cancel  - cancel op in mempool
 ```
 
-Applying **MUST-112:** for a fixed-price list, the settlement is the transaction that spends the listed dog and pays the seller at least the locked amount (the residual, when collaborative fees are on the list). Indexers MUST enter `pending_settle` on that spend and `settled` once it has 6 confirmations. A `settle` inscription is an optional receipt and MUST NOT be required for the sale to count. A spend that does not pay the list (gift, self-move, cancel-by-spend) is `invalidated`. Auctions still settle through an explicit settle op.
+Applying **MUST-112:** for a fixed-price list, the settlement is the transaction that spends the listed dog and pays the seller at least the locked amount (the residual, when collaborative fees are on the list). Indexers MUST enter `pending_settle` on that spend and `settled` once it has 6 confirmations. A `settle` inscription does not enter this path. A spend that does not pay the list (gift, self-move, cancel-by-spend) is `invalidated`. Auctions still name the winning fill with a `settle` inscription, and only after that fill is already on chain.
 
 ### State Transition Rules
 
-- `listed` → `pending_settle`: fixed-price spend pays the seller and moves the dog to a different address, or a settle op names that tx.
-- `pending_settle` → `settled`: settlement tx has >= 6 confirmations and still assigns the dog to the buyer.
-- `listed` → `settled`: same proof already deep enough at index time.
+- `listed` → `pending_settle`: fixed-price spend pays the seller and moves the dog to a different address.
+- `pending_settle` → `settled`: that fill tx has >= 6 confirmations and still assigns the dog to the buyer.
+- `listed` → `settled`: the same fill is already deep enough at index time.
 - `listed` → `cancelled`: valid cancel op with authorization.
 - `listed` → `invalidated`: inscription UTXO spent without paying the list.
 - `listed` → `expired`: `expiry` timestamp reached, no settle.
@@ -1621,15 +1652,15 @@ Any op failing a MUST rule is invalid.
 - MUST-109: omitted `currency` / `chain` / list `listing_type` default to `"DOGE"` / `"dogecoin"` / `"fixed_price"` (Section 3.2). Present values MUST match those defaults except `listing_type` MAY be `"auction"`.
 - MUST-110: if both `psdt` and `psdt_hash` are present, `psdt_hash` MUST be SHA-256 of the decoded PSDT bytes (Section 3.4).
 - MUST-111: a complete ÐMP market MUST NOT require an inscription for every bid/offer/decline/cancel/page view (Write budget).
-- MUST-112: sale truth is the payment + dog-move tx; `settle` / DOTC are optional receipts that point at it (Write budget).
+- MUST-112: fixed-price sale truth is the fill tx. A `settle` inscription MUST NOT change that list. Auction `settle` is a pointer and only counts when the named tx already paid (Write budget, Chain is the story).
 - SHOULD-113: prefer DogeTag / off-band PSDT / DOTC / `psdt_hash` per the Write budget table; envelopes for durable collection + list/auction + optional per-sale receipt.
 
 ### 13.2 list
 
-- MUST-010: `inscription_id` exists in indexer state.
-- MUST-011: `seller` equals the current UTXO owner of `inscription_id` at the list inscription's block
-  height (address-match model — NOT UTXO spend). See Section 8.1.
-- MUST-012: `price` is a valid positive integer string.
+- MUST-010: the listed dog exists in indexer state. With an embedded `psdt` and no `inscription_id`, that dog is the single inscription on the signed outpoint.
+- MUST-011: `seller` equals the current UTXO owner of the listed dog at the list inscription's block
+  height (address-match model — NOT UTXO spend). See Section 8.1. When `seller` is omitted, the owner is the seller, and the locked output MUST pay that address.
+- MUST-012: `price` is a valid positive integer string. When `price` is omitted on an embedded PSDT with no royalty or market fee, the locked output value is the price.
 - MUST-013: only one ACTIVE list per inscription at any time; by canonical ordering, the latest list op
   supersedes any prior active listing.
 - MUST-014: expired listings (past `expiry`) are inactive.
@@ -1906,9 +1937,9 @@ See EXAMPLES directory for canonical operation payloads, including:
 - Collection manifests and `collection-update` rules.
 - Optional root `collection.parent_inscription_id`, aligned with DRC-721 native `parent` / UTXO validation.
 - Creator signatures, canonical ordering, provenance gap handling, and settlement verification.
-- **Write budget (MUST-111 / MUST-112 / SHOULD-113):** durable envelopes for rare collection + list/auction
-  pointers; DogeTag / off-chain books for chatty bids; sale tx as money truth; optional DOTC or one `settle`
-  per sale — not an inscription per click. Dogecoin envelopes are scriptSig (no witness discount).
+- **Write budget (MUST-111 / MUST-112 / SHOULD-113):** one collection inscription for royalty, one list
+  for the PSDT or its hash, DogeTag for bids, the fill tx as the settle. No `settle` inscription on a
+  fixed-price sale. Dogecoin envelopes are scriptSig (no witness discount).
 - ÐMP DogeTag Offers by reference as a lightweight OP_RETURN signaling extension.
 - Explicit split from Dunes/Treats (fungible edicts ≠ unique Doginal marketplace intents).
 

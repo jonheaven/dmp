@@ -17,10 +17,20 @@ Future changes after public launch should be tracked here with clear versioning 
 
 ## Draft updates (pre-launch)
 
+### 2026-10-21 — The fill is the settle
+
+A fixed-price `settle` inscription does not change listing status (MUST-112). The fill transaction is
+the sale: dog moved, locked output paid. Auction `settle` is only a pointer at a fill that already paid.
+
+- Embedded `psdt`: `inscription_id`, `price`, and `seller` MAY be omitted. If present they MUST match the lock.
+- Hash-only lists still carry those three fields.
+- Cancel is the self-spend. Royalty stays on the collection inscription.
+- Do not shorten JSON keys. Omit fields the indexer can already see.
+
 ### 2026-10-20 — Postage-safe fill, sale tx settles, marker is only `dmp`
 
 - Portable list signs the dog at **input 1** and locks **output 1**. Do not fill a postage dog signed at input 0 against a price-sized output 0.
-- Fixed-price settlement is the spend that pays the list and moves the dog. A `settle` inscription is optional. Auctions still use an explicit settle op.
+- Fixed-price settlement is the spend that pays the list and moves the dog. A `settle` inscription is optional. Auctions still use an explicit settle op. Superseded 2026-10-21: that inscription does not change a fixed-price list.
 - `p` MUST be ASCII `"dmp"`. A styled marker is not ÐMP. Nothing was inscribed that way.
 
 ### 2026-10-14 — Canonical wire marker `p:"dmp"` + Doginals naming
@@ -37,7 +47,7 @@ fat envelope (BRC-20 / old DRC-20 mode). NFT markets scale with pieces + sales, 
 Dogecoin envelopes are **scriptSig** (no witness discount).
 
 - **MUST-111**: complete market MUST NOT require an inscription per bid/offer/decline/cancel/page view.
-- **MUST-112**: sale truth is payment + dog-move tx; `settle` / DOTC are optional receipts.
+- **MUST-112**: sale truth is payment + dog-move tx; `settle` / DOTC are optional receipts. Superseded 2026-10-21: a fixed-price `settle` inscription does not change status.
 - **SHOULD-113**: write-budget table — DogeTag / off-band PSDT / `psdt_hash` / DOTC for chatter; envelopes for
   durable collection + list/auction + optional one receipt per sale.
 - Explicit **Not Dunes**: fungible edicts cannot bind unique Doginal + PSDT + royalty terms.
