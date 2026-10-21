@@ -17,10 +17,15 @@ Future changes after public launch should be tracked here with clear versioning 
 
 ## Draft updates (pre-launch)
 
+### 2026-10-20 — Postage-safe fill, sale tx settles, marker is only `dmp`
+
+- Portable list signs the dog at **input 1** and locks **output 1**. Do not fill a postage dog signed at input 0 against a price-sized output 0.
+- Fixed-price settlement is the spend that pays the list and moves the dog. A `settle` inscription is optional. Auctions still use an explicit settle op.
+- `p` MUST be ASCII `"dmp"`. A styled marker is not ÐMP. Nothing was inscribed that way.
+
 ### 2026-10-14 — Canonical wire marker `p:"dmp"` + Doginals naming
 
 - Emitters MUST set `p` to ASCII `"dmp"`.
-- Indexers MUST still accept styled alias `"Ð:MP"`.
 - Expansion is **Doginals Marketplace Protocol** (not “Dogenals”).
 - Branding in docs/UI remains **ÐMP**.
 - `dog` marker is out of scope for ÐMP — reserved for GDR / eternal.dog lab.

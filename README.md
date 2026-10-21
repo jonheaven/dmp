@@ -25,7 +25,7 @@ The **seller-signed PSDT** is the fill contract (Satoshi). The **inscription env
 
 Jon Heaven — GitHub [@jonheaven](https://github.com/jonheaven) · X [@jontype](https://x.com/jontype)
 
-If you ship this in a wallet, marketplace, or indexer, you are implementing **this** protocol. Emit `"p": "dmp"` (indexers also accept the styled alias `"Ð:MP"`) and keep the op shapes identical so every indexer sees one order book.
+If you ship this in a wallet, marketplace, or indexer, you are implementing **this** protocol. Emit `"p": "dmp"` only. A styled marker is not ÐMP. Keep the op shapes identical so every indexer sees one order book.
 
 ## Start here (pick your job)
 

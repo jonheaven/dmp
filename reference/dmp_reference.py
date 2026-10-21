@@ -219,8 +219,8 @@ def validate_envelope(
             _add(issues, "error", "MUST-BASE", f"Missing required top-level field: {field_name!r}")
 
     p = payload.get("p")
-    if p not in ("dmp", "Ð:MP"):
-        _add(issues, "error", "MUST-001", 'p must equal "dmp" (styled alias "Ð:MP" accepted).')
+    if p != "dmp":
+        _add(issues, "error", "MUST-001", 'p must equal "dmp".')
 
     v = payload.get("v", "1.0")
     if v not in SUPPORTED_VERSIONS:

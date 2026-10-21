@@ -3,7 +3,7 @@
 
 Version: v1.0 (Draft)
 Status: Pre-launch draft
-Last Updated: 2026-10-14
+Last Updated: 2026-10-20
 Chain: Dogecoin (and compatible Dogecoin-fork chains)
 **Canonical public spec:** [github.com/jonheaven/dmp-spec](https://github.com/jonheaven/dmp-spec)
 
@@ -14,7 +14,7 @@ independent testing until battle-tested on mainnet.
 
 - **Display name (user-facing):** **ÐMP** (Doginals Marketplace Protocol).
 - **Path:** `spec/protocols/dmp/` (studio copy). Public canonical: **[jonheaven/dmp-spec](https://github.com/jonheaven/dmp-spec)**.
-- **On-chain marker:** `p: "dmp"` (styled alias `"Ð:MP"` accepted by indexers).
+- **On-chain marker:** `p: "dmp"`.
 - **Carrier:** Doginals push-only `ord` envelope (same as community Doginals). The experimental `dog` marker is **not** required for ÐMP (reserved for the GDR / eternal.dog lab).
 - **Stable assets:** Schema filenames and `$id` URLs remain unchanged for compatibility.
 
@@ -199,7 +199,7 @@ for unique pieces. Do not answer L1-scale critiques by pretending Runes-style ed
 
 Every ÐMP Intent MUST include:
 
-- `p`: `"dmp"` (ASCII wire). Styled alias `"Ð:MP"` MUST be accepted by indexers.
+- `p`: `"dmp"` (ASCII). Any other value, including a styled form, is not a ÐMP intent.
 - `op`: operation identifier
 
 `v` MAY be omitted (defaults to `"1.0"`).
@@ -245,9 +245,9 @@ Every ÐMP Intent MUST include:
 ### 3.4 Fill template (PSDT)
 
 A **PSDT** is a Partially Signed Dogecoin Transaction (BIP174 PSBT bytes on Dogecoin). For a fixed-price
-list the seller signs **input 0** (the dog UTXO) with `SIGHASH_SINGLE | ANYONECANPAY` and locks **output 0**
+list the seller signs the dog with `SIGHASH_SINGLE | ANYONECANPAY` and locks the same-index output
 to themselves at `price` (or the residual seller amount when collaborative fees apply — see
-[collaborative-fees.md](collaborative-fees.md)).
+[collaborative-fees.md](collaborative-fees.md)). The portable shape is dog at input 1, payment at output 1.
 
 **Portable Buy Now** (any venue, no listing-server): the `list` body SHOULD include `psdt`.
 
@@ -256,8 +256,16 @@ until a party publishes the matching PSDT out of band. Indexers MAY cache PSDT b
 they see them. This is for fat parent transactions, not for hiding the contract.
 
 Dogecoin is legacy P2PKH: listing PSDTs carry `nonWitnessUtxo` (the entire previous tx). Extra buyer
-**coins** (payment + dummy inputs) belong on the **buy** PSDT, not the list. Extra **outputs** (royalty,
+**coins** (payment + fee inputs) belong on the **buy** PSDT, not the list. Extra **outputs** (royalty,
 listing fee) are cheap. Extra **inputs** are expensive.
+
+**Postage-safe fill (MUST).** A Doginal on a postage coin is sat offset 0. `SIGHASH_SINGLE` locks the
+output at the same index as the signed input. If the dog is input 0 and output 0 pays a price larger
+than the postage, the inscribed sat lands in the seller's payment and the seller keeps the dog.
+Indexers and wallets MUST NOT fill that shape. The portable list signs the **dog at input 1** and locks
+**output 1** to the seller. The buyer replaces input 0 with a coin that covers output 0 plus output 1,
+so the dog sat starts on the buyer's output. Fee inputs come **after** the dog. A `settle` inscription
+is not part of this fill.
 
 ---
 
@@ -1412,22 +1420,26 @@ ACTIVE states:
   auction_live    - auction op confirmed, within start_ts..expiry window, no settlement
 
 TERMINAL states:
-  settled         - valid settle op confirmed (first valid settle wins)
+  settled         - sale transaction confirmed (>= 6 blocks) or a later settle op that points at it
   cancelled       - valid cancel op confirmed
-  invalidated     - inscription UTXO spent without valid ÐMP settlement/transfer path
+  invalidated     - inscription UTXO spent without paying the list
   expired         - listing_type=fixed_price and expiry timestamp passed with no settle
   expired_no_sale - auction_mode=time_based and expiry passed with no valid settle
 
 PENDING states (provisional, not confirmed):
-  pending_settle  - settle op in mempool, awaiting confirmation depth
+  pending_settle  - sale tx (or settle op) seen, awaiting confirmation depth
   pending_cancel  - cancel op in mempool
 ```
 
+Applying **MUST-112:** for a fixed-price list, the settlement is the transaction that spends the listed dog and pays the seller at least the locked amount (the residual, when collaborative fees are on the list). Indexers MUST enter `pending_settle` on that spend and `settled` once it has 6 confirmations. A `settle` inscription is an optional receipt and MUST NOT be required for the sale to count. A spend that does not pay the list (gift, self-move, cancel-by-spend) is `invalidated`. Auctions still settle through an explicit settle op.
+
 ### State Transition Rules
 
-- `listed` → `settled`: valid settle op with confirmed settlement_txid (>= 6 blocks).
+- `listed` → `pending_settle`: fixed-price spend pays the seller and moves the dog to a different address, or a settle op names that tx.
+- `pending_settle` → `settled`: settlement tx has >= 6 confirmations and still assigns the dog to the buyer.
+- `listed` → `settled`: same proof already deep enough at index time.
 - `listed` → `cancelled`: valid cancel op with authorization.
-- `listed` → `invalidated`: inscription UTXO spent without settle or transfer.
+- `listed` → `invalidated`: inscription UTXO spent without paying the list.
 - `listed` → `expired`: `expiry` timestamp reached, no settle.
 - `listed` → `listed` (re-list): new list op with same inscription_id supersedes the current listing.
   Only one ACTIVE list per inscription at any time; latest by canonical ordering wins.
@@ -1594,7 +1606,7 @@ Any op failing a MUST rule is invalid.
 
 ### 13.1 Universal
 
-- MUST-001: Emitters MUST set `p` to `"dmp"`. Indexers MUST also accept styled alias `"Ð:MP"`.
+- MUST-001: `p` MUST be `"dmp"`. Indexers MUST NOT treat any other marker as ÐMP.
 - MUST-002: `v`, when present, is a recognized version. Indexers accept `"1.0"`. When `v` is absent, treat as `"1.0"`.
 - MUST-003: `op` is recognized.
 - MUST-004: valid UTF-8 JSON.
