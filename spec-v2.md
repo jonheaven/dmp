@@ -23,9 +23,17 @@ Keywords MUST, SHOULD, MAY are as in RFC 2119.
   A v2 list containing `psdt_hash` is INVALID.
 - A v1 `list` MUST NOT supersede an active (`listed`) v2 order for the same inscription.
 - v1 hardening adopted with v2 (applies to v1 `list` with an embedded `psdt`): the indexer MUST verify
-  the PSDT's partial signature against the dog prevout in `non_witness_utxo` (P2PKH, `hash160(pubkey)`
-  equal to the prevout's key hash, legacy sighash). Without this, any party can inscribe a
-  junk-signature PSDT naming someone else's dog.
+  the PSDT's partial signature(s) against the dog prevout in `non_witness_utxo`, legacy sighash,
+  hashtype `0x83`, low-S:
+  - P2PKH prevout: one signer, `hash160(pubkey)` equal to the prevout's key hash, scriptCode = the prevout.
+  - P2SH prevout: the PSDT input MUST carry `redeem_script` (key `0x04`) with `hash160(redeem_script)`
+    equal to the prevout's script hash; `redeem_script` MUST be a §5.4 template (v1 also accepts 65-byte
+    uncompressed keys in it); every partial signature MUST be by a key of the script and verify with
+    scriptCode = `redeem_script`; and there MUST be at least `m` of them (1 for P2PK).
+  - Any other prevout type is INVALID.
+
+  Without this, any party can inscribe a junk-signature PSDT naming someone else's dog. (The first
+  version of this check required P2PKH and rejected every P2SH-held dog; that was a regression.)
 
 ## 3. Chain values
 
@@ -60,8 +68,10 @@ Regtest and testnet share address prefixes; `chain` is what tells them apart. Ad
 | `utxo` | string | `<64 lowercase hex txid>:<vout>`, vout canonical decimal. The outpoint currently holding the dog |
 | `price` | string | koinu, `^[1-9][0-9]*$`, ≤ 2^64−1. Gross price the buyer pays (seller net + fees) |
 | `pay_to` | string | seller payout address (§3). MAY differ from the owner address |
-| `pubkey` | string | 33-byte compressed SEC1 key, 66 lowercase hex |
-| `sig` | string | lowercase hex: strict-DER (BIP66) ECDSA signature, **low-S**, followed by hashtype byte `0x83` |
+| `pubkey` | string | P2PKH dog: 33-byte compressed SEC1 key, 66 lowercase hex. MUST be absent when `redeem_script` is present |
+| `redeem_script` | string | OPTIONAL. P2SH dog: lowercase hex of the redeem script, one of the §5.4 templates. Replaces `pubkey` |
+| `sig` | string | lowercase hex: strict-DER (BIP66) ECDSA signature, **low-S**, followed by hashtype byte `0x83`. Used by P2PKH and single-key P2SH orders. MUST be absent on multisig orders |
+| `sigs` | array | multisig P2SH orders only (REQUIRED there): exactly `m` signatures, each formatted like `sig`, in redeem-script key order (§5.4) |
 | `fees` | object | OPTIONAL. Keys below; absent = no fees |
 | `fees.royalty_bps` | string | decimal `0..2500`. REQUIRED with `royalty_to` when > 0 |
 | `fees.royalty_to` | string | address |
@@ -71,7 +81,19 @@ Regtest and testnet share address prefixes; `chain` is what tells them apart. Ad
 | `ts` | integer | Unix seconds |
 | `expiry` | integer | OPTIONAL Unix seconds (§9) |
 | `psdt` | string | OPTIONAL base64 of the canonical PSDT (§5.3). If present it MUST equal the rebuild byte-for-byte |
-| `asig` | string | OPTIONAL signed-message authorship (§7.2): base64 of 65 bytes. Lets any inscriber publish the order |
+| `asig` | string | OPTIONAL signed-message authorship (§7.2): base64 of 65 bytes. Lets any inscriber publish the order. Single-key orders only |
+| `asigs` | array | multisig orders only (REQUIRED there, §7): exactly `m` `asig` strings by distinct script keys, in key order |
+
+Exactly one owner shape is valid:
+
+| dog held by | owner field | signature field | authorization (§7) |
+|---|---|---|---|
+| P2PKH | `pubkey` | `sig` | `asig` or reveal authorship |
+| P2SH `<pk> OP_CHECKSIG` | `redeem_script` | `sig` | `asig` (by `pk`) or reveal authorship by `pk` |
+| P2SH m-of-n `OP_CHECKMULTISIG` | `redeem_script` | `sigs` (m) | `asigs` (m), REQUIRED |
+
+Any other combination (`pubkey` with `redeem_script`, `sig` on a multisig order, `sigs`/`asigs` on a
+single-key order, `asig` on a multisig order, a wrong count) is INVALID.
 
 - Caps are **rejections**, not clamps: `royalty_bps > 2500` or `market_bps > 2000` ⇒ INVALID.
 - Emitters SHOULD use the key order shown and omit zero/default fee keys; parsers MUST accept any order.
@@ -119,7 +141,8 @@ This is exactly dojak `buildListingPSDT`'s layout with `out[1] = net`.
 
 `sig` signs the **legacy** (pre-segwit) signature hash of `in[1]` with hashtype `0x83`
 (`SIGHASH_SINGLE|SIGHASH_ANYONECANPAY`) and `scriptCode = OP_DUP OP_HASH160 <hash160(pubkey)>
-OP_EQUALVERIFY OP_CHECKSIG`. Concretely, the digest is `SHA256d` of: version ‖ 1 input
+OP_EQUALVERIFY OP_CHECKSIG` (P2PKH dog) or `scriptCode = redeem_script` (P2SH dog, §5.4; every
+signature in `sigs` signs this same digest). Concretely, the digest is `SHA256d` of: version ‖ 1 input
 (`in[1]` with scriptCode) ‖ 2 outputs (`out[0]` blanked to value `0xffffffffffffffff` and empty
 script, then `out[1]`) ‖ locktime ‖ `0x83000000`.
 
@@ -137,14 +160,62 @@ Because `out[1]` exists, the Dogecoin `SIGHASH_SINGLE` out-of-range bug (digest 
 global:  {0x00: unsigned tx (§5.1, empty scriptSigs)}                          0x00
 in[0]:   (no keys)                                                             0x00
 in[1]:   {0x00: non_witness_utxo = full parent tx of utxo.txid}
-         {0x02 ‖ pubkey: sig}            (DER ‖ 0x83, as in the order)
-         {0x03: 0x83000000}                                                    0x00
+         {0x02 ‖ pubkey: sig}            (DER ‖ 0x83, as in the order; one per signer)
+         {0x03: 0x83000000}
+         {0x04: redeem_script}           (P2SH dogs only)                      0x00
 out[0]:  (no keys)                                                             0x00
 out[1]:  (no keys)                                                             0x00
 ```
 
-Keys appear in ascending key-type order; nothing else is present (no global version, no xpubs,
-no proprietary keys). The PSDT is a pure function of `(order, parent tx)`.
+Keys appear in ascending key-type order, and `0x02` entries in ascending order of the 33 key bytes
+(BIP174 key order; for P2PKH and single-key P2SH there is one). Nothing else is present (no global
+version, no xpubs, no proprietary keys, no `0x01`). The PSDT is a pure function of `(order, parent tx)`.
+
+### 5.4 P2SH dogs
+
+A dog held on `P2SH(h)` lists with `redeem_script` instead of `pubkey`. The rules:
+
+1. **Hash.** `hash160(redeem_script) = h`, and the parent tx output `utxo.vout` is exactly
+   `OP_HASH160 PUSH20(h) OP_EQUAL`. The indexer's owner hash for the dog is `h`.
+2. **Templates.** `redeem_script` MUST be byte-for-byte one of:
+
+   | template | bytes |
+   |---|---|
+   | single-key P2PK | `0x21 <33-byte pk> 0xac` (`<pk> OP_CHECKSIG`) |
+   | m-of-n multisig | `OP_m (0x21 <33-byte pk_i>)×n OP_n 0xae` (`OP_CHECKMULTISIG`), `OP_m`/`OP_n` = `0x50+m`/`0x50+n` |
+
+   with `1 ≤ m ≤ n ≤ 15`, every key a compressed SEC1 point on the curve, all keys distinct, and
+   nothing before or after. Anything else (uncompressed keys, `OP_CHECKMULTISIGVERIFY`, hash locks,
+   timelocks, `n > 15`, a trailing opcode, a non-minimal push) is INVALID as
+   `unsupported redeem_script`. `n ≤ 15` is Dogecoin Core's standard P2SH limit (`MAX_P2SH_SIGOPS`);
+   a 1-of-1 multisig is allowed (it is not the P2PK template). The script is ≤ 520 bytes by
+   construction (15-of-15 = 513).
+3. **Signatures.** Each signature signs §5.2 with `scriptCode = redeem_script`, hashtype `0x83`,
+   strict DER, low-S. P2PK: `sig` verifies for `pk`. Multisig: `sigs` holds exactly `m` signatures and is
+   matched the way `OP_CHECKMULTISIG` matches: walk the keys in script order with a cursor; each
+   signature, in array order, advances the cursor past keys until one verifies it (that key is its
+   signer, and the cursor moves past it); if the keys run out, INVALID. So signatures come from `m`
+   distinct keys and are in key order, which is exactly what consensus accepts.
+4. **Canonical scriptSig.** The fill's input 1 scriptSig is rebuilt identically by every implementation:
+
+   ```
+   P2PKH         PUSH(sig ‖ 83) PUSH(pubkey)
+   P2SH P2PK     PUSH(sig ‖ 83) PUSH(redeem_script)
+   P2SH m-of-n   OP_0 PUSH(sigs[0] ‖ 83) … PUSH(sigs[m−1] ‖ 83) PUSH(redeem_script)
+   ```
+
+   (Each signature already ends in its hashtype byte, `83` for v2 list orders. The construction
+   does not depend on the hashtype.) `PUSH(x)` is the minimal push: `len(x)` as one byte if ≤ 75, else
+   `0x4c len` (PUSHDATA1) if ≤ 255, else `0x4d len16le` (PUSHDATA2). `OP_0` is the CHECKMULTISIG
+   dummy (`0x00`; NULLDUMMY). The scriptSig MUST be ≤ 1650 bytes (Core `MAX_SCRIPT_SIG_SIZE`); the
+   templates guarantee it (15-of-15 with 73-byte DER = 1627). This is what bitcoinjs `finalizeInput`
+   and Core `signrawtransaction` produce for these scripts.
+5. **PSDT.** §5.3 with one `0x02` entry per signer and `0x04 = redeem_script`.
+
+**Why only these templates.** They are the shapes wallets actually use for P2SH custody (Core
+`addmultisigaddress`, `createmultisig`, and P2SH-wrapped single keys). Every rule above is decidable
+without an interpreter, the scriptSig is unique, and the buy side can price it exactly. Arbitrary
+scripts would need a full script engine in every indexer and venue for no known use.
 
 ## 6. Validation (indexer)
 
@@ -154,12 +225,13 @@ change) on the first failure:
 1. Static: §4 types, caps, `chain` = network, `psdt_hash` absent, `net ≥ 100000`, strict DER, low-S,
    hashtype `0x83`, pubkey on curve.
 2. The indexer's own state places `inscription_id` at `utxo` (current outpoint).
-3. The dog's current owner key hash equals `hash160(pubkey)`, and the parent tx output `utxo.vout`
-   is exactly P2PKH(`hash160(pubkey)`). v2 orders require a P2PKH dog owner.
-4. `sig` verifies (§5.2).
-5. **Authorization** (§7): if `asig` is present it MUST verify for `pubkey` (§7.2) — a failing
-   `asig` is a rejection, with no fallback to reveal authorship. If `asig` is absent, the list
-   inscription's reveal MUST be authored by `pubkey` (§7.1).
+3. The dog's current owner hash equals `hash160(pubkey)` (P2PKH) or `hash160(redeem_script)` (P2SH),
+   and the parent tx output `utxo.vout` is exactly P2PKH(`hash160(pubkey)`) or
+   P2SH(`hash160(redeem_script)`) respectively (§5.4). Other dog scripts cannot list in v2.
+4. `sig` / `sigs` verify (§5.2, §5.4).
+5. **Authorization** (§7): if `asig`/`asigs` is present it MUST verify (§7.2) — a failing one is a
+   rejection, with no fallback to reveal authorship. If absent, the list inscription's reveal MUST be
+   authored by the order key (§7.1); multisig orders cannot use this path and are INVALID without `asigs`.
 6. `|ts − nTime(B)| ≤ 7200`.
 7. `expiry`, if present, `> nTime(B)`.
 8. If `psdt` is present it equals the §5.3 rebuild byte-for-byte.
@@ -179,7 +251,7 @@ its status (`listed`, `cancelled`, `expired`). A new valid v2 `list` `new` repla
 Otherwise `new` is INVALID: `ts not newer than the indexed order for this outpoint`.
 
 - **Same outpoint ⇒ same signer.** The owner of `utxo` is fixed, so `cur` and `new` were both signed by
-  that key. The rule only decides which of the seller's own orders is current.
+  that key (or, for P2SH, satisfy that script). The rule only decides which of the seller's own orders is current.
 - **Tie-break.** Ops are applied in chain order: block height, then transaction index in the block,
   then inscription index in the transaction. With equal `ts` the one applied first stays. Re-inscribing
   an identical order is therefore always a no-op rejection.
@@ -200,16 +272,27 @@ which prefers MTP.
 The SINGLE|ACP signature (§5.2) does not cover `fees`, `listing_to`, `royalty_to`, `ts` or `expiry`.
 Without an extra rule anyone could copy a live order, swap `listing_to`/`royalty_to` (keeping the same
 bps, so `net` and `sig` are unchanged), and re-inscribe it to supersede the seller's terms. A v2
-`list` or `cancel` is therefore accepted only if it is authorized by the order key in one of two ways:
+`list` or `cancel` is therefore accepted only if it is authorized by the order's owner:
 
-| | how | who may inscribe |
+| order | how | who may inscribe |
 |---|---|---|
-| §7.1 reveal authorship | reveal tx signed by `pubkey` | only the key holder |
-| §7.2 `asig` | signed-message signature over the whole canonical op | anyone (relayer, inscription service, venue) |
+| single-key (P2PKH `pubkey`, P2SH `<pk> OP_CHECKSIG`) | §7.1 reveal tx signed by the key | only the key holder |
+| single-key | §7.2 `asig` by the key | anyone (relayer, inscription service, venue) |
+| m-of-n multisig | §7.2 `asigs`: `m` signatures by distinct script keys | anyone |
 
-**Rule.** If the op contains an `asig` key it MUST verify per §7.2, otherwise the op is INVALID
-(indexers MUST NOT fall back to §7.1 — a broken `asig` is evidence of tampering). If `asig` is
-absent, §7.1 MUST hold.
+The order key of a single-key order is `pubkey`, or `pk` from the P2PK `redeem_script`.
+
+**Rule.** If the op contains an `asig` or `asigs` key it MUST verify per §7.2, otherwise the op is
+INVALID (indexers MUST NOT fall back to §7.1 — a broken `asig` is evidence of tampering). If neither is
+present, §7.1 MUST hold, which a multisig order can never satisfy.
+
+**Why m of n for multisig.** The alternative, "any one key of the script", is simpler but lets a single
+co-signer act for the group on everything the spending signatures do not cover: cancel the order,
+supersede it with a newer `ts`, or rewrite `fees`/`royalty_to`/`listing_to` (a fresh op re-using the
+group's `sigs`, which do not cover fees, plus that one key's `asig`). The script owners chose `m` keys
+to move the dog; listing terms get the same threshold. It costs no extra round: the co-signers who
+produce `sigs` sign the canonical op at the same time. Reveal authorship is excluded because a
+doginals reveal is signed by one key.
 
 ### 7.1 Reveal authorship
 
@@ -221,16 +304,17 @@ checked that signature, so the indexer only pattern-matches.
 ### 7.2 `asig` (signed canonical op)
 
 **Canonical serialization `C(op)`.** Take the op's parsed JSON object, remove the top-level keys
-`asig` and `psdt` (`psdt` is derived data, checked separately by §6.8), and serialize:
+`asig`, `asigs` and `psdt` (`psdt` is derived data, checked separately by §6.8), and serialize:
 
 - object → `{` + members joined by `,` + `}`; member = `C(key)` `:` `C(value)`; members sorted by
   key in ascending **byte** order; this applies at every nesting level (e.g. inside `fees`);
 - string → `"` + the raw characters + `"`. Every string (keys included) MUST consist only of bytes
   `0x20..0x7E` excluding `"` (0x22) and `\` (0x5C), so no escaping ever occurs;
 - integer → canonical decimal, no sign, no leading zeros, range `0..2^53−1`;
+- array → `[` + `C(element)` in array order joined by `,` + `]` (e.g. `sigs`);
 - no whitespace anywhere.
 
-Any other value (array, float, negative, boolean, null, or a forbidden character) makes `asig`
+Any other value (float, negative, boolean, null, or a forbidden character) makes `asig`
 INVALID. All defined v2 fields already satisfy these rules. Unknown fields are covered too, so a
 relayer cannot add or alter any field. JSON with duplicate keys MUST NOT be signed; parsers keep the
 last occurrence (prototype behaviour of serde_json / `JSON.parse` / Python `json`).
@@ -255,8 +339,15 @@ enforce low-S; dmp does).
 `digest` over `C(op)`; ECDSA-verify `(r,s)` against the order `pubkey`; and require that recovering
 with `recid` yields `pubkey` (keeps `asig` interchangeable with Core). Any failure ⇒ INVALID.
 
-**Which key.** For `list`, the op's own `pubkey`. For `cancel`, the `pubkey` of the listing that
-`list_id` names (the stored order).
+**Which key.** For `list`, the op's own order key (`pubkey`, or the P2PK `redeem_script` key). For
+`cancel`, the order key of the listing that `list_id` names (the stored order).
+
+**`asigs` (multisig).** An array of exactly `m` strings, each encoded and checked like `asig`, all over
+the same digest (`C(op)` excludes `asigs`, so co-signers sign independently). Each entry's recovered
+key MUST be a key of the stored or listed `redeem_script`, at a strictly greater script position than
+the previous entry's (distinct keys, script order), and MUST verify for that key. Any failure ⇒
+INVALID. `verifymessage` checks each entry against `P2PKH(key)`, so it works as an independent check
+here as well. A cancel of a multisig order uses `asigs` the same way.
 
 **What it covers.** Everything an attacker could profitably change: `fees.*`, `pay_to`, `price`,
 `ts`, `expiry`, `inscription_id`, `utxo`, `sig` and `chain`. Copying an `asig` onto another order
@@ -264,7 +355,8 @@ with `recid` yields `pubkey` (keeps `asig` interchangeable with Core). Any failu
 covers `list_id`, so it cannot be redirected. Re-inscribing an identical, valid op is harmless: it
 is the seller's own terms (and is a no-op if it is already the active listing).
 
-**Size.** `asig` adds 98 bytes to the body (`,"asig":"<88 base64 chars>"`).
+**Size.** `asig` adds 98 bytes to the body (`,"asig":"<88 base64 chars>"`); `asigs` adds
+`10 + 91·m` (`,"asigs":[…]`).
 
 ## 8. Fill, settlement and compliance
 
@@ -294,7 +386,8 @@ is the seller's own terms (and is a no-op if it is already the active listing).
   A replay of the old order is INVALID by §6.2.
 - **Cancel inscription (advisory).**
   `{"p":"dmp","v":"2","op":"cancel","list_id":"<list inscription id>"}`, optionally with `"asig"`
-  (§7.2, signed by the listing's order key, so any inscriber may publish it). Valid only if
+  (§7.2, signed by the listing's order key, so any inscriber may publish it; multisig listings need
+  `"asigs"`, m of n). Valid only if
   authorized by the order key (§7) and `list_id` is the current list for that inscription (not
   superseded).
   Cancels carry no `ts` and are not ordered by §6.1. They are bound to `list_id` instead: a cancel
@@ -340,6 +433,12 @@ Tested on regtest:
   which needs a prep tx. The order is larger (~780 B JSON with pinned outputs). Fee terms are bound
   by consensus, so §7 authorship is not needed for them. A v2 indexer would treat it as a separate
   `mode:"enforced"`. This is not implemented in dogex.
+- **P2SH dogs in a future enforced mode.** §5.4 is written so it carries over unchanged: the templates,
+  the hash check, the `OP_CHECKMULTISIG` signature walk, the canonical scriptSig (which takes each
+  signature with whatever hashtype byte it carries) and PSDT key `0x04`. Only the hashtype (`0x81`)
+  and the pinned output set would differ. `asigs` (m of n) would stay REQUIRED for multisig. Consensus
+  would bind the fee terms there, but cancels and supersession are still not covered by the spending
+  signatures, so one co-signer must not be able to act alone.
 
 ## 13. Security notes
 
@@ -353,15 +452,33 @@ Tested on regtest:
   market + `listing_to` (reveal tx 918 B); 702 + `expiry`; 780 + `asig`; 800 with fees + `expiry` +
   `asig`; 1258–1408 with an embedded `psdt`. For comparison, v1 with an embedded PSDT is 1059 (reveal 1306 B)
   and v1 `psdt_hash`-only is 412.
+- P2SH sizes (vectors, bytes):
+
+  | order | JSON body | canonical PSDT | dog scriptSig in the fill |
+  |---|---|---|---|
+  | P2PKH, no fees | 531 | 376 | 106–107 |
+  | P2PKH, fees + `asig` | 824 | 376 | 106–107 |
+  | P2SH P2PK, fees + `asig` | 815 | 412 | 108 |
+  | P2SH 2-of-3, fees + `asigs` | 1200 | 586 | 253 |
+  | P2SH 2-of-3, `asigs` + `psdt` (no fees) | 1820 | 589 | 252 |
+  | P2SH 15-of-15 (bound) | — | — | 1627 |
+
+  A P2SH P2PK body is about the size of a P2PKH one (`redeem_script` is 70 hex chars vs 66). Each
+  extra multisig key adds 68 hex chars to `redeem_script`; each extra required signature adds about
+  147 (`sigs`) + 91 (`asigs`) chars. The buyer pays for the larger dog scriptSig (2-of-3: +147 bytes
+  over P2PKH); the dogex buy builder prices it.
+- P2SH owners are hash-only on the index (`owner_hash160` holds the script hash); `redeem_script`
+  is revealed only in the order. Indexers MUST render P2SH owners as P2SH addresses.
 
 ## 14. Conformance vectors
 
 `vectors/dmp_v2_vectors.json`: `valid[]` (order, parent tx, canonical PSDT hex, sighash, fill tx,
 fill txid, `fee_split_ok`; for `asig` cases also `asig_canonical`, `asig_message`, `asig_digest`,
-`asig_address`), `invalid[]` (order, parent tx, reason; `duplicate-key` also carries the raw
+`asig_address`; P2SH cases also `dog_script_sig_hex`, `dog_script_sig_bytes` and
+`asig_addresses`), `invalid[]` (order, parent tx, reason; `duplicate-key` also carries the raw
 `order_json`, which MUST be parsed as given) and `cancel[]` (signed cancel, order pubkey,
 `valid`), and `ordering[]` (`current`, `new`, expected `supersedes`, §6.1). An implementation conforms
-if it reproduces every `psdt_hex`, `sighash`, `fill_txid`, `asig_canonical` and `asig_digest`, accepts
+if it reproduces every `psdt_hex`, `sighash`, `fill_txid`, `dog_script_sig_hex`, `asig_canonical` and `asig_digest`, accepts
 every valid case, rejects every invalid case and matches every `supersedes`.
 The `asig-*` invalid cases all carry a valid `sig`; only §7.2 rejects them. `reference/dmp_v2_reconstruct.py`
 is an independent (non-dogex, non-dojak) implementation that checks every vector, including its own

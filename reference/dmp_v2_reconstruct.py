@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independent ÐMP v2 compact-order reconstructor (spec-v2.md §3–§8, incl. §7.2 asig).
+"""Independent ÐMP v2 compact-order reconstructor (spec-v2.md §3–§8, incl. §5.4 P2SH, §7.2 asig).
 
 Written from the spec only: no dogex, dojak or bitcoinjs code. Uses hashlib and the
 `ecdsa` package for signature verification; tx/PSBT serialization, base58 and the
@@ -97,12 +97,33 @@ def parse_order(o, chain):
     if len(t) != 64 or t != t.lower() or str(int(vout)) != vout: raise ValueError("utxo")
     price = dec_str(o.get("price"), "price")
     if price <= 0: raise ValueError("price")
-    pk = bytes.fromhex(o["pubkey"])
-    if len(pk) != 33 or pk[0] not in (2, 3) or pk.hex() != o["pubkey"]: raise ValueError("pubkey")
-    sig = bytes.fromhex(o["sig"])
-    if sig.hex() != o["sig"]: raise ValueError("sig hex")
-    if sig[-1] != SIGHASH: raise ValueError("sig hashtype must be 0x83")
-    strict_der(sig[:-1])
+    if "pubkey" in o and "redeem_script" in o: raise ValueError("pubkey must be absent when redeem_script is present")
+    if "redeem_script" in o:
+        rs = o["redeem_script"]
+        if not isinstance(rs, str) or bytes.fromhex(rs).hex() != rs: raise ValueError("redeem_script must be lowercase hex")
+        redeem = bytes.fromhex(rs); tpl = parse_redeem(redeem)
+    else:
+        pk = bytes.fromhex(o["pubkey"])
+        if len(pk) != 33 or pk[0] not in (2, 3) or pk.hex() != o["pubkey"]: raise ValueError("pubkey")
+        redeem, tpl = None, ("pkh", 1, [pk])
+    multi = tpl[0] == "multi"
+    if multi:
+        if "sig" in o: raise ValueError("multisig orders carry sigs, not sig")
+        if not isinstance(o.get("sigs"), list): raise ValueError("sigs required (array) for a multisig redeem_script")
+        if len(o["sigs"]) != tpl[1]: raise ValueError("sigs must hold exactly m signatures")
+        sig_hex = o["sigs"]
+        if "asig" in o: raise ValueError("multisig orders authorize with asigs, not asig")
+    else:
+        if "sigs" in o: raise ValueError("sigs is only for multisig redeem_script orders")
+        if "asigs" in o: raise ValueError("asigs is only for multisig orders")
+        sig_hex = [o["sig"]]
+    sigs = []
+    for h in sig_hex:
+        if not isinstance(h, str): raise ValueError("sig must be a hex string")
+        sig = bytes.fromhex(h)
+        if sig.hex() != h: raise ValueError("sig hex")
+        if sig[-1] != SIGHASH: raise ValueError("sig hashtype must be 0x83")
+        strict_der(sig[:-1]); sigs.append(sig)
     f = o.get("fees", {})
     if not isinstance(f, dict): raise ValueError("fees")
     rb = dec_str(f["royalty_bps"], "royalty_bps", 10000) if "royalty_bps" in f else 0
@@ -118,7 +139,7 @@ def parse_order(o, chain):
     listing = market * share // 10000 if market and f.get("listing_to") else 0
     net = price - royalty - market
     if net < MIN_NET: raise ValueError("signed seller output below dust")
-    return dict(o=o, txid=t, vout=int(vout), price=price, pk=pk, sig=sig, pay=address_script(o["pay_to"], chain),
+    return dict(o=o, txid=t, vout=int(vout), price=price, tpl=tpl, redeem=redeem, keys=tpl[2], sigs=sigs, pay=address_script(o["pay_to"], chain),
                 split=dict(royalty=royalty, market=market, listing=listing, settlement=market - listing, net=net), fees=f, chain=chain)
 
 def template(d):
@@ -136,25 +157,75 @@ def sighash_single_acp(tx, index, script_code):
     return sha256d(ser_tx(t) + struct.pack("<I", SIGHASH))
 
 def p2pkh(pk): return b"\x76\xa9\x14" + hash160(pk) + b"\x88\xac"
+def p2sh(redeem): return b"\xa9\x14" + hash160(redeem) + b"\x87"
+
+# ---- spec-v2 §5.4 P2SH-held dogs ----
+def parse_redeem(s):
+    """("pk", 1, [k]) for <pk> OP_CHECKSIG; ("multi", m, keys) for OP_m <pk..> OP_n OP_CHECKMULTISIG."""
+    bad = "unsupported redeem_script (supported: <pk> OP_CHECKSIG, or m-of-n OP_CHECKMULTISIG with n <= 15)"
+    if len(s) > 520: raise ValueError("redeem_script larger than 520 bytes")
+    def key(k):
+        if len(k) != 33 or k[0] not in (2, 3): raise ValueError("redeem_script key is not a valid public key")
+        x = int.from_bytes(k[1:], "big")
+        if x >= _P or pow((x ** 3 + 7) % _P, (_P - 1) // 2, _P) != 1: raise ValueError("redeem_script key is not a valid public key")
+        return k
+    if s[:1] == b"\x21":
+        if len(s) != 35 or s[34] != 0xAC: raise ValueError(bad)
+        return ("pk", 1, [key(s[1:34])])
+    if not s or not 0x51 <= s[0] <= 0x5F: raise ValueError(bad)
+    m, i, keys = s[0] - 0x50, 1, []
+    while i < len(s) and s[i] == 0x21:
+        if i + 34 > len(s): raise ValueError(bad)
+        k = key(s[i + 1:i + 34])
+        if k in keys: raise ValueError("redeem_script repeats a key")
+        keys.append(k); i += 34
+    n = len(keys)
+    if not 1 <= n <= 15 or len(s) != i + 2 or s[i] != 0x50 + n or s[i + 1] != 0xAE: raise ValueError(bad)
+    if m > n: raise ValueError("redeem_script requires more signatures than it has keys")
+    return ("multi", m, keys)
+
+def push(b):
+    n = len(b)
+    return (bytes([n]) if n <= 75 else bytes([0x4C, n]) if n <= 255 else b"\x4d" + struct.pack("<H", n)) + b
+
+def dog_script_sig(d):
+    if d["redeem"] is None: return push(d["sigs"][0]) + push(d["keys"][0])
+    ss = (b"\x00" if d["tpl"][0] == "multi" else b"") + b"".join(push(x) for x in d["sigs"]) + push(d["redeem"])
+    if len(ss) > 1650: raise ValueError("scriptSig larger than 1650 bytes")
+    return ss
+
+def _verifies(k, sig, digest):
+    try: return ecdsa.VerifyingKey.from_string(k, curve=ecdsa.SECP256k1).verify_digest(sig[:-1], digest, sigdecode=sigdecode_der)
+    except ecdsa.BadSignatureError: return False
+
+def match_sigs(d, digest):
+    """OP_CHECKMULTISIG walk: keys in script order, each sig consumes keys until one verifies it."""
+    out, k = [], 0
+    for sig in d["sigs"]:
+        while True:
+            if k >= len(d["keys"]): raise ValueError("seller signature does not verify" if d["tpl"][0] != "multi" else "sigs do not satisfy the redeem_script")
+            k += 1
+            if _verifies(d["keys"][k - 1], sig, digest): out.append(d["keys"][k - 1]); break
+    return out
 
 def rebuild(d, parent_raw):
     if txid(parent_raw) != d["txid"]: raise ValueError("parent tx does not match utxo txid")
     parent = parse_tx(parent_raw)
-    if d["vout"] >= len(parent["outs"]) or parent["outs"][d["vout"]]["script"] != p2pkh(d["pk"]):
-        raise ValueError("dog output is not P2PKH of pubkey (not the current owner key)")
+    want = p2pkh(d["keys"][0]) if d["redeem"] is None else p2sh(d["redeem"])
+    if d["vout"] >= len(parent["outs"]) or parent["outs"][d["vout"]]["script"] != want:
+        raise ValueError("dog output is not P2PKH of pubkey (not the current owner key)" if d["redeem"] is None else "dog output is not P2SH of redeem_script")
     tx = template(d)
-    digest = sighash_single_acp(tx, 1, p2pkh(d["pk"]))
-    vk = ecdsa.VerifyingKey.from_string(d["pk"], curve=ecdsa.SECP256k1)
-    try:
-        vk.verify_digest(d["sig"][:-1], digest, sigdecode=sigdecode_der)
-    except ecdsa.BadSignatureError:
-        raise ValueError("seller signature does not verify")
-    # PSBT: magic, global {00: unsigned tx}, in0 {}, in1 {00 parent, 02<pk> sig, 03 sighash}, out0 {}, out1 {}
+    digest = sighash_single_acp(tx, 1, p2pkh(d["keys"][0]) if d["redeem"] is None else d["redeem"])
+    signers = match_sigs(d, digest)
+    # PSBT: magic, global {00: unsigned tx}, in0 {}, in1 {00 parent, 02<pk> sig (ascending pk), 03 sighash[, 04 redeem]}, out0 {}, out1 {}
     psbt = b"psbt\xff" + varbytes(b"\x00") + varbytes(ser_tx(tx)) + b"\x00"
     psbt += b"\x00"
     psbt += varbytes(b"\x00") + varbytes(parent_raw)
-    psbt += varbytes(b"\x02" + d["pk"]) + varbytes(d["sig"])
-    psbt += varbytes(b"\x03") + varbytes(struct.pack("<I", SIGHASH)) + b"\x00"
+    for pk, sig in sorted(zip(signers, d["sigs"])):
+        psbt += varbytes(b"\x02" + pk) + varbytes(sig)
+    psbt += varbytes(b"\x03") + varbytes(struct.pack("<I", SIGHASH))
+    if d["redeem"] is not None: psbt += varbytes(b"\x04") + varbytes(d["redeem"])
+    psbt += b"\x00"
     psbt += b"\x00\x00"
     return psbt, digest
 
@@ -192,12 +263,14 @@ def _canon(v):
     if isinstance(v, int) and not isinstance(v, bool):
         if not 0 <= v <= 2**53 - 1: raise ValueError("asig: integer out of range")
         return str(v)
+    if isinstance(v, list):
+        return "[" + ",".join(_canon(x) for x in v) + "]"
     if isinstance(v, dict):
         ks = sorted(v, key=lambda k: k.encode())
         return "{" + ",".join(_canon(k) + ":" + _canon(v[k]) for k in ks) + "}"
-    raise ValueError("asig: only strings, integers and objects")
+    raise ValueError("asig: only strings, integers, arrays and objects")
 
-def asig_canonical(op): return _canon({k: x for k, x in op.items() if k not in ("asig", "psdt")})
+def asig_canonical(op): return _canon({k: x for k, x in op.items() if k not in ("asig", "asigs", "psdt")})
 def asig_digest(canonical):
     m = (ASIG_TAG + canonical).encode("ascii")
     return sha256d(varbytes(MAGIC) + varbytes(m))
@@ -217,8 +290,8 @@ def _mul(k, pt):
     return r
 def _compress(pt): return bytes([2 + (pt[1] & 1)]) + pt[0].to_bytes(32, "big")
 
-def verify_asig(op, pk):
-    a = op.get("asig")
+def recover_asig(a, op):
+    """Key a canonical, low-S compact asig recovers to over the canonical op."""
     if not isinstance(a, str): raise ValueError("asig must be a base64 string")
     try: raw = base64.b64decode(a, validate=True)
     except Exception: raise ValueError("asig not base64")
@@ -236,10 +309,38 @@ def verify_asig(op, pk):
     R = (x, y)
     ri = pow(r, -1, _N)
     Q = _add(_mul(s_ * ri % _N, R), _mul((-e * ri) % _N, _G))
-    if Q is None or _compress(Q) != pk: raise ValueError("asig does not recover/verify for the order key")
+    if Q is None: raise ValueError("asig recovery failed")
+    pk = _compress(Q)
     # cross-check with the ecdsa library verify (non-recovery path)
     from ecdsa.util import sigdecode_string
     ecdsa.VerifyingKey.from_string(pk, curve=ecdsa.SECP256k1).verify_digest(raw[1:], asig_digest(asig_canonical(op)), sigdecode=sigdecode_string)
+    return pk
+
+def verify_asig(op, pk):
+    if recover_asig(op.get("asig"), op) != pk: raise ValueError("asig does not recover/verify for the order key")
+
+def verify_asigs(op, keys, m):
+    """Multisig: exactly m asigs, recovering distinct keys of the script in strictly increasing key position."""
+    a = op.get("asigs")
+    if not isinstance(a, list): raise ValueError("asigs must be an array of base64 strings")
+    if len(a) != m: raise ValueError("asigs must hold exactly m signatures")
+    nxt = 0
+    for x in a:
+        pk = recover_asig(x, op)
+        if pk not in keys: raise ValueError("asigs signer is not a key of the redeem_script")
+        pos = keys.index(pk)
+        if pos < nxt: raise ValueError("asigs must be by distinct keys, in redeem_script key order")
+        nxt = pos + 1
+
+def verify_auth(op, tpl):
+    """§7.2 for an op about an order with template tpl: asig (single key) or asigs (m of n)."""
+    if tpl[0] == "multi":
+        if "asig" in op: raise ValueError("multisig orders authorize with asigs, not asig")
+        verify_asigs(op, tpl[2], tpl[1])
+    else:
+        if "asigs" in op: raise ValueError("asigs is only for multisig orders")
+        verify_asig(op, tpl[2][0])
+def has_auth(op): return "asig" in op or "asigs" in op
 
 # ---- spec-v2 §4.2 duplicate keys, §6.1 newer-ts-wins ----
 def _no_dup_hook(pairs):
@@ -264,11 +365,15 @@ def check_vectors(path):
         psbt, digest = rebuild(d, bytes.fromhex(case["parent_tx_hex"]))
         if "psdt" in case["order"] and base64.b64decode(case["order"]["psdt"]) != psbt: raise SystemExit(f"{case['name']}: embedded psdt differs")
         fill = bytes.fromhex(case["fill_tx_hex"]); c = compliance(fill, d)
+        ss = dog_script_sig(d)
         ok = (psbt.hex() == case["psdt_hex"] and digest.hex() == case["sighash"] and txid(fill) == case["fill_txid"]
-              and c["seller_paid_ok"] and c["fee_split_ok"] == case["compliance"]["fee_split_ok"])
-        if "asig" in case["order"]:
-            verify_asig(case["order"], d["pk"])
+              and c["seller_paid_ok"] and c["fee_split_ok"] == case["compliance"]["fee_split_ok"]
+              and ss.hex() == case["dog_script_sig_hex"] and parse_tx(fill)["ins"][1]["script"] == ss)
+        if has_auth(case["order"]):
+            verify_auth(case["order"], d["tpl"])
             ok = ok and asig_canonical(case["order"]) == case["asig_canonical"] and asig_digest(case["asig_canonical"]).hex() == case["asig_digest"]
+        if d["tpl"] and d["tpl"][0] == "multi" and "asigs" not in case["order"]:
+            ok = False  # §7: a multisig list is authorized only by asigs (no reveal path)
         bad += not ok
         print(f"{'OK  ' if ok else 'FAIL'} valid   {case['name']:<26} psdt {len(psbt)} B sha256 {hashlib.sha256(psbt).hexdigest()[:16]}… fill {txid(fill)[:16]}… fee_split_ok={c['fee_split_ok']}")
     for case in v["valid"]:
@@ -277,7 +382,7 @@ def check_vectors(path):
         try:
             if "order_json" in case: loads_v2(case["order_json"])
             d = parse_order(case["order"], chain); rebuild(d, bytes.fromhex(case["parent_tx_hex"]))
-            if "asig" in case["order"]: verify_asig(case["order"], d["pk"])
+            if has_auth(case["order"]): verify_auth(case["order"], d["tpl"])
             err = None
         except (ValueError, KeyError, ecdsa.BadSignatureError) as e:
             err = str(e) or type(e).__name__
@@ -287,7 +392,8 @@ def check_vectors(path):
         got = supersedes(case["new"], case["current"]); ok = got == case["supersedes"]; bad += not ok
         print(f"{'OK  ' if ok else 'FAIL'} order   {case['name']:<26} supersedes={got}")
     for case in v.get("cancel", []):
-        try: verify_asig(case["cancel"], bytes.fromhex(case["order_pubkey"])); err = None
+        tpl = parse_redeem(bytes.fromhex(case["order_redeem_script"])) if "order_redeem_script" in case else ("pkh", 1, [bytes.fromhex(case["order_pubkey"])])
+        try: verify_auth(case["cancel"], tpl); err = None
         except (ValueError, ecdsa.BadSignatureError) as e: err = str(e) or type(e).__name__
         ok = (err is None) == case["valid"]; bad += not ok
         print(f"{'OK  ' if ok else 'FAIL'} cancel  {case['name']:<26} {'accepted' if err is None else 'rejected: ' + err}")
@@ -305,8 +411,9 @@ def main(a):
                                          {"Authorization": "Basic " + base64.b64encode(auth.encode()).decode(), "content-type": "application/json"})
             parent = bytes.fromhex(json.load(urllib.request.urlopen(req))["result"])
         d = parse_order(o, chain); psbt, digest = rebuild(d, parent)
-        if "asig" in o: verify_asig(o, d["pk"])
-        print(json.dumps(dict(psbt_hex=psbt.hex(), sha256=hashlib.sha256(psbt).hexdigest(), sighash=digest.hex(), seller_net_koinu=d["split"]["net"])))
+        if has_auth(o): verify_auth(o, d["tpl"])
+        print(json.dumps(dict(psbt_hex=psbt.hex(), sha256=hashlib.sha256(psbt).hexdigest(), sighash=digest.hex(), seller_net_koinu=d["split"]["net"],
+                              dog_script_sig_hex=dog_script_sig(d).hex())))
         return
     print(__doc__); sys.exit(2)
 
