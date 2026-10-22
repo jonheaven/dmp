@@ -1,0 +1,27 @@
+{
+  "p": "dmp",
+  "v": "2",
+  "op": "list",
+  "chain": "dogecoin-regtest",
+  "inscription_id": "0d0a3b12da68b4d241b693fe8325c5a34d4106adbddf90c429ddba16f28f3dafi0",
+  "utxo": "90cfd8c30013ffb117aefcf8309716cc2d8992633423d768cbcc1289d5165aee:0",
+  "price": "900000000",
+  "pay_to": "2N3gphYfYYoouYQXH4cWPL9SRFQVJxFXSsq",
+  "redeem_script": "522102f3ce9779c812cbb225d848611164805931a282a14a72ad3cc46fd1662e0798db2103a135a5939e991a46b98193487c386c94c5f06699402d100245d1c1edde7b28002102930cbe02a97674ac9335832726911c1a66299cb35198df1f7c595fb4d88ae69353ae",
+  "sigs": [
+    "3044022017e97c4189aa5c7ec11fd40e600ddb5699d65d6db5404f68b237690094efaa2c02207e5cb7ea6fa7ba61535660795d911fa1c2419f90ab3a5d6314a3f07571e4cd0c83",
+    "3045022100f4904f6473295b5992a297ffb7ff74547294b857bbe33de6ce488fe2160648bb022002ac35afd64c34594986c8a1d231a0fcdc695e3e98073434dd2d3b8bf32231bd83"
+  ],
+  "fees": {
+    "royalty_bps": "300",
+    "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+    "market_bps": "150",
+    "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3",
+    "listing_share_bps": "6000"
+  },
+  "ts": 1790000000,
+  "asigs": [
+    "H4evAnT5iAf7B3Nt+URZ7h4PAIcCA3/N5yLwgA58lE4pArRVZK0t6TvztLrqv+Vn/fFxVtc0yXbgPRmOUQpAByQ=",
+    "H+pzoskz4MT41pcgle7zM+TlWD8SIByDzN/LDI1DJZ5XeFPFb5yGvAyaEKY8m7vp+JIc+yE87cwHU3gQGhHKceI="
+  ]
+}

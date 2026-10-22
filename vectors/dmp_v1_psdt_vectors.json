@@ -1,0 +1,42 @@
+{
+ "spec": "spec-v2.md \u00a72 (v1 hardening), \u00a715",
+ "generated_by": "hand-built from mainnet list bodies and dmp_v2_vectors.json",
+ "v1_lists": [
+  {
+   "name": "mainnet-54f111c3",
+   "network": "dogecoin",
+   "list_inscription_id": "54f111c33c3d380698055ec2528310a0f294e940015d3fdb0da7f8a411e66236i0",
+   "inscription_id": "169ff29701a18a21cec4895704d20a38635efc05ea9ac2c1a88914251cbfc3a2i0",
+   "price": "42 DOGE",
+   "seller": "DDMg44HLnLCHsjdviuxfLsqvUJUG7Rmrat",
+   "psdt": "cHNidP8BAFUCAAAAAaLDvxwlFImowcKa6gX8XmM4CtIEV4nEziGKoQGX8p8WAAAAAAD/////AQDqVvoAAAAAGXapFFoh+USOZdwWVzheK3n7CFkIRabPiKwAAAAAAAEA/QMBAQAAAAGJGBE0XEZ5Zzyoifhnw637u4eaSvu0lo5W8H2WbgZ6rQEAAACMA29yZFEKdGV4dC9wbGFpbgAHNDIwLnhkZ0gwRQIhAIND0QFKwkqVGnGWb0p0qCkWdKoJuwOdMHN5tZuho//MAiBjJbnwvvy/aL/i7kDvnCMxKWfrMX0ICJTA4cP3ASmO9wEpIQNvFibPrSTVhuPJuLGKwIB/PAWylS6o0TWjofvqfiScM611dXV1dVH9////AqCGAQAAAAAAGXapFFoh+USOZdwWVzheK3n7CFkIRabPiKyAd44GAAAAABl2qRQlMXWfee+mDCxObZMnMHpslljow4isAAAAACICA28WJs+tJNWG48m4sYrAgH88BbKVLqjRNaOh++p+JJwzRzBEAiB7kOvq+qxuvTg768dRq3iI2gY+dEc9hugVIUBvqtlDKAIga6wpFWvE3pRMIF3lqLlabzHreYgKe65MJpqzzhoBltODAQMEgwAAAAAA",
+   "expect": "postage_unsafe",
+   "note": "era-1 v1 list: valid 0x83 sig on the dog at input 0; locked out[0] pays the seller, so every use returns the dog to the seller (spec-v2 \u00a715)"
+  },
+  {
+   "name": "mainnet-bd75ee39",
+   "network": "dogecoin",
+   "list_inscription_id": "bd75ee392df8240102e13fe4b89b23f38ec9d8700a8ff1508e0079de490cc2d4i0",
+   "inscription_id": "315fdeb6f85f3a26b970181683596a425633d2282bd61bccbbfebb8c50c580edi0",
+   "price": "420 DOGE",
+   "seller": "DDMg44HLnLCHsjdviuxfLsqvUJUG7Rmrat",
+   "psdt": "cHNidP8BAFUCAAAAAe2AxVCMu/67zBvWKyjSM1ZCalmDFhhwuSY6X/i23l8xAAAAAAD/////AQAkZccJAAAAGXapFFoh+USOZdwWVzheK3n7CFkIRabPiKwAAAAAAAEA/QQBAQAAAAF8kMIXuMhCqtK+kvdkIRG0Pqe62enKnRrdZOU+7vjZZwAAAACNA29yZFEKdGV4dC9wbGFpbgAJcmVhZG1lLm1kRzBEAiBSrwfnZsC3kzPf/2wsXN65LEXlGTCoXN6v/ers01hc4gIgSQPiSGnv6q6jyqlc/NVzBGFPCZf1MVWb9Rg9rLbhgnoBKSEDbxYmz60k1YbjybixisCAfzwFspUuqNE1o6H76n4knDOtdXV1dXVR/f///wKghgEAAAAAABl2qRRaIflEjmXcFlc4Xit5+whZCEWmz4isgHeOBgAAAAAZdqkUJTF1n3nvpgwsTm2TJzB6bJZY6MOIrAAAAAAiAgNvFibPrSTVhuPJuLGKwIB/PAWylS6o0TWjofvqfiScM0gwRQIhAMaDxqXAjdaKxT+g6RMKBeGEb/wmLRU8Aj+3ICakESWCAiA/3K2A4bE1P1+yXW60KtvkzLOvx+K1hI2WYSxcC7Iws4MBAwSDAAAAAAA=",
+   "expect": "postage_unsafe",
+   "note": "era-1 v1 list: valid 0x83 sig on the dog at input 0; locked out[0] pays the seller, so every use returns the dog to the seller (spec-v2 \u00a715)"
+  },
+  {
+   "name": "regtest-postage-safe",
+   "network": "dogecoin-regtest",
+   "psdt": "cHNidP8BAKACAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD+////kQ4xoslLjHBrtzl3n4pNdB/y4c3cme3jSRUUqCRvUJAAAAAAAP////8CoIYBAAAAAAAZdqkUit/OETOhJ/Le4gS99WNJTxaf0fGIrAAnuSkAAAAAGXapFIrfzhEzoSfy3uIEvfVjSU8Wn9HxiKwAAAAAAAABAFYBAAAAAUMMq8VnB5AtA6NTNiohf1NYCNjfh0Jov2S/QKNLNSyxAAAAAAFR/////wGghgEAAAAAABl2qRSK384RM6En8t7iBL31Y0lPFp/R8YisAAAAACICA98LjiHMLBZP5Ya9gxq0YPJg1+aUC0XgyosP6n78QxixSDBFAiEA83pMbAcl9p6X+nlRmAVHTMXEDFVRqBtkuqsORYYpPnMCIA4yhwOczuiwuTJkixIo73Fo39ey5Zs9FlXdGU+VPG+/gwEDBIMAAAAAAAA=",
+   "expect": "ok",
+   "note": "canonical dog-at-input-1 PSDT from dmp_v2_vectors.json embedded-psdt"
+  },
+  {
+   "name": "mainnet-54f111c3-tampered-sig",
+   "network": "dogecoin",
+   "psdt": "cHNidP8BAFUCAAAAAaLDvxwlFImowcKa6gX8XmM4CtIEV4nEziGKoQGX8p8WAAAAAAD/////AQDqVvoAAAAAGXapFFoh+USOZdwWVzheK3n7CFkIRabPiKwAAAAAAAEA/QMBAQAAAAGJGBE0XEZ5Zzyoifhnw637u4eaSvu0lo5W8H2WbgZ6rQEAAACMA29yZFEKdGV4dC9wbGFpbgAHNDIwLnhkZ0gwRQIhAIND0QFKwkqVGnGWb0p0qCkWdKoJuwOdMHN5tZuho//MAiBjJbnwvvy/aL/i7kDvnCMxKWfrMX0ICJTA4cP3ASmO9wEpIQNvFibPrSTVhuPJuLGKwIB/PAWylS6o0TWjofvqfiScM611dXV1dVH9////AqCGAQAAAAAAGXapFFoh+USOZdwWVzheK3n7CFkIRabPiKyAd44GAAAAABl2qRQlMXWfee+mDCxObZMnMHpslljow4isAAAAACICA28WJs+tJNWG48m4sYrAgH88BbKVLqjRNaOh++p+JJwzRzBEAiB7kOvq+qxvvTg768dRq3iI2gY+dEc9hugVIUBvqtlDKAIga6wpFWvE3pRMIF3lqLlabzHreYgKe65MJpqzzhoBltODAQMEgwAAAAAA",
+   "expect": "invalid_sig",
+   "note": "one r byte flipped: the signature check comes before the shape check"
+  }
+ ]
+}

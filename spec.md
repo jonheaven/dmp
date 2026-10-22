@@ -207,9 +207,11 @@ for unique pieces. Do not answer L1-scale critiques by pretending Runes-style ed
 
 - **Inscription**: Dogenals payload stored on-chain via OP_FALSE OP_IF "ord" script in the first input's
   scriptSig, spread across one or more chained transactions.
-- **Inscription ID**: `<txid>i<vout>` where txid is the 64-char lowercase hex transaction ID of the first
-  transaction in the inscription chain, and vout is the u32 output index where the inscription sat lands
-  (typically 0 for standard single-output inscriptions).
+- **Inscription ID**: `<txid>i<n>` where txid is the 64-char lowercase hex transaction ID of the **first**
+  transaction in the inscription chain and `n` is the inscription's index within that reveal, in
+  canonical decimal. Doginals reveals carry one inscription, so `n` is `0`. `n` is **not** an output
+  index, and the ID does not change when the dog moves. For a multi-part reveal, the ID names the first
+  part, and the inscription first exists at the completing reveal's `:0:0` ([spec-v2.md](spec-v2.md) §8.1).
 - **ÐMP Intent**: inscription whose JSON includes `p = "dmp"`.
 - **Op**: operation type in `op`.
 - **Manifest**: collection op with creator signature and criteria.
@@ -286,8 +288,9 @@ to themselves at `price` (or the residual seller amount when collaborative fees 
 This is the RECOMMENDED portable form: no venue has to host the PSDT.
 
 **v1 embedded-PSDT signature check (MUST, with v2):** for a v1 `list` with `psdt`, indexers MUST verify the
-partial signature against the P2PKH dog prevout in `non_witness_utxo` and reject the list if it does not
-verify or the signer does not own the prevout ([spec-v2.md](spec-v2.md) §2).
+partial signature(s) against the dog prevout in `non_witness_utxo` (P2PKH, or P2SH with the PSDT's
+`redeem_script`) and reject the list if it does not verify or the signers do not own the prevout. A PSDT
+that signs the dog at input 0 is rejected as postage-unsafe ([spec-v2.md](spec-v2.md) §2, §15).
 
 **Hash-only list:** `psdt_hash` without `psdt` is a valid intent. Chain-alone fill is then **impossible**
 until a party publishes the matching PSDT out of band. Indexers MAY cache PSDT bytes keyed by hash when
@@ -319,7 +322,7 @@ Declares seller intent to sell an inscription.
 {
   "p": "dmp",
   "op": "list",
-  "inscription_id": "<txid>i<vout>",
+  "inscription_id": "<txid>i0",
   "price": "<koinu>",
   "seller": "<Dogecoin address>",
   "psdt": "<base64 PSDT>"
@@ -378,7 +381,7 @@ Expresses purchase intent against a listing or auction target.
   "p": "dmp",
   "v": "1.0",
   "op": "bid",
-  "inscription_id": "<txid>i<vout>",
+  "inscription_id": "<txid>i0",
   "list_id": "<list inscription_id>",
   "collection_id": "<collection inscription_id>",
   "price": "<koinu>",
@@ -440,7 +443,7 @@ seller. A `settle` that does not is ignored. It MUST NOT leave the auction pendi
   "p": "dmp",
   "v": "1.0",
   "op": "settle",
-  "inscription_id": "<txid>i<vout>",
+  "inscription_id": "<txid>i0",
   "list_id": "<list inscription_id>",
   "bid_id": "<bid or offer inscription_id>",
   "auction_id": "<auction inscription_id>",
@@ -609,20 +612,20 @@ Defines authoritative collection metadata and membership rules.
 - **MUST** appear only on a **root** `collection` op (the `collection` inscription that establishes the
   `slug` per this protocol). **MUST NOT** be added, removed, or changed via
   [`collection-update`](#46-collection-update) (including inside `patch`).
-- When the same *collection* inscription *also* carries a [DRC-721](../dogerelics/README.md) native
+- When the same *collection* inscription *also* carries a DRC-721 (DogeRelics) native
   `parent` key in the *ord* inscription trailer, indexers that implement DRC-721 **MUST** enforce
   [MUST-057](#136-collection): the value **MUST** match the same `parent` as the 36 B wire
   (same ÐMP string id) or the op is **inconsistent** (reject or flag, per policy).
 - This ÐMP field is **application metadata** for marketplaces. The on-chain *strong* parent/child
-  link remains DogeRelics + UTXO rules in [DogeRelics §3](../dogerelics/README.md#3-parent-and-utxo-validation).
+  link remains DogeRelics + UTXO rules in DogeRelics §3 (parent and UTXO validation).
   A collection without a native ÐMP `parent_inscription_id` and without a DRC-721 `parent` tag is still
   a valid ÐMP `collection` when all other `collection` rules pass.
 
 **Relationship to DRC-721 (informative):** DRC-721 and ÐMP **compose**; they are not two encodings of
-the same job. See [drc721-and-dmp.md](../../comparisons/drc721-and-dmp.md). In particular:
+the same job. See the DRC-721 / ÐMP comparison note (published separately). In particular:
 
 - Native envelope **tag 3** / DRC-721 `parent` on a **child** is piece provenance. **Verified** only if
-  the child’s first reveal **spends** the parent UTXO ([DogeRelics §3](../dogerelics/README.md#3-parent-and-utxo-validation)).
+  the child’s first reveal **spends** the parent UTXO (DogeRelics §3 (parent and UTXO validation)).
 - `criteria.mode: "parent"` is a **membership rule** for this collection (who is a member), not that UTXO proof.
 - `parent_inscription_id` on this op is a **parent collection** pointer (hierarchy), not “this piece’s parent.”
 
@@ -845,7 +848,7 @@ even without a list op.
   "p": "dmp",
   "v": "1.0",
   "op": "auction",
-  "inscription_id": "<txid>i<vout>",
+  "inscription_id": "<txid>i0",
   "seller": "<Dogecoin address>",
   "reserve_price": "<koinu>",
   "start_price": "<koinu>",
@@ -908,7 +911,7 @@ Private push-style offer targeted to a specific inscription or collection.
   "v": "1.0",
   "op": "offer",
   "offer_target_type": "inscription",
-  "inscription_id": "<txid>i<vout>",
+  "inscription_id": "<txid>i0",
   "collection_id": "<collection inscription_id>",
   "target_seller": "<Dogecoin address>",
   "buyer": "<Dogecoin address>",
@@ -1092,7 +1095,7 @@ wants to document on-chain retroactively or prospectively.
   "p": "dmp",
   "v": "1.0",
   "op": "transfer",
-  "inscription_id": "<txid>i<vout>",
+  "inscription_id": "<txid>i0",
   "from_address": "<Dogecoin address>",
   "to_address": "<Dogecoin address>",
   "transfer_type": "gift",
@@ -1563,7 +1566,7 @@ Allowed `criteria.mode` values:
 - `range` — members fall in an indexer-documented inscription id / number range.
 
 This is distinct from optional root `parent_inscription_id` (a parent *collection*). Builder map:
-[drc721-and-dmp.md](../../comparisons/drc721-and-dmp.md).
+the DRC-721 / ÐMP comparison note (published separately).
 
 Slug format MUST match `^[a-z0-9-]+$` with max 64 characters. Slugs are unique per chain; earliest
 confirmed inscription by canonical ordering wins.

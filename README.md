@@ -2,94 +2,75 @@
 
 **This repository is the canonical public specification for ÐMP (`p: "dmp"`).**
 
-ÐMP is the on-chain *record* of market intent: listings, auctions, bids, offers, settlements, transfers, and collection governance. Any indexer with a full node can *verify* those intents against UTXO movement; no venue’s API is the truth.
+ÐMP records Doginal marketplace intent on-chain: listings, cancels, fills and more. Any indexer
+with a full node can verify that intent against UTXO movement, so no venue's API is the source of
+truth.
 
-The **seller-signed PSDT** is the fill contract (Satoshi). The **inscription envelope** is the durable pointer Casey-style indexers already scan — **not** the required wire for every bid. Do not inscribe implied facts (`currency`, `chain`, default `listing_type`). Pay listing venues with `listing_fee_address`, not a domain string. All ops remain available; the [write budget](spec.md#write-budget-l1-surface-at-scale) constrains defaults at scale.
+**v2 compact signed orders** are the current fixed-price format. A v2 `list` inscription carries
+the seller's `SIGHASH_SINGLE|ANYONECANPAY` signature and the order terms. Every indexer rebuilds
+the same seller PSDT byte for byte from its own node, and any wallet can fill the order.
 
 | | |
 | ---: | --- |
-| **Version** | v1.0+ · write budget [MUST-111+](spec.md#write-budget-l1-surface-at-scale) |
-| **Class** | Marketplace **intent and proof** layer (not custody, not a fungible token) |
+| **Versions** | `"2"` compact orders ([spec-v2.md](spec-v2.md)). v1.0 ops ([spec.md](spec.md)) remain valid unless spec-v2 says otherwise |
+| **Status** | v2: pre-launch draft, tested on regtest. v1.0: launch draft |
 | **Durable payload** | JSON in a Dogecoin inscription with `"p": "dmp"` |
-| **Scale path** | Collection + list (PSDT or `psdt_hash`); the fill tx is the settle. DogeTag for bids. No fixed-price `settle` inscription |
-| **Status** | v1.0 Launch Draft |
+| **Fill** | One transaction, with the seller's signature on `in[1]`/`out[1]` and the dog on any buyer output. The fill is the settlement |
 | **Chain** | Dogecoin |
 | **License** | [MIT](LICENSE) |
-| **Source of truth** | **[spec.md](spec.md)** (normative) — this file orients; it does not override `MUST` rules there |
 
-*Peer analogue:* Bitcoin inscriptions with marketplace JSON — ÐMP is the [Dogecoin](https://github.com/dogecoin/dogecoin) native rulebook for that class of application.
-
-> ÐMP is **not** a token standard. It does not create fungible tokens. It governs how NFT (Doginal) trades are recorded, verified, and discovered on-chain. Dunes/Treats handle fungibles; ÐMP handles unique pieces. Dogecoin envelopes are **scriptSig** (no Bitcoin-style witness discount) — keep chatty market tape off the fat path.
+ÐMP is **not** a token standard. It governs how unique Doginals are listed and traded. Fungibles
+stay on Ðunes and Treats.
 
 ## Authors
 
 Jon Heaven — GitHub [@jonheaven](https://github.com/jonheaven) · X [@jontype](https://x.com/jontype)
 
-If you ship this in a wallet, marketplace, or indexer, you are implementing **this** protocol. Emit `"p": "dmp"` only. A styled marker is not ÐMP. Keep the op shapes identical so every indexer sees one order book.
+If you ship this in a wallet, marketplace or indexer, emit `"p": "dmp"` only and keep the op
+shapes identical, so every indexer sees one order book.
 
-## Start here (pick your job)
+## Start here
 
-| You are… | Read this |
+| You are… | Read |
 | --- | --- |
-| **Human, 2 minutes** | this README |
-| **Indexer / marketplace engineer** | **[implementation-guide.md](implementation-guide.md)** |
-| **Protocol implementer** | **[spec.md](spec.md)** — normative rules |
-| **Need JSON today** | **[EXAMPLES/](EXAMPLES/)** + **[schemas/](schemas/)** |
-| **Reference parser** | **[reference/dmp_reference.py](reference/dmp_reference.py)** |
+| **Building an indexer, wallet or venue** | **[IMPLEMENTERS.md](IMPLEMENTERS.md)**, then [spec-v2.md](spec-v2.md) |
+| **Already shipped v1** | **[MIGRATION-v1-to-v2.md](MIGRATION-v1-to-v2.md)** |
+| **Claiming conformance** | [CONFORMANCE.md](CONFORMANCE.md) and [vectors/](vectors/) |
+| **Need JSON today** | [EXAMPLES/v2/](EXAMPLES/v2/) and [schemas/](schemas/) |
+| **v1 ops (auctions, offers, collections, …)** | [spec.md](spec.md) and [implementation-guide.md](implementation-guide.md) |
+
+## v2 in one screen
+
+```json
+{"p":"dmp","v":"2","op":"list","chain":"dogecoin",
+ "inscription_id":"<txid>i0","utxo":"<txid>:<vout>","price":"1000000000",
+ "pay_to":"<seller address>","pubkey":"<66 hex>","sig":"<DER hex>83",
+ "fees":{"royalty_bps":"500","royalty_to":"<address>","market_bps":"200","listing_to":"<address>"},
+ "ts":1792632460,"expiry":1792718860}
+```
+
+- **Template.** `in[0]` is the buyer's placeholder, `in[1]` is the dog (`utxo`), `out[0]` is 100000
+  koinu to `pay_to`, and `out[1]` is the seller's net. The seller signs `in[1]` with `0x83`.
+- **Validity.** The order is valid only if the signature verifies against the rebuilt template and
+  the order key authorized the inscription (reveal signed by it, or an `asig`). Duplicate keys are
+  rejected. A newer `ts` wins.
+- **Fill.** The fill spends `in[1]` and keeps `out[1]`, with any layout for the rest. It is a sale
+  when the dog lands, by ord FIFO sat flow, with someone other than the seller. Any other spend of
+  the dog is cancel-by-move.
+- **Cancel.** `{"p":"dmp","v":"2","op":"cancel","list_id":"<list id>"}` is advisory. Moving the dog
+  is authoritative.
+- **Settled** at 6 confirmations. Reorgs roll the state back.
+
+```bash
+python3 -m pip install ecdsa
+python3 reference/dmp_v2_reconstruct.py vectors vectors/dmp_v2_vectors.json
+python3 reference/dmp_v2_reconstruct.py state   vectors/dmp_v2_state_vectors.json
+python3 reference/dmp_v2_reconstruct.py v1      vectors/dmp_v1_psdt_vectors.json
+```
 
 ---
 
-## Position in the Doginals stack
-
-ÐMP is the open marketplace intent/proof layer for Doginals (unique inscribed pieces). Fungibles stay on Ðunes / Treats. ÐMP focuses on NFT marketplace operations.
-
-| What ÐMP Does | What ÐMP Does NOT Do |
-| --- | --- |
-| Records listings, bids, auctions on-chain | Issue or transfer fungible tokens |
-| Provides trustless settlement verification | Custody funds or NFTs |
-| Enables shared liquidity across marketplaces | Enforce royalties on-chain |
-| Closes provenance gaps with transfer ops | Replace existing marketplace UX |
-
-### DogeRelics Core and native parent
-
-ÐMP JSON lives in the inscription. **DogeRelics Core** defines an *ord* script **tag trailer** (after the last body push with countdown 0) for native `parent`, `delegate`, and `properties` on Dogecoin, [aligned with PRC-721](https://peppool.space/docs/prc-721). From v1.0, a **root** ÐMP `collection` **MAY** set optional `parent_inscription_id` for metadata; it **MUST** match a native DogeRelics `parent` when both are present, per the [ÐMP v1.0](spec.md#v13-2026-04-25) spec.
-
----
-
-## Key Features
-
-**Trustless settlement.** Any indexer can independently verify that a settlement is valid — that the inscription moved to the buyer and the seller received payment — using only Dogecoin blockchain data.
-
-**Multi-marketplace liquidity.** Multiple independent marketplaces can emit and consume ÐMP intents. A listing created on Marketplace A is visible to Marketplace B and all aggregators.
-
-**Full provenance chain.** Every on-chain owner change is tracked. Provenance gaps (inscriptions transferred without a ÐMP op) are detected and flagged transparently.
-
-**Rich marketplace operations.** ÐMP supports fixed-price listings, time-based auctions, private offers, counter-offers, and acceptance/decline flows. At scale, chatty bids SHOULD use DogeTag / venue books; durable list + sale proof stay on L1.
-
-**Signature-based authorization.** Operations are cryptographically authorized using Dogecoin signing, eliminating the need for smart contracts.
-
-**DogeTag offer signaling.** Optional [ÐMP DogeTag Offers](dogetag-offers.md) use lightweight OP_RETURN signals plus small recipient DOGE outputs so wallets can detect buy interest even when a user is not connected to a marketplace. This is the preferred default for buy-interest pings (MUST-111).
-
-**DOTC receipts.** An optional `dotc|1|…` `OP_RETURN` on the fill tx labels the sale. A fixed-price ÐMP settle is that fill. DOTC is not a listing protocol and is not required.
-
-**L1 write budget.** See [spec.md Write budget](spec.md#write-budget-l1-surface-at-scale): collections ≠ fungible transfer spam; millions of users is not millions of envelopes.
-
----
-
-## Protocol Summary
-
-| Field | Value |
-| --- | --- |
-| Protocol marker | `"p": "dmp"` |
-| Supported versions | `"1.0"` |
-| Durable storage | Ordinal inscription (scriptSig envelope) |
-| Scale signaling | DogeTag / DOTC `OP_RETURN`; `psdt_hash` off-band |
-| Data format | JSON (durable); compact binary (DogeTag) |
-| Signature scheme | Dogecoin signed message (secp256k1 + double-SHA256) |
-
----
-
-## Supported Operations
+## v1.0 operations (spec.md)
 
 | Operation | Purpose |
 | --- | --- |
@@ -113,7 +94,11 @@ If you ship this in a wallet, marketplace, or indexer, you are implementing **th
 
 | Document | Description |
 | --- | --- |
-| [spec.md](spec.md) | Full protocol specification |
+| [spec-v2.md](spec-v2.md) | v2 compact signed orders (normative) |
+| [IMPLEMENTERS.md](IMPLEMENTERS.md) | v2 implementer guide, reference, vectors, mainnet v1 lists |
+| [MIGRATION-v1-to-v2.md](MIGRATION-v1-to-v2.md) | What a v1 implementation must change |
+| [CONFORMANCE.md](CONFORMANCE.md) | Conformance checklist |
+| [spec.md](spec.md) | v1.0 protocol specification |
 | [dogetag-offers.md](dogetag-offers.md) | Lightweight OP_RETURN offer signaling extension |
 | [implementation-guide.md](implementation-guide.md) | How to build a compliant indexer |
 | [security.md](security.md) | Threat model and mitigations |
@@ -126,49 +111,11 @@ If you ship this in a wallet, marketplace, or indexer, you are implementing **th
 | [EXAMPLES/](EXAMPLES/) | JSON operation examples (incl. `collection-with-parent-inscription.json` for v1.0) |
 | [schemas/](schemas/) | JSON Schema validation files |
 | [vectors/](vectors/) | Conformance vectors |
-| [reference/](reference/) | Python reference validator |
+| [reference/](reference/) | Python v1 validator and v2 reconstructor |
 
 ---
 
-## Quick Example
-
-A ÐMP `list` inscription:
-
-```json
-{
-  "p": "dmp",
-  "op": "list",
-  "inscription_id": "<txid>i0",
-  "seller": "DLfZ6VN5k7EyqjkqXZzd6mh6nQQZL1262b",
-  "price": "100000000",
-  "psdt": "cHNidP8B..."
-}
-```
-
-A ÐMP `settle` inscription (6+ blocks after the transfer):
-
-```json
-{
-  "p": "dmp",
-  "v": "1.0",
-  "op": "settle",
-  "list_id": "list_20260401_abc123",
-  "inscription_id": "abc123...i0",
-  "buyer": "DEW85...y28uN",
-  "seller": "DLfZ6VN5k7EyqjkqXZzd6mh6nQQZL1262b",
-  "price": 100000000,
-  "settlement_txid": "def456...",
-  "royalty_amount": 5000000,
-  "royalty_recipient": "DArtist1...",
-  "ts": 1743465900
-}
-```
-
----
-
-## Reference Implementation
-
-A Python reference validator lives in [reference/](reference/). It tracks the launch-draft validation pipeline and includes test vectors.
+## v1 reference validator
 
 ```bash
 python reference/dmp_reference.py validate EXAMPLES/list-op.json
@@ -180,13 +127,15 @@ python reference/dmp_reference.py test-vectors
 ## Repo layout
 
 ```text
-spec.md                 normative protocol
+spec-v2.md              v2 compact orders (normative)
+spec.md                 v1.0 protocol (normative)
+IMPLEMENTERS.md         v2 implementer guide
+MIGRATION-v1-to-v2.md   v1 → v2 changes
+CONFORMANCE.md          conformance checklist
 implementation-guide.md indexer / marketplace behavior
 security.md             threat model
 EXAMPLES/               JSON operation examples
 schemas/                JSON Schema files
 vectors/                conformance vectors
-reference/              Python reference validator
+reference/              v1 validator, v2 reconstructor
 ```
-
-ÐMP is a sub-protocol of the Dogenals ecosystem. Studio working copy (private): `dogenals/spec/protocols/dmp/`.

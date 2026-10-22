@@ -132,7 +132,7 @@ DogeTag Offers intentionally make the sender pay both miners and recipients.
 
 ## 8. Optional Ðignal Link
 
-If flag bit 2 is set, the sender MAY separately create a [Ðignal](../dignal/spec.md) message that
+If flag bit 2 is set, the sender MAY separately create a Ðignal message that
 contains richer encrypted context. The DogeTag itself carries no plaintext message body.
 
 ---
@@ -190,7 +190,7 @@ contains richer encrypted context. The DogeTag itself carries no plaintext messa
 - Sound hints are untrusted; wallets must let users disable them.
 - Dust and standardness policy may change; wallets should use configurable thresholds.
 - If a Ðignal link exists, wallets **MUST** treat it as encrypted negotiation context only; it is not an offer acceptance, escrow, or settlement.
-- Wallet notification behavior **SHOULD** follow [../../docs/guides/wallet-notifications.md](../../docs/guides/wallet-notifications.md).
+- Wallet notification behavior **SHOULD** follow the Dogenals wallet-notifications guide.
 - Decoded payloads **SHOULD** validate against [schemas/dmp-offer-signal-decoded.json](schemas/dmp-offer-signal-decoded.json); binary fixtures are in [vectors/dmp-offer-signal-vectors.json](vectors/dmp-offer-signal-vectors.json).
 
 ---

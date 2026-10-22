@@ -1,0 +1,13 @@
+{
+  "p": "dmp",
+  "v": "2",
+  "op": "list",
+  "chain": "dogecoin-regtest",
+  "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+  "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+  "price": "500000000",
+  "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+  "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+  "sig": "30440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d93613035645283",
+  "ts": 1790000000
+}

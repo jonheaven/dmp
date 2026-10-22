@@ -1,7 +1,24 @@
 # Launch Draft Summary
 
-ÐMP v1.0 is the Doginals Marketplace Protocol launch draft. The spec has not launched on-chain and does not
-carry compatibility obligations from earlier internal drafts.
+## v2 implementer-ready (this branch)
+
+- spec-v2 §8.1 is a normative inscription location rule: ord FIFO, offsets, several inscriptions per
+  UTXO, zero-value outputs, sats lost to fee, and multi-part reveal genesis.
+- §8.2 makes fill validation layout-agnostic. Only the `in[1]`/`out[1]` binding is fixed, the
+  canonical layout puts the dog on `out[2]`, and a fill with the dog on `out[0]` is also a sale.
+- §8.3 limits a fill to one OP_RETURN, makes the `dmp2` tag optional, and lets a dogesoft `ds` tag
+  coexist with it. §8.4 adds dust and fee guidance.
+- The v1 hardening rejects a PSDT that signs the dog at input 0 (`postage_unsafe`). §15 classifies
+  the four v1 mainnet lists.
+- New: IMPLEMENTERS.md, MIGRATION-v1-to-v2.md, CONFORMANCE.md, `schemas/cancel-v2.schema.json`,
+  `EXAMPLES/v2/`, the state and v1 vector files, and the reconstructor `state` and `v1` modes.
+- spec.md: fixed the inscription-ID definition (`i<n>` is the index within the reveal, not an
+  output) and the P2PKH-only prevout text.
+
+## v1.0 launch draft
+
+ÐMP v1.0 is the Doginals Marketplace Protocol launch draft. Four v1 `list` inscriptions exist on
+mainnet (spec-v2 §15).
 
 ## Included
 
@@ -87,7 +104,7 @@ collections). This is not a protocol shrink.
 
 - [collaborative-fees.md](collaborative-fees.md): multi-venue rake (listing + settlement) + royalty split physics.
 - list schema: `market_fee_bps`, `listing_fee_address`, `listing_fee_share_bps`, `listing_marketplace`.
-- Ecosystem: `dogenals/docs/OPERATOR_COLLECTIVE_PLAN.md`.
+- Ecosystem: the operator collective plan (not in this repo).
 
 **Hardening status:** The full pre-launch hardening patch (MUST-099 through MUST-108, `bid_id` / `expiry` / `co_sellers` / `list_id`–`auction_id` alignment) is **live** in `spec.md`, `security.md`, examples, and `vectors/conformance.json` for this draft.
 
@@ -107,5 +124,5 @@ collections). This is not a protocol shrink.
   from the best chain.
 - **§15.3–§15.4**: settlement reference, cancel, and timestamp edge cases.
 - **§10**: removed duplicate immutable-field bullet.
-- **Design record**: [`specs/dmp-hardening-patch.md`](../../specs/dmp-hardening-patch.md) (integrated; normative
+- **Design record**: the DMP hardening patch (integrated; normative
   text is in this spec).

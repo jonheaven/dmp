@@ -1,0 +1,1690 @@
+{
+ "spec": "dmp-v2 (spec-v2.md §6.1, §7.1, §8, §9, §10)",
+ "network": "dogecoin-regtest",
+ "generated_by": "gen_state_vectors.mjs (regtest harness, not in this repo); checked by reference/dmp_v2_reconstruct.py state",
+ "keys": {
+  "seller_pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+  "seller_address": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+  "buyer_address": "mzvqhxkRraqm53KzpNfB7akbVkayurJSM6",
+  "other_pubkey": "038ce53a62e9356ce82583f0983fabbf69eb486d96ec186232c2282e257753b64c",
+  "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+  "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3",
+  "settlement_venue": "mzC4uStsYZw4hwJSNCK69dUgtJtZY8Ghoj"
+ },
+ "constants": {
+  "lead_koinu": 100000,
+  "settle_depth": 6,
+  "ts_window_s": 7200
+ },
+ "location": [
+  {
+   "name": "simple-transfer",
+   "note": "one input, one output: the dog stays at offset 0",
+   "inputs": [
+    {
+     "value": 100000,
+     "inscriptions": [
+      {
+       "id": "A",
+       "offset": 0
+      }
+     ]
+    }
+   ],
+   "outputs": [
+    100000
+   ],
+   "expect": {
+    "A": {
+     "vout": 0,
+     "offset": 0
+    }
+   }
+  },
+  {
+   "name": "nonzero-offset-1000000",
+   "note": "diggydoge-style: a 1,000,000 koinu input in front of the dog; the dog lands on out[0] at offset 1,000,000",
+   "inputs": [
+    {
+     "value": 1000000,
+     "inscriptions": []
+    },
+    {
+     "value": 100000,
+     "inscriptions": [
+      {
+       "id": "A",
+       "offset": 0
+      }
+     ]
+    },
+    {
+     "value": 600000000,
+     "inscriptions": []
+    }
+   ],
+   "outputs": [
+    1100000,
+    500000000,
+    99000000
+   ],
+   "expect": {
+    "A": {
+     "vout": 0,
+     "offset": 1000000
+    }
+   }
+  },
+  {
+   "name": "canonical-out2",
+   "note": "dogex canonical fill: in[0] = lead + net exactly, so the dog starts out[2]",
+   "inputs": [
+    {
+     "value": 500100000,
+     "inscriptions": []
+    },
+    {
+     "value": 100000,
+     "inscriptions": [
+      {
+       "id": "A",
+       "offset": 0
+      }
+     ]
+    },
+    {
+     "value": 2000000,
+     "inscriptions": []
+    }
+   ],
+   "outputs": [
+    100000,
+    500000000,
+    100000,
+    1000000
+   ],
+   "expect": {
+    "A": {
+     "vout": 2,
+     "offset": 0
+    }
+   }
+  },
+  {
+   "name": "canonical-out2-excess",
+   "note": "in[0] larger than lead + net: the excess rides in out[2] in front of the dog",
+   "inputs": [
+    {
+     "value": 500150000,
+     "inscriptions": []
+    },
+    {
+     "value": 100000,
+     "inscriptions": [
+      {
+       "id": "A",
+       "offset": 0
+      }
+     ]
+    }
+   ],
+   "outputs": [
+    100000,
+    500000000,
+    150000
+   ],
+   "expect": {
+    "A": {
+     "vout": 2,
+     "offset": 50000
+    }
+   }
+  },
+  {
+   "name": "two-inscriptions-one-utxo-split",
+   "note": "two inscriptions in one 200,000 UTXO (offsets 0 and 150,000) split across two outputs",
+   "inputs": [
+    {
+     "value": 200000,
+     "inscriptions": [
+      {
+       "id": "A",
+       "offset": 0
+      },
+      {
+       "id": "B",
+       "offset": 150000
+      }
+     ]
+    }
+   ],
+   "outputs": [
+    100000,
+    100000
+   ],
+   "expect": {
+    "A": {
+     "vout": 0,
+     "offset": 0
+    },
+    "B": {
+     "vout": 1,
+     "offset": 50000
+    }
+   }
+  },
+  {
+   "name": "two-inscriptions-one-utxo-together",
+   "note": "both inscriptions stay together in one output and keep their offsets",
+   "inputs": [
+    {
+     "value": 1000000,
+     "inscriptions": []
+    },
+    {
+     "value": 200000,
+     "inscriptions": [
+      {
+       "id": "A",
+       "offset": 0
+      },
+      {
+       "id": "B",
+       "offset": 150000
+      }
+     ]
+    }
+   ],
+   "outputs": [
+    1200000
+   ],
+   "expect": {
+    "A": {
+     "vout": 0,
+     "offset": 1000000
+    },
+    "B": {
+     "vout": 0,
+     "offset": 1150000
+    }
+   }
+  },
+  {
+   "name": "nonzero-offset-inside-input",
+   "note": "an inscription already at offset 30,000 inside its UTXO",
+   "inputs": [
+    {
+     "value": 50000,
+     "inscriptions": []
+    },
+    {
+     "value": 100000,
+     "inscriptions": [
+      {
+       "id": "A",
+       "offset": 30000
+      }
+     ]
+    }
+   ],
+   "outputs": [
+    60000,
+    90000
+   ],
+   "expect": {
+    "A": {
+     "vout": 1,
+     "offset": 20000
+    }
+   }
+  },
+  {
+   "name": "lost-to-fee",
+   "note": "outputs end before the dog sat: the sat goes to the miner (location = lost)",
+   "inputs": [
+    {
+     "value": 500000,
+     "inscriptions": []
+    },
+    {
+     "value": 100000,
+     "inscriptions": [
+      {
+       "id": "A",
+       "offset": 0
+      }
+     ]
+    }
+   ],
+   "outputs": [
+    400000
+   ],
+   "expect": {
+    "A": null
+   }
+  },
+  {
+   "name": "lost-boundary",
+   "note": "absolute offset == sum of outputs is lost; one koinu less is the last sat of the last output",
+   "inputs": [
+    {
+     "value": 400000,
+     "inscriptions": []
+    },
+    {
+     "value": 100000,
+     "inscriptions": [
+      {
+       "id": "A",
+       "offset": 0
+      },
+      {
+       "id": "B",
+       "offset": 99999
+      }
+     ]
+    }
+   ],
+   "outputs": [
+    400000
+   ],
+   "expect": {
+    "A": null,
+    "B": null
+   }
+  },
+  {
+   "name": "last-sat",
+   "note": "absolute offset == sum of outputs − 1 lands on the last sat of the last output",
+   "inputs": [
+    {
+     "value": 399999,
+     "inscriptions": []
+    },
+    {
+     "value": 100000,
+     "inscriptions": [
+      {
+       "id": "A",
+       "offset": 0
+      }
+     ]
+    }
+   ],
+   "outputs": [
+    300000,
+    100000
+   ],
+   "expect": {
+    "A": {
+     "vout": 1,
+     "offset": 99999
+    }
+   }
+  },
+  {
+   "name": "zero-value-output-skipped",
+   "note": "a zero-value output (OP_RETURN) holds no sats and is skipped",
+   "inputs": [
+    {
+     "value": 100000,
+     "inscriptions": [
+      {
+       "id": "A",
+       "offset": 0
+      }
+     ]
+    }
+   ],
+   "outputs": [
+    0,
+    100000
+   ],
+   "expect": {
+    "A": {
+     "vout": 1,
+     "offset": 0
+    }
+   }
+  }
+ ],
+ "genesis": [
+  {
+   "name": "single-part",
+   "note": "one reveal: id = reveal txid i0, location = reveal:0 offset 0",
+   "parts": [
+    "590282a06c9943a1db23c178ab4357c17d29d7bcc89fca37810e80812ebbd137"
+   ],
+   "reveal_outputs": [
+    100000
+   ],
+   "expect": {
+    "id": "590282a06c9943a1db23c178ab4357c17d29d7bcc89fca37810e80812ebbd137i0",
+    "location": "590282a06c9943a1db23c178ab4357c17d29d7bcc89fca37810e80812ebbd137:0:0"
+   }
+  },
+  {
+   "name": "multi-part-3",
+   "note": "doginals chain of 3 reveal txs: the id is the FIRST part, the location starts at the completing (last) reveal",
+   "parts": [
+    "8e3243016e119f6b29a5a2b110a52e28c5e2afb8ee3378945f6ed78551d4c7e6",
+    "942168c0c28103c3587513e5a810b9877cdcad6cc1a0dd7ed53a79bc02909b10",
+    "1fc55d27e9814247396bc061c90aa21e7a50bf1b68834a466b76eb414eaed73c"
+   ],
+   "reveal_outputs": [
+    100000,
+    900000
+   ],
+   "expect": {
+    "id": "8e3243016e119f6b29a5a2b110a52e28c5e2afb8ee3378945f6ed78551d4c7e6i0",
+    "location": "1fc55d27e9814247396bc061c90aa21e7a50bf1b68834a466b76eb414eaed73c:0:0"
+   }
+  },
+  {
+   "name": "multi-part-incomplete",
+   "note": "a chain whose last part never confirms creates no inscription (no id, no location)",
+   "parts": [
+    "48913079ab5de198ab0bd98e0e33350a8d7dc912abb82932d0e98bee7321ea63",
+    "ae8a7d5d515cc605af95b989f68b9b61ba9a32de10bb1fd62b0273b287493445"
+   ],
+   "complete": false,
+   "reveal_outputs": [
+    100000
+   ],
+   "expect": null
+  }
+ ],
+ "fill_layout": [
+  {
+   "name": "canonical-out2",
+   "note": "dogex canonical: in[0] = lead + net, dog on out[2] offset 0, fee from in[2], no OP_RETURN",
+   "order_ref": "layout-plain",
+   "order": {
+    "p": "dmp",
+    "v": "2",
+    "op": "list",
+    "chain": "dogecoin-regtest",
+    "inscription_id": "35ed6cffd73d5f5a79e9092c86197c9599db1f69dda1db846f4c53c0d431d6a1i0",
+    "utxo": "b4a6759247002960b051b90f3f4275958869710e654a72bde8f89a18408b21c5:0",
+    "price": "500000000",
+    "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+    "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+    "sig": "304502210094c9bbbe0b02445283a6bb4a651eb06f0b229ac5bfbef0421e120ff67313a16e02204ea5eba365077289fec02672f21bef969d9b7183d47c024db93c7717cc97091f83",
+    "ts": 1790000000
+   },
+   "parent_tx_hex": "010000000158890389331e4385298f2c81891350a70df34f74ac7d7943db8a62f2381f6614000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "fill_tx_hex": "0200000003d0a18131a4d685ca43e45f436fd102dbac1a83758928e5a592eb96ba9748c710000000000151ffffffffc5218b40189af8e8bd724a650e7169889575423f0fb951b0602900479275a6b4000000006b48304502210094c9bbbe0b02445283a6bb4a651eb06f0b229ac5bfbef0421e120ff67313a16e02204ea5eba365077289fec02672f21bef969d9b7183d47c024db93c7717cc97091f832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1fffffffff7ce94df09cdb1af7e0af6e2d0e4614716020ea07b794e5390f681ff8750a785000000000151ffffffff04a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac0065cd1d000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188aca0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac40420f00000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac00000000",
+   "fill_txid": "b5f07894cc876de74ce9661ea6fbd95ccda647fed7dbb1094006d2fb2db319af",
+   "prevout_values": {
+    "10c74897ba96eb92a5e5288975831aacdb02d16f435fe443ca85d6a43181a1d0:0": 500100000,
+    "85a75087ff81f690534e797ba00e02164761e4d0e2f60a7eafb1cd09df94cef7:0": 2000000
+   },
+   "dog_offset_in_utxo": 0,
+   "expect": {
+    "is_fill": true,
+    "outcome": "settle_pending",
+    "dog": {
+     "vout": 2,
+     "offset": 0
+    },
+    "buyer": "mzvqhxkRraqm53KzpNfB7akbVkayurJSM6",
+    "compliance": {
+     "seller_paid_ok": true,
+     "royalty_ok": null,
+     "listing_fee_ok": null,
+     "settlement_fee_ok": null,
+     "fee_split_ok": true
+    },
+    "op_return_kind": null
+   }
+  },
+  {
+   "name": "canonical-out2-fees",
+   "note": "canonical layout with royalty + listing + settlement outputs and a dmp2 tag",
+   "order_ref": "layout-fees",
+   "order": {
+    "p": "dmp",
+    "v": "2",
+    "op": "list",
+    "chain": "dogecoin-regtest",
+    "inscription_id": "4ce8dc1e4ab9e7ed69222c288183f062be83bd8e4790fa4e79f4bfdf763aa3bbi0",
+    "utxo": "66409e65e57344864f32e68098953abf3d3776e9d558f7923eac3616d2dbe151:0",
+    "price": "1000000000",
+    "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+    "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+    "sig": "3045022100e8d9727cf226d1af6d1a8b33fcad6ffc3c23d7c74a3c7bc2d2cb6c219d70ea6f022063243a2f776974a1e08e76901a4773cdfe07e47f1a1d4934de15fe49284b608c83",
+    "fees": {
+     "royalty_bps": "500",
+     "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+     "market_bps": "200",
+     "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3"
+    },
+    "ts": 1790000000
+   },
+   "parent_tx_hex": "0100000001ed3fe4b0cc0f4853c32cc388254af2daf76135329ce331bf8c44256b911da4de000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "fill_tx_hex": "0200000003695a69e8b2654f6f5384aabce90a78f31bcbcd24941891c78fecc67325393369000000000151ffffffff51e1dbd21636ac3e92f758d5e976373dbf3a959880e6324f864473e5659e4066000000006b483045022100e8d9727cf226d1af6d1a8b33fcad6ffc3c23d7c74a3c7bc2d2cb6c219d70ea6f022063243a2f776974a1e08e76901a4773cdfe07e47f1a1d4934de15fe49284b608c832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffff2ca552eac6dc4a709ec06d41dba9766be21a2bdefdb56cd07510759bb3a63dc6000000000151ffffffff08a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac80ac6e37000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188aca0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac80f0fa02000000001976a91493ad8c28538271dbb24ac93a3e0d20d8a56acd7288ac80969800000000001976a914e44f2714c0974e1bde18ebb4793bb9e451bffed888ac80969800000000001976a914ccd8012ac0a3497e04450df6a1987f889d8b391f88ac0000000000000000206a04646d70321976a914ccd8012ac0a3497e04450df6a1987f889d8b391f88ac40548900000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac00000000",
+   "fill_txid": "eae154dbbf85b2328dbeb547e0a0d8b29400b9e8ec12b37a267710965db3463f",
+   "prevout_values": {
+    "6933392573c6ec8fc791189424cdcb1bf3780ae9bcaa84536f4f65b2e8695a69:0": 930100000,
+    "c63da6b39b751075d06cb5fdde2b1ae26b76a9db416dc09e704adcc6ea52a52c:0": 80000000
+   },
+   "dog_offset_in_utxo": 0,
+   "expect": {
+    "is_fill": true,
+    "outcome": "settle_pending",
+    "dog": {
+     "vout": 2,
+     "offset": 0
+    },
+    "buyer": "mzvqhxkRraqm53KzpNfB7akbVkayurJSM6",
+    "compliance": {
+     "seller_paid_ok": true,
+     "royalty_ok": true,
+     "listing_fee_ok": true,
+     "settlement_fee_ok": true,
+     "fee_split_ok": true
+    },
+    "op_return_kind": "dmp2"
+   }
+  },
+  {
+   "name": "diggydoge-out0",
+   "note": "diggydoge-style: 1,000,000 dummy at in[0], out[0] = 1,100,000 to the buyer holds the dog at offset 1,000,000; 1% venue fee; one ds OP_RETURN",
+   "order_ref": "layout-plain",
+   "order": {
+    "p": "dmp",
+    "v": "2",
+    "op": "list",
+    "chain": "dogecoin-regtest",
+    "inscription_id": "35ed6cffd73d5f5a79e9092c86197c9599db1f69dda1db846f4c53c0d431d6a1i0",
+    "utxo": "b4a6759247002960b051b90f3f4275958869710e654a72bde8f89a18408b21c5:0",
+    "price": "500000000",
+    "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+    "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+    "sig": "304502210094c9bbbe0b02445283a6bb4a651eb06f0b229ac5bfbef0421e120ff67313a16e02204ea5eba365077289fec02672f21bef969d9b7183d47c024db93c7717cc97091f83",
+    "ts": 1790000000
+   },
+   "parent_tx_hex": "010000000158890389331e4385298f2c81891350a70df34f74ac7d7943db8a62f2381f6614000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "fill_tx_hex": "02000000031d3dee353c310da7e5ddf6205166245cdcd384d7e2a1140071b5244b23ad3215000000000151ffffffffc5218b40189af8e8bd724a650e7169889575423f0fb951b0602900479275a6b4000000006b48304502210094c9bbbe0b02445283a6bb4a651eb06f0b229ac5bfbef0421e120ff67313a16e02204ea5eba365077289fec02672f21bef969d9b7183d47c024db93c7717cc97091f832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffff1467871c6215782b0341aade885bf211a74a2aa244c99c51707fb40489e43b2a000000000151ffffffff05e0c81000000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac0065cd1d000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac404b4c00000000001976a914ccd8012ac0a3497e04450df6a1987f889d8b391f88ac00000000000000002f6a2d7b226473223a7b22616374696f6e223a22425559222c22726566223a22646d702d76322d766563746f72227d7d40118b05000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac00000000",
+   "fill_txid": "63e5fd7964cc9cc09a7a9b1d2a663c70c8ab05ddceaad6363560beda89ae87c3",
+   "prevout_values": {
+    "1532ad234b24b5710014a1e2d784d3dc5c24665120f6dde5a70d313c35ee3d1d:0": 1000000,
+    "2a3be48904b47f70519cc944a22a4aa711f25b88deaa41032b7815621c876714:0": 600000000
+   },
+   "dog_offset_in_utxo": 0,
+   "expect": {
+    "is_fill": true,
+    "outcome": "settle_pending",
+    "dog": {
+     "vout": 0,
+     "offset": 1000000
+    },
+    "buyer": "mzvqhxkRraqm53KzpNfB7akbVkayurJSM6",
+    "compliance": {
+     "seller_paid_ok": true,
+     "royalty_ok": null,
+     "listing_fee_ok": null,
+     "settlement_fee_ok": null,
+     "fee_split_ok": true
+    },
+    "op_return_kind": "json:ds"
+   }
+  },
+  {
+   "name": "diggydoge-out0-fees-unpaid",
+   "note": "out[0] layout on a fee-bearing order: royalty and listing not paid, ds tag; still a sale, fee_split_ok=false",
+   "order_ref": "layout-fees",
+   "order": {
+    "p": "dmp",
+    "v": "2",
+    "op": "list",
+    "chain": "dogecoin-regtest",
+    "inscription_id": "4ce8dc1e4ab9e7ed69222c288183f062be83bd8e4790fa4e79f4bfdf763aa3bbi0",
+    "utxo": "66409e65e57344864f32e68098953abf3d3776e9d558f7923eac3616d2dbe151:0",
+    "price": "1000000000",
+    "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+    "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+    "sig": "3045022100e8d9727cf226d1af6d1a8b33fcad6ffc3c23d7c74a3c7bc2d2cb6c219d70ea6f022063243a2f776974a1e08e76901a4773cdfe07e47f1a1d4934de15fe49284b608c83",
+    "fees": {
+     "royalty_bps": "500",
+     "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+     "market_bps": "200",
+     "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3"
+    },
+    "ts": 1790000000
+   },
+   "parent_tx_hex": "0100000001ed3fe4b0cc0f4853c32cc388254af2daf76135329ce331bf8c44256b911da4de000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "fill_tx_hex": "0200000003aada515cd599f4bb4e4022cc814d14f885f9d8278bef28599ee1707f0ed66912000000000151ffffffff51e1dbd21636ac3e92f758d5e976373dbf3a959880e6324f864473e5659e4066000000006b483045022100e8d9727cf226d1af6d1a8b33fcad6ffc3c23d7c74a3c7bc2d2cb6c219d70ea6f022063243a2f776974a1e08e76901a4773cdfe07e47f1a1d4934de15fe49284b608c832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffff61ea3326f630c57282e639b5b6af5446f71d542569e5927410850ddeea1749ff000000000151ffffffff04e0c81000000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac80ac6e37000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac0000000000000000236a217b226473223a7b22616374696f6e223a22425559222c22726566223a2278227d7d00990d04000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac00000000",
+   "fill_txid": "550e5c848ba7d25702ed1e68fcf102ea66124b105d05c232439dfa8932243114",
+   "prevout_values": {
+    "1269d60e7f70e19e5928ef8b27d8f985f8144d81cc22404ebbf499d55c51daaa:0": 1000000,
+    "ff4917eade0d85107492e56925541df74654afb6b539e68272c530f62633ea61:0": 1000000000
+   },
+   "dog_offset_in_utxo": 0,
+   "expect": {
+    "is_fill": true,
+    "outcome": "settle_pending",
+    "dog": {
+     "vout": 0,
+     "offset": 1000000
+    },
+    "buyer": "mzvqhxkRraqm53KzpNfB7akbVkayurJSM6",
+    "compliance": {
+     "seller_paid_ok": true,
+     "royalty_ok": false,
+     "listing_fee_ok": false,
+     "settlement_fee_ok": null,
+     "fee_split_ok": false
+    },
+    "op_return_kind": "json:ds"
+   }
+  },
+  {
+   "name": "dog-back-to-seller",
+   "note": "fill-shaped, but the dog lands on the seller's own address: a move, not a sale",
+   "order_ref": "layout-plain",
+   "order": {
+    "p": "dmp",
+    "v": "2",
+    "op": "list",
+    "chain": "dogecoin-regtest",
+    "inscription_id": "35ed6cffd73d5f5a79e9092c86197c9599db1f69dda1db846f4c53c0d431d6a1i0",
+    "utxo": "b4a6759247002960b051b90f3f4275958869710e654a72bde8f89a18408b21c5:0",
+    "price": "500000000",
+    "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+    "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+    "sig": "304502210094c9bbbe0b02445283a6bb4a651eb06f0b229ac5bfbef0421e120ff67313a16e02204ea5eba365077289fec02672f21bef969d9b7183d47c024db93c7717cc97091f83",
+    "ts": 1790000000
+   },
+   "parent_tx_hex": "010000000158890389331e4385298f2c81891350a70df34f74ac7d7943db8a62f2381f6614000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "fill_tx_hex": "0200000003ceea9e6f7228a7a2aba82d56e3a77d1a4e1dae5cbe8a88da50d00186cfe407b9000000000151ffffffffc5218b40189af8e8bd724a650e7169889575423f0fb951b0602900479275a6b4000000006b48304502210094c9bbbe0b02445283a6bb4a651eb06f0b229ac5bfbef0421e120ff67313a16e02204ea5eba365077289fec02672f21bef969d9b7183d47c024db93c7717cc97091f832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffff22723bd7c24e07c63c7caff17ea918f211ef87b7d3d7b1b09e57dbb75598d2e0000000000151ffffffff04a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac0065cd1d000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188aca0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac40420f00000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac00000000",
+   "fill_txid": "d69b73730484b048bed211a6963197ba3e778790b4bdeb1e0e589ab3925a4fd7",
+   "prevout_values": {
+    "b907e4cf8601d050da888abe5cae1d4e1a7da7e3562da8aba2a728726f9eeace:0": 500100000,
+    "e0d29855b7db579eb0b1d7d3b787ef11f218a97ef1af7c3cc6074ec2d73b7222:0": 2000000
+   },
+   "dog_offset_in_utxo": 0,
+   "expect": {
+    "is_fill": true,
+    "outcome": "cancelled_moved",
+    "dog": {
+     "vout": 2,
+     "offset": 0
+    },
+    "buyer": null,
+    "compliance": null,
+    "op_return_kind": null
+   }
+  },
+  {
+   "name": "out1-altered",
+   "note": "out[1] pays net − 1: not the signed output (the seller signature would fail consensus), so a move; the dog shifts to offset 1 of out[2]",
+   "order_ref": "layout-plain",
+   "order": {
+    "p": "dmp",
+    "v": "2",
+    "op": "list",
+    "chain": "dogecoin-regtest",
+    "inscription_id": "35ed6cffd73d5f5a79e9092c86197c9599db1f69dda1db846f4c53c0d431d6a1i0",
+    "utxo": "b4a6759247002960b051b90f3f4275958869710e654a72bde8f89a18408b21c5:0",
+    "price": "500000000",
+    "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+    "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+    "sig": "304502210094c9bbbe0b02445283a6bb4a651eb06f0b229ac5bfbef0421e120ff67313a16e02204ea5eba365077289fec02672f21bef969d9b7183d47c024db93c7717cc97091f83",
+    "ts": 1790000000
+   },
+   "parent_tx_hex": "010000000158890389331e4385298f2c81891350a70df34f74ac7d7943db8a62f2381f6614000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "fill_tx_hex": "0200000003574f5056422eaa5396c6d640b043a5b0e645c49603aaee67b3af88750a94482a000000000151ffffffffc5218b40189af8e8bd724a650e7169889575423f0fb951b0602900479275a6b4000000006b48304502210094c9bbbe0b02445283a6bb4a651eb06f0b229ac5bfbef0421e120ff67313a16e02204ea5eba365077289fec02672f21bef969d9b7183d47c024db93c7717cc97091f832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffffe573fd24cb978eb7be0ac599d91c1d0ccb78e9bb13fcb5e194c9748cfdd34da8000000000151ffffffff04a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888acff64cd1d000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188aca0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac40420f00000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac00000000",
+   "fill_txid": "da37afb363401a24afc7ba1ce088cdbe54a200727fa9f9b562dca1b2c4173412",
+   "prevout_values": {
+    "2a48940a7588afb367eeaa0396c445e6b0a543b040d6c69653aa2e4256504f57:0": 500100000,
+    "a84dd3fd8c74c994e1b5fc13bbe978cb0c1d1cd999c50abeb78e97cb24fd73e5:0": 2000000
+   },
+   "dog_offset_in_utxo": 0,
+   "expect": {
+    "is_fill": false,
+    "outcome": "cancelled_moved",
+    "dog": {
+     "vout": 2,
+     "offset": 1
+    },
+    "buyer": null,
+    "compliance": null,
+    "op_return_kind": null
+   }
+  },
+  {
+   "name": "dog-lost-to-fee",
+   "note": "in[0] so large the outputs end before the dog sat: the dog goes to the miner; a move (lost), never a sale",
+   "order_ref": "layout-plain",
+   "order": {
+    "p": "dmp",
+    "v": "2",
+    "op": "list",
+    "chain": "dogecoin-regtest",
+    "inscription_id": "35ed6cffd73d5f5a79e9092c86197c9599db1f69dda1db846f4c53c0d431d6a1i0",
+    "utxo": "b4a6759247002960b051b90f3f4275958869710e654a72bde8f89a18408b21c5:0",
+    "price": "500000000",
+    "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+    "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+    "sig": "304502210094c9bbbe0b02445283a6bb4a651eb06f0b229ac5bfbef0421e120ff67313a16e02204ea5eba365077289fec02672f21bef969d9b7183d47c024db93c7717cc97091f83",
+    "ts": 1790000000
+   },
+   "parent_tx_hex": "010000000158890389331e4385298f2c81891350a70df34f74ac7d7943db8a62f2381f6614000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "fill_tx_hex": "02000000028c022ea0ea26670a5663494c2404300be197f2964a30052ca9cd4919eeb3b563000000000151ffffffffc5218b40189af8e8bd724a650e7169889575423f0fb951b0602900479275a6b4000000006b48304502210094c9bbbe0b02445283a6bb4a651eb06f0b229ac5bfbef0421e120ff67313a16e02204ea5eba365077289fec02672f21bef969d9b7183d47c024db93c7717cc97091f832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffff02a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac0065cd1d000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "fill_txid": "939e00f92fb9d2631d19fd4150a071e06fff7bcc905ea368a34532394943cb0d",
+   "prevout_values": {
+    "63b5b3ee1949cda92c05304a96f297e10b3004244c4963560a6726eaa02e028c:0": 600000000
+   },
+   "dog_offset_in_utxo": 0,
+   "expect": {
+    "is_fill": true,
+    "outcome": "cancelled_moved",
+    "dog": null,
+    "buyer": null,
+    "compliance": null,
+    "op_return_kind": null
+   }
+  },
+  {
+   "name": "dog-at-in2",
+   "note": "the dog spent at input 2 (not 1): never a fill, whatever the outputs",
+   "order_ref": "layout-plain",
+   "order": {
+    "p": "dmp",
+    "v": "2",
+    "op": "list",
+    "chain": "dogecoin-regtest",
+    "inscription_id": "35ed6cffd73d5f5a79e9092c86197c9599db1f69dda1db846f4c53c0d431d6a1i0",
+    "utxo": "b4a6759247002960b051b90f3f4275958869710e654a72bde8f89a18408b21c5:0",
+    "price": "500000000",
+    "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+    "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+    "sig": "304502210094c9bbbe0b02445283a6bb4a651eb06f0b229ac5bfbef0421e120ff67313a16e02204ea5eba365077289fec02672f21bef969d9b7183d47c024db93c7717cc97091f83",
+    "ts": 1790000000
+   },
+   "parent_tx_hex": "010000000158890389331e4385298f2c81891350a70df34f74ac7d7943db8a62f2381f6614000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "fill_tx_hex": "0200000003e57c0441edaf518949a41a221591fe010e8c3c7a889a3ec35ebc5c72009fbd3a000000000151ffffffffe5b77c399c8c0db6e9eec1220d408600af2e3d662861547e6e29c7a724a3ab4e000000000151ffffffffc5218b40189af8e8bd724a650e7169889575423f0fb951b0602900479275a6b40000000000ffffffff03a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac0065cd1d000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ace0c81000000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac00000000",
+   "fill_txid": "56d846a3db946c4d919930f40fc714bf28f27d41b392dc0ceeaafb8c87043080",
+   "prevout_values": {
+    "3abd9f00725cbc5ec33e9a887a3c8c0e01fe9115221aa4498951afed41047ce5:0": 100000,
+    "4eaba324a7c7296e7e546128663d2eaf0086400d22c1eee9b60d8c9c397cb7e5:0": 500000000
+   },
+   "dog_offset_in_utxo": 0,
+   "expect": {
+    "is_fill": false,
+    "outcome": "cancelled_moved",
+    "dog": {
+     "vout": 2,
+     "offset": 0
+    },
+    "buyer": null,
+    "compliance": null,
+    "op_return_kind": null
+   }
+  }
+ ],
+ "reveal_authorship": [
+  {
+   "name": "doginals-lock-by-seller",
+   "note": "scriptSig ends <sig|ALL> <<seller pk> OP_CHECKSIGVERIFY …>: authored by the seller",
+   "reveal_tx_hex": "01000000015b63f988446194617b2853d236634e6d4c9f78fb6de8617e3063346957a274040000000094036f726451106170706c69636174696f6e2f6a736f6e000b7b2270223a22646d70227d4630440220111111111111111111111111111111111111111111111111111111111111111102202222222222222222222222222222222222222222222222222222222222222201292103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ad757575757551ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "order_pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+   "authorized": true
+  },
+  {
+   "name": "doginals-lock-by-other",
+   "note": "same shape, another key: not authored by the order key",
+   "reveal_tx_hex": "01000000010f0d5b87fb4cdff8ab6f43bb98d94da9c482cc87ce499ce835a7e6f2ebfa1f6c0000000094036f726451106170706c69636174696f6e2f6a736f6e000b7b2270223a22646d70227d46304402201111111111111111111111111111111111111111111111111111111111111111022022222222222222222222222222222222222222222222222222222222222222012921038ce53a62e9356ce82583f0983fabbf69eb486d96ec186232c2282e257753b64cad757575757551ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "order_pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+   "authorized": false
+  },
+  {
+   "name": "sighash-not-all",
+   "note": "the lock signature uses 0x83, not SIGHASH_ALL: no author",
+   "reveal_tx_hex": "01000000019b6724541ffe8a03ae216911b29a22781f413998d5b994cb29f5d05812425e920000000094036f726451106170706c69636174696f6e2f6a736f6e000b7b2270223a22646d70227d4630440220111111111111111111111111111111111111111111111111111111111111111102202222222222222222222222222222222222222222222222222222222222222283292103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ad757575757551ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "order_pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+   "authorized": false
+  },
+  {
+   "name": "second-input",
+   "note": "the matching lock is on input 1 of the reveal: any input counts",
+   "reveal_tx_hex": "0100000002088a3ec286f5956fb0f504dccd13bdc5853d56fee89626e22d49cf652081834a000000000151ffffffff98689b68f624df8704c1fbc91b49893f23dbd2f022591f9981648bab1f0ad41e0000000094036f726451106170706c69636174696f6e2f6a736f6e000b7b2270223a22646d70227d4630440220111111111111111111111111111111111111111111111111111111111111111102202222222222222222222222222222222222222222222222222222222222222201292103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ad757575757551ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "order_pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+   "authorized": true
+  },
+  {
+   "name": "p2pkh-input-only",
+   "note": "a plain P2PKH spend by the seller is not the doginals lock: no author",
+   "reveal_tx_hex": "010000000177995e301ef9ec773fd4a28f3c761a29dc050e8fa85ff02f68e7ea55dc42e592000000006946304402201111111111111111111111111111111111111111111111111111111111111111022022222222222222222222222222222222222222222222222222222222222222012103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+   "order_pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+   "authorized": false
+  }
+ ],
+ "state": [
+  {
+   "name": "ts-window",
+   "note": "|ts − nTime| ≤ 7200: ts = nTime + 7200 is valid, nTime + 7201 is not",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790007201,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": null
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o2",
+        "ts": 1790007200,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o2"
+     }
+    },
+    {
+     "connect": {
+      "height": 102,
+      "time": 1790000010,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o3",
+        "ts": 1789992809,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o2"
+     }
+    }
+   ]
+  },
+  {
+   "name": "newer-ts-wins",
+   "note": "same outpoint: only a strictly newer ts replaces; equal ts is rejected; an old order re-inscribed by a third party cannot revert",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "utxo": "u1",
+        "price": 10
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000060,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o2",
+        "ts": 1790000060,
+        "utxo": "u1",
+        "price": 9
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o2"
+     }
+    },
+    {
+     "connect": {
+      "height": 102,
+      "time": 1790000120,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1b",
+        "ts": 1790000000,
+        "utxo": "u1",
+        "price": 10,
+        "note": "re-inscription of o1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o2"
+     }
+    },
+    {
+     "connect": {
+      "height": 103,
+      "time": 1790000180,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o3",
+        "ts": 1790000060,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o2"
+     }
+    }
+   ]
+  },
+  {
+   "name": "same-block-order",
+   "note": "two lists in one block with the same ts: the first in chain order stays",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "utxo": "u1"
+       },
+       {
+        "op": "list",
+        "id": "o2",
+        "ts": 1790000000,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    }
+   ]
+  },
+  {
+   "name": "cancel-then-relist",
+   "note": "a signed cancel is final for older orders; a newer ts relists; a cancel of a superseded list_id is invalid",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000060,
+      "ops": [
+       {
+        "op": "cancel",
+        "list_id": "o1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "cancelled",
+      "cancel_kind": "inscription",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 102,
+      "time": 1790000120,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1b",
+        "ts": 1790000000,
+        "utxo": "u1",
+        "note": "re-inscription of o1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "cancelled",
+      "cancel_kind": "inscription",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 103,
+      "time": 1790000180,
+      "ops": [
+       {
+        "op": "cancel",
+        "list_id": "o1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "cancelled",
+      "cancel_kind": "inscription",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 104,
+      "time": 1790000240,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o2",
+        "ts": 1790000240,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o2"
+     }
+    },
+    {
+     "connect": {
+      "height": 105,
+      "time": 1790000300,
+      "ops": [
+       {
+        "op": "cancel",
+        "list_id": "o1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o2"
+     }
+    }
+   ]
+  },
+  {
+   "name": "fill-after-cancel",
+   "note": "an inscription cancel is advisory: a later fill is still a sale, flagged after_cancel",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000060,
+      "ops": [
+       {
+        "op": "cancel",
+        "list_id": "o1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "cancelled",
+      "cancel_kind": "inscription",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 102,
+      "time": 1790000120,
+      "ops": [
+       {
+        "op": "spend",
+        "kind": "fill"
+       }
+      ]
+     },
+     "expect": {
+      "status": "settle_pending",
+      "current": "o1",
+      "after_cancel": true,
+      "after_expiry": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "expiry",
+   "note": "expires at the first block with nTime ≥ expiry; a later fill is flagged after_expiry",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "expiry": 1790000600,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000599,
+      "ops": []
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 102,
+      "time": 1790000600,
+      "ops": []
+     },
+     "expect": {
+      "status": "expired",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 103,
+      "time": 1790000660,
+      "ops": [
+       {
+        "op": "spend",
+        "kind": "fill"
+       }
+      ]
+     },
+     "expect": {
+      "status": "settle_pending",
+      "current": "o1",
+      "after_cancel": false,
+      "after_expiry": true
+     }
+    }
+   ]
+  },
+  {
+   "name": "expiry-not-in-future",
+   "note": "a list whose expiry ≤ nTime of its own block is invalid",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "expiry": 1790000000,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": null
+     }
+    }
+   ]
+  },
+  {
+   "name": "settle-depth",
+   "note": "settle_pending → settled once the fill has 6 confirmations (tip − fill_height + 1 ≥ 6)",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000060,
+      "ops": [
+       {
+        "op": "spend",
+        "kind": "fill"
+       }
+      ]
+     },
+     "expect": {
+      "status": "settle_pending",
+      "current": "o1",
+      "after_cancel": false,
+      "after_expiry": false
+     }
+    },
+    {
+     "connect": {
+      "height": 102,
+      "time": 1790000120,
+      "ops": []
+     },
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "connect": {
+      "height": 103,
+      "time": 1790000180,
+      "ops": []
+     },
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "connect": {
+      "height": 104,
+      "time": 1790000240,
+      "ops": []
+     },
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "connect": {
+      "height": 105,
+      "time": 1790000300,
+      "ops": []
+     },
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "connect": {
+      "height": 106,
+      "time": 1790000360,
+      "ops": []
+     },
+     "expect": {
+      "status": "settled",
+      "current": "o1"
+     }
+    }
+   ]
+  },
+  {
+   "name": "move-cancels",
+   "note": "any non-fill spend cancels (moved); a relist on the new outpoint works with any ts",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790003600,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000060,
+      "ops": [
+       {
+        "op": "spend",
+        "kind": "move",
+        "new_utxo": "u2"
+       }
+      ]
+     },
+     "expect": {
+      "status": "cancelled",
+      "cancel_kind": "moved",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 102,
+      "time": 1790000120,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1r",
+        "ts": 1790003600,
+        "utxo": "u1",
+        "note": "replay of o1: its outpoint is gone"
+       }
+      ]
+     },
+     "expect": {
+      "status": "cancelled",
+      "cancel_kind": "moved",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 103,
+      "time": 1790000180,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o2",
+        "ts": 1790000100,
+        "utxo": "u2"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o2"
+     }
+    }
+   ]
+  },
+  {
+   "name": "reorg-fill",
+   "note": "a disconnected fill reverts to listed; a different block at the same height re-validates from scratch",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000060,
+      "ops": [
+       {
+        "op": "spend",
+        "kind": "fill"
+       }
+      ]
+     },
+     "expect": {
+      "status": "settle_pending",
+      "current": "o1",
+      "after_cancel": false,
+      "after_expiry": false
+     }
+    },
+    {
+     "disconnect": 101,
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000090,
+      "ops": [
+       {
+        "op": "spend",
+        "kind": "move",
+        "new_utxo": "u2"
+       }
+      ]
+     },
+     "expect": {
+      "status": "cancelled",
+      "cancel_kind": "moved",
+      "current": "o1"
+     }
+    }
+   ]
+  },
+  {
+   "name": "reorg-list-ts-window",
+   "note": "a list valid in the old block falls outside ±7200 s of the replacement block's nTime: the record disappears",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": []
+     },
+     "expect": {
+      "status": null
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000060,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "disconnect": 101,
+     "expect": {
+      "status": null
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790007300,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": null
+     }
+    }
+   ]
+  },
+  {
+   "name": "reorg-cancel-and-expiry",
+   "note": "disconnecting the cancel block restores listed; disconnecting the expiry block un-expires",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "expiry": 1790000600,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000060,
+      "ops": [
+       {
+        "op": "cancel",
+        "list_id": "o1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "cancelled",
+      "cancel_kind": "inscription",
+      "current": "o1"
+     }
+    },
+    {
+     "disconnect": 101,
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000700,
+      "ops": []
+     },
+     "expect": {
+      "status": "expired",
+      "current": "o1"
+     }
+    },
+    {
+     "disconnect": 101,
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    }
+   ]
+  },
+  {
+   "name": "reorg-past-settled",
+   "note": "a reorg deeper than the fill un-settles it (implementations keep ≥ 6 blocks of undo; deeper reorgs need a reindex)",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "utxo": "u1"
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000060,
+      "ops": [
+       {
+        "op": "spend",
+        "kind": "fill"
+       }
+      ]
+     },
+     "expect": {
+      "status": "settle_pending",
+      "current": "o1",
+      "after_cancel": false,
+      "after_expiry": false
+     }
+    },
+    {
+     "connect": {
+      "height": 102,
+      "time": 1790000120,
+      "ops": []
+     },
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "connect": {
+      "height": 103,
+      "time": 1790000180,
+      "ops": []
+     },
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "connect": {
+      "height": 104,
+      "time": 1790000240,
+      "ops": []
+     },
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "connect": {
+      "height": 105,
+      "time": 1790000300,
+      "ops": []
+     },
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "connect": {
+      "height": 106,
+      "time": 1790000360,
+      "ops": []
+     },
+     "expect": {
+      "status": "settled"
+     }
+    },
+    {
+     "disconnect": 106,
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "disconnect": 105,
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "disconnect": 104,
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "disconnect": 103,
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "disconnect": 102,
+     "expect": {
+      "status": "settle_pending"
+     }
+    },
+    {
+     "disconnect": 101,
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -6,6 +6,8 @@ Written from the spec only: no dogex, dojak or bitcoinjs code. Uses hashlib and 
 legacy SIGHASH_SINGLE|ANYONECANPAY digest are implemented here.
 
   dmp_v2_reconstruct.py vectors <vectors.json>
+  dmp_v2_reconstruct.py state <dmp_v2_state_vectors.json>      (§6.1, §7.1, §8 location/layout, §9, §10)
+  dmp_v2_reconstruct.py v1 <dmp_v1_psdt_vectors.json>           (§2 v1 PSDT hardening, §15)
   dmp_v2_reconstruct.py order <order.json> (--parent-hex HEX | --rpc URL --rpc-auth user:pass)
 REGTEST/TESTING TOOL. It never signs or broadcasts anything.
 """
@@ -399,8 +401,207 @@ def check_vectors(path):
         print(f"{'OK  ' if ok else 'FAIL'} cancel  {case['name']:<26} {'accepted' if err is None else 'rejected: ' + err}")
     print("ALL MATCH" if not bad else f"{bad} MISMATCHES"); return bad
 
+
+# ---- spec-v2 §8.1 inscription location (ord sat flow, FIFO) ----
+def locate(in_values, inscriptions, out_values):
+    """inscriptions: [(id, input_index, offset_in_input)]. Returns {id: (vout, offset) | None (lost to fee)}."""
+    starts, acc = [], 0
+    for v in in_values: starts.append(acc); acc += v
+    res = {}
+    for ins_id, i, off in inscriptions:
+        if off >= in_values[i]: raise ValueError("offset outside its input")
+        a, base = starts[i] + off, 0
+        res[ins_id] = None
+        for vout, v in enumerate(out_values):
+            if base <= a < base + v: res[ins_id] = (vout, a - base); break
+            base += v
+    return res
+
+def op_return_kind(tx):
+    """Informative (§8.3): what the fill's first OP_RETURN is. dmp2 venue tag, a JSON tag such as ds, or other."""
+    for o in tx["outs"]:
+        s = o["script"]
+        if not s or s[0] != 0x6A: continue
+        if fill_tag(dict(outs=[o])) is not None: return "dmp2"
+        data = s[2:2 + s[1]] if len(s) > 1 and s[1] <= 75 else s[3:3 + s[2]] if len(s) > 2 and s[1] == 0x4C else b""
+        try:
+            j = json.loads(data)
+            if isinstance(j, dict) and j: return "json:" + min(j)  # smallest key: independent of JSON library key order
+        except ValueError: pass
+        return "other"
+    return None
+
+def classify_spend(fill_raw, d, prevout_values, dog_offset):
+    """§8.2: is this spend of the order utxo a fill (sale) or a cancel-by-move, and where does the dog land."""
+    tx = parse_tx(fill_raw); dog_prev = (bytes.fromhex(d["txid"])[::-1], d["vout"])
+    in_values, dog_in = [], None
+    for i, x in enumerate(tx["ins"]):
+        if (x["prev"], x["vout"]) == dog_prev: dog_in = i; in_values.append(d["dog_value"])
+        else: in_values.append(prevout_values[f"{x['prev'][::-1].hex()}:{x['vout']}"])
+    loc = locate(in_values, [("dog", dog_in, dog_offset)], [o["value"] for o in tx["outs"]])["dog"]
+    shape = dog_in == 1 and len(tx["outs"]) > 1 and tx["outs"][1] == dict(value=d["split"]["net"], script=d["pay"])
+    owner = tx["outs"][loc[0]]["script"] if loc else None
+    order_owner = p2sh(d["redeem"]) if d["redeem"] is not None else p2pkh(d["keys"][0])
+    sale = shape and owner is not None and owner != order_owner
+    return dict(is_fill=shape, outcome="settle_pending" if sale else "cancelled_moved", dog=dict(vout=loc[0], offset=loc[1]) if loc else None,
+                buyer_script=owner if sale else None, compliance=compliance(fill_raw, d) if sale else None, op_return_kind=op_return_kind(tx))
+
+def script_address(script, chain):
+    pkh, sh = CHAINS[chain]
+    if len(script) == 25 and script[:3] == b"\x76\xa9\x14": v, h = pkh, script[3:23]
+    elif len(script) == 23 and script[:2] == b"\xa9\x14": v, h = sh, script[2:22]
+    else: return None
+    raw = bytes([v]) + h; raw += sha256d(raw)[:4]
+    n = int.from_bytes(raw, "big"); out = ""
+    A = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+    while n: n, r = divmod(n, 58); out = A[r] + out
+    return "1" * (len(raw) - len(raw.lstrip(b"\x00"))) + out
+
+# ---- spec-v2 §7.1 reveal authorship ----
+def _pushes(script):
+    out, i = [], 0
+    while i < len(script):
+        op = script[i]; i += 1
+        if 1 <= op <= 75: out.append(script[i:i + op]); i += op
+        elif op == 0x4C: n = script[i]; out.append(script[i + 1:i + 1 + n]); i += 1 + n
+        elif op == 0x4D: n = struct.unpack("<H", script[i:i + 2])[0]; out.append(script[i + 2:i + 2 + n]); i += 2 + n
+        elif op == 0: out.append(b"")
+        elif 0x51 <= op <= 0x60: out.append(bytes([op - 0x50]))
+        else: return None  # a non-push opcode: not a doginals reveal scriptSig
+    return out
+
+def reveal_authors(reveal_raw):
+    keys = []
+    for x in parse_tx(reveal_raw)["ins"]:
+        p = _pushes(x["script"])
+        if not p or len(p) < 2 or not p[-2] or p[-2][-1] != 0x01: continue
+        redeem = p[-1]
+        if len(redeem) >= 35 and redeem[0] == 0x21 and redeem[34] == 0xAD and redeem[1:34] not in keys: keys.append(redeem[1:34])
+    return keys
+
+# ---- spec-v2 §6.1 / §9 / §10 state machine over abstract blocks ----
+def run_state(steps, window=7200, depth=6):
+    chain = []  # connected blocks, oldest first; state is a pure function of the chain (§10)
+    def fold():
+        rec, utxo, seen = None, "u1", {}
+        for b in chain:
+            h, t = b["height"], b["time"]
+            if rec and rec["status"] == "listed" and "expiry" in rec["o"] and t >= rec["o"]["expiry"]: rec["status"] = "expired"
+            for op in b["ops"]:
+                if op["op"] == "list":
+                    if abs(op["ts"] - t) > window or ("expiry" in op and op["expiry"] <= t) or op["utxo"] != utxo: continue
+                    if rec and rec["status"] in ("listed", "cancelled", "expired") and not (op["utxo"] != rec["o"]["utxo"] or op["ts"] > rec["o"]["ts"]): continue
+                    if rec and rec["status"] in ("settle_pending", "settled"): continue
+                    rec = dict(o=op, status="listed"); seen[op["id"]] = op
+                elif op["op"] == "cancel":
+                    if rec and rec["o"]["id"] == op["list_id"] and rec["status"] == "listed": rec.update(status="cancelled", cancel_kind="inscription")
+                elif op["op"] == "spend":
+                    if op["kind"] == "fill" and rec and rec["status"] in ("listed", "cancelled", "expired") and rec.get("cancel_kind") != "moved":
+                        rec.update(after_cancel=rec["status"] == "cancelled", after_expiry=rec["status"] == "expired", status="settle_pending", fill_height=h)
+                        rec.pop("cancel_kind", None)
+                    else:
+                        if rec and rec["status"] in ("listed", "cancelled", "expired"): rec.update(status="cancelled", cancel_kind="moved")
+                    utxo = op.get("new_utxo", "fill")
+            if rec and rec["status"] == "settle_pending" and h - rec["fill_height"] + 1 >= depth: rec["status"] = "settled"
+        return rec
+    got = []
+    for st in steps:
+        if "connect" in st: chain.append(st["connect"])
+        else:
+            if not chain or chain[-1]["height"] != st["disconnect"]: raise ValueError("disconnect is not the tip")
+            chain.pop()
+        r = fold()
+        view = dict(status=r["status"] if r else None)
+        if r:
+            view.update(current=r["o"]["id"])
+            if "cancel_kind" in r: view["cancel_kind"] = r["cancel_kind"]
+            if "after_cancel" in r: view.update(after_cancel=r["after_cancel"], after_expiry=r["after_expiry"])
+        got.append(view)
+    return got
+
+def check_state_vectors(path):
+    v = json.load(open(path)); chain = v.get("network", "dogecoin-regtest"); bad = 0
+    def report(ok, kind, name, info):
+        nonlocal bad; bad += not ok
+        print(f"{'OK  ' if ok else 'FAIL'} {kind:<7} {name:<34} {info}")
+    for c in v["location"]:
+        ins = [(x["id"], i, x["offset"]) for i, inp in enumerate(c["inputs"]) for x in inp["inscriptions"]]
+        got = {k: (dict(vout=r[0], offset=r[1]) if r else None) for k, r in locate([i["value"] for i in c["inputs"]], ins, c["outputs"]).items()}
+        report(got == c["expect"], "locate", c["name"], got)
+    for c in v["genesis"]:
+        got = None if c.get("complete") is False else dict(id=c["parts"][0] + "i0", location=f"{c['parts'][-1]}:0:0")
+        report(got == c["expect"], "genesis", c["name"], got)
+    for c in v["fill_layout"]:
+        d = parse_order(c["order"], chain); rebuild(d, bytes.fromhex(c["parent_tx_hex"]))
+        d["dog_value"] = parse_tx(bytes.fromhex(c["parent_tx_hex"]))["outs"][d["vout"]]["value"]
+        r = classify_spend(bytes.fromhex(c["fill_tx_hex"]), d, c["prevout_values"], c["dog_offset_in_utxo"])
+        e = c["expect"]
+        comp = None if r["compliance"] is None else {k: r["compliance"][k] for k in ("seller_paid_ok", "royalty_ok", "listing_fee_ok", "settlement_fee_ok", "fee_split_ok")}
+        ok = (r["is_fill"] == e["is_fill"] and r["outcome"] == e["outcome"] and r["dog"] == e["dog"] and comp == e["compliance"]
+              and (script_address(r["buyer_script"], chain) if r["buyer_script"] else None) == e["buyer"] and r["op_return_kind"] == e["op_return_kind"]
+              and txid(bytes.fromhex(c["fill_tx_hex"])) == c["fill_txid"])
+        report(ok, "layout", c["name"], f"{r['outcome']} dog={r['dog']} tag={r['op_return_kind']}")
+    for c in v["reveal_authorship"]:
+        got = bytes.fromhex(c["order_pubkey"]) in reveal_authors(bytes.fromhex(c["reveal_tx_hex"]))
+        report(got == c["authorized"], "reveal", c["name"], f"authorized={got}")
+    for c in v["state"]:
+        got = run_state(c["steps"], v["constants"]["ts_window_s"], v["constants"]["settle_depth"])
+        want = [st["expect"] for st in c["steps"]]
+        ok = all(all(g.get(k) == w[k] for k in w) and (w["status"] is not None or g["status"] is None) for g, w in zip(got, want))
+        report(ok, "state", c["name"], " → ".join(g["status"] or "none" for g in got))
+    print("ALL MATCH" if not bad else f"{bad} MISMATCHES"); return bad
+
+# ---- v1 list PSDT check (spec-v2 §2 v1 hardening, §15). P2PKH dog prevout only.
+def _psbt_maps(b, i):
+    def rd(i):
+        n = b[i]; i += 1
+        if n == 0xFD: n = int.from_bytes(b[i:i + 2], "little"); i += 2
+        elif n == 0xFE: n = int.from_bytes(b[i:i + 4], "little"); i += 4
+        return n, i
+    m = []
+    while True:
+        kl, i = rd(i)
+        if kl == 0: return m, i
+        k = b[i:i + kl]; i += kl; vl, i = rd(i); m.append((k, b[i:i + vl])); i += vl
+
+def v1_psdt_check(psdt_b64):
+    """Return (classification, detail): ok | invalid_sig | postage_unsafe | unsupported."""
+    b = base64.b64decode(psdt_b64)
+    if b[:5] != b"psbt\xff": return "unsupported", "not a PSBT"
+    g, i = _psbt_maps(b, 5); utx = dict(g).get(b"\x00")
+    if utx is None: return "unsupported", "no unsigned tx"
+    t = parse_tx(utx); ins = []
+    for _ in t["ins"]:
+        m, i = _psbt_maps(b, i); ins.append(m)
+    signed = [n for n, m in enumerate(ins) if any(k[:1] == b"\x02" for k, _ in m)]
+    if len(signed) != 1: return "invalid_sig", "must sign exactly the dog"
+    n = signed[0]; m = ins[n]
+    parent = next((v for k, v in m if k == b"\x00"), None)
+    if parent is None or n >= len(t["outs"]): return "invalid_sig", "missing parent tx or same-index output"
+    if txid(parent) != t["ins"][n]["prev"][::-1].hex(): return "invalid_sig", "parent tx does not match prevout"
+    spk = parse_tx(parent)["outs"][t["ins"][n]["vout"]]["script"]
+    for k, sig in ((k[1:], v) for k, v in m if k[:1] == b"\x02"):
+        if sig[-1] != SIGHASH: return "invalid_sig", "hashtype is not 0x83"
+        try: strict_der(sig[:-1])
+        except ValueError as e: return "invalid_sig", str(e)
+        if p2pkh(k) != spk: return "unsupported" if spk[:2] == b"\xa9\x14" else "invalid_sig", "key does not own the dog prevout"
+        if not _verifies(k, sig, sighash_single_acp(t, n, spk)): return "invalid_sig", "signature does not verify"
+    if n == 0: return "postage_unsafe", "dog signed at input 0: its sat always lands in locked output 0"
+    return "ok", "dog at input %d" % n
+
+def check_v1_vectors(path):
+    bad = 0
+    for c in json.load(open(path))["v1_lists"]:
+        got, why = v1_psdt_check(c["psdt"])
+        ok = got == c["expect"]; bad += not ok
+        print(("ok   " if ok else "FAIL ") + c["name"], got, "-", why)
+    print("ALL MATCH" if not bad else "%d MISMATCH" % bad)
+    return bad
+
 def main(a):
     if a[:1] == ["vectors"]: sys.exit(1 if check_vectors(a[1]) else 0)
+    if a[:1] == ["v1"]: sys.exit(1 if check_v1_vectors(a[1]) else 0)
+    if a[:1] == ["state"]: sys.exit(1 if check_state_vectors(a[1]) else 0)
     if a[:1] == ["order"]:
         o = loads_v2(open(a[1]).read() if a[1] != "-" else sys.stdin.read())
         chain = o.get("chain")

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jonheaven/dmp-spec/schemas/cancel-v2.schema.json",
+  "title": "ÐMP v2 cancel (advisory)",
+  "type": "object",
+  "required": [
+    "p",
+    "v",
+    "op",
+    "list_id"
+  ],
+  "properties": {
+    "p": {
+      "const": "dmp"
+    },
+    "v": {
+      "const": "2"
+    },
+    "op": {
+      "const": "cancel"
+    },
+    "list_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}i(0|[1-9][0-9]*)$",
+      "description": "inscription id of the current list op for the dog (spec-v2 §9)"
+    },
+    "asig": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9+/]{87}=$",
+      "description": "spec-v2 §7.2 signature by the order key over the canonical cancel"
+    },
+    "asigs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 15,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9+/]{87}=$"
+      },
+      "description": "multisig orders: exactly m asig by distinct script keys in key order"
+    }
+  },
+  "not": {
+    "required": [
+      "asig",
+      "asigs"
+    ]
+  },
+  "$comment": "No ts: cancels are bound to list_id, not ordered by §6.1. Without asig/asigs the reveal must be signed by the order key (§7.1). Authorization, 'current list', and m are checked by spec-v2 §7/§9, not by this schema. A cancel is advisory; only moving the dog is authoritative."
+}
