@@ -6,7 +6,7 @@ Last Updated: 2026-08-30
 Chain: Dogecoin  
 
 **Parent:** [spec.md](./spec.md)  
-**Ecosystem plan:** [docs/OPERATOR_COLLECTIVE_PLAN.md](../../../docs/OPERATOR_COLLECTIVE_PLAN.md)
+**Ecosystem plan:** operator collective plan (not in this repo)
 
 ---
 
