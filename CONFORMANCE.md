@@ -1,7 +1,7 @@
-# ÐMP v2 conformance
+# ÐMP 1.0 conformance (compact orders)
 
-An implementation is **ÐMP v2 conformant** for a role when it meets every item for that role below.
-Item numbers refer to [spec-v2.md](spec-v2.md). The vectors are the tie-breaker. If your output
+An implementation is **ÐMP 1.0 conformant** for a role when it meets every item for that role below.
+Item numbers refer to [compact-orders.md](compact-orders.md) (formerly `spec-v2.md`; same numbering). The vectors are the tie-breaker. If your output
 differs from a vector, you are wrong or the vector is, and either way please open an issue.
 
 ## Indexer
@@ -15,8 +15,8 @@ differs from a vector, you are wrong or the vector is, and either way please ope
   - fill layouts: canonical `out[2]`, diggydoge `out[0]`, dog back to the seller, dog lost to fee,
     altered `out[1]`, dog not on `in[1]`
   - reveal authorship, newer-`ts`-wins, ts window, cancel, expiry, settlement depth, reorgs
-- [ ] All of `vectors/dmp_v1_psdt_vectors.json` matches if you index v1 lists with an embedded
-      `psdt` (§2 v1 hardening, §15).
+- [ ] All of `vectors/dmp_v1_psdt_vectors.json` matches if you still index draft (pre-1.0) lists
+      with an embedded `psdt` (§2 draft-list hardening, §15).
 - [ ] Duplicate keys at any depth are rejected (§4.2).
 - [ ] Validity uses only your own node's chain data. External owner lookups never change a state.
       The same chain gives the same state after a reindex from scratch and after any reorg (§10).
@@ -32,7 +32,7 @@ differs from a vector, you are wrong or the vector is, and either way please ope
 - [ ] The order JSON validates against `schemas/list-v2.schema.json`, with no duplicate keys,
       `ts` within ±7200 s of the inscribing block's time, and net ≥ 100000 koinu (≥ 1 DOGE recommended, §8.4).
 - [ ] It inscribes with the order key, or includes a valid `asig` (§7).
-- [ ] It never signs a v1 PSDT with the dog at input 0.
+- [ ] It never creates a draft (pre-1.0) list, and never signs a PSDT with the dog at input 0.
 
 ## Buyer wallet / venue
 
