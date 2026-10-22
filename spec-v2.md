@@ -30,6 +30,11 @@ Keywords MUST, SHOULD, MAY are as in RFC 2119.
     equal to the prevout's script hash; `redeem_script` MUST be a §5.4 template (v1 also accepts 65-byte
     uncompressed keys in it); every partial signature MUST be by a key of the script and verify with
     scriptCode = `redeem_script`; and there MUST be at least `m` of them (1 for P2PK).
+  - The signed dog input MUST NOT be input 0. A PSDT that signs the dog at input 0 always returns the
+    dog's sat to the locked output 0, so no fill can deliver it. Such a list is INVALID
+    (`postage_unsafe`, §15).
+  - A v1 fill is a sale only if the dog lands (§8.1) with an owner other than the seller. A payment
+    to the seller is not enough on its own.
   - Any other prevout type is INVALID.
 
   Without this, any party can inscribe a junk-signature PSDT naming someone else's dog. (The first
@@ -360,30 +365,128 @@ is the seller's own terms (and is a no-op if it is already the active listing).
 
 ## 8. Fill, settlement and compliance
 
-- **Fill.** A transaction is a fill of an open order iff `input[1].prevout == utxo` and
-  `output[1] == template out[1]` (value and script), and the dog lands with a new owner other than
-  the order key. Any other spend of `utxo` is a **cancel-by-move**.
-- **State.** `listed → settle_pending` (on fill) `→ settled` (fill has ≥ 6 confirmations).
-  The pending record's seller amount is `net` to `pay_to`.
+### 8.1 Inscription location (normative)
+
+Every rule in this spec that says "the dog is at", "the owner of" or "the dog lands" means the location
+computed here. It is the ord sat-flow rule as Doginals indexers apply it (ord / wonky-ord; dogesoft).
+The indexer computes it only from transactions in the chain it has connected. It MUST NOT consult any
+external service for validity.
+
+- **Inscription ID.** `<reveal txid>i<n>`, where `n` is the index of the inscription among those
+  revealed in the transaction (0 for a standard doginal). For a multi-part doginal (the body continues
+  across chained reveal transactions), the ID is the **first** part's txid with `i0`.
+- **Genesis location.** For a single-transaction reveal, the location is `<reveal txid>:0:0`: the first
+  sat of the reveal's input 0 flows to output 0. For a multi-part reveal, it is
+  `<completing reveal txid>:0:0`, the transaction that carries the final part. A chain that never
+  completes produces no inscription. If output 0 cannot receive the sat (for example, all outputs are
+  zero-value), the inscription is lost to fee from genesis.
+- **Sat flow (FIFO).** For a transaction spending an outpoint that holds an inscription at offset `o`
+  within input `i`, let `abs = (Σ value of inputs 0..i−1) + o`. Walk the outputs in order with a
+  running start `s`. Zero-value outputs (OP_RETURN) are skipped and receive nothing. The inscription
+  moves to the first output `j` with `s ≤ abs < s + value(out[j])`, at offset `abs − s`. Then
+  `location = <txid>:<j>:<abs − s>`.
+- **Lost to fee.** If `abs ≥ Σ output values`, the sat goes to the miner. The inscription is no longer
+  owned by any script that a ÐMP rule can match. An indexer MAY follow it into the coinbase as ord does;
+  for ÐMP it counts as "not landed with a new owner".
+- **Several inscriptions on one UTXO.** Each one keeps its own offset and is moved independently by the
+  rule above. A v2 `utxo` names the outpoint, and `inscription_id` names which inscription on it is
+  listed. An order is still the seller's signature over the whole outpoint, so a fill moves every
+  inscription on it.
+- **Owner.** The owner of a location is the scriptPubKey of the output it sits on. ÐMP compares
+  script hashes: `hash160(pubkey)` for P2PKH, `hash160(redeem_script)` for P2SH.
+- **Input values.** Computing `abs` needs every earlier input's value. Indexers MUST obtain prevout
+  values from chain data they hold: their own UTXO set, undo data, or a txindex node. When a value is
+  unavailable, the indexer MUST halt that block rather than guess. Treating a missing value as 0 moves
+  inscriptions to the wrong output.
+
+Vectors: `vectors/dmp_v2_state_vectors.json` → `location` (11 cases: non-zero offset 1,000,000,
+an offset inside a later input, two inscriptions on one UTXO split and together, lost to fee and its
+boundary, the last sat, a zero-value output skipped) and `genesis` (single part, 3-part, incomplete).
+
+### 8.2 Fill
+
+- **Is it a fill.** A transaction is a fill of an open order iff `input[1].prevout == utxo` and
+  `output[1] == template out[1]` (value and script). These are the only two things the seller's
+  `SIGHASH_SINGLE|ANYONECANPAY` signature binds. Validation MUST NOT depend on anything else in the
+  layout: not the number of inputs or outputs, not which output carries the dog, and not the
+  input 0 or output 0 values.
+- **Sale or cancel.** A fill is a **sale** iff the dog, located by §8.1, lands on an output whose owner
+  (§8.1) is not the order owner, meaning neither `hash160(pubkey)` nor `hash160(redeem_script)`. If the dog
+  lands back with the order owner, or is lost to fee, the spend is a **cancel-by-move**
+  (`cancel_kind:"moved"`). The buyer is the address of the output where the dog landed.
+- **Any spend that is not a fill** is a cancel-by-move.
+- **Canonical layout (what venues SHOULD build).**
+
+  ```
+  in[0]  buyer coin, value ≥ net (its value decides where the dog lands)
+  in[1]  dog (seller sig, 0x83)
+  in[2…] buyer payment / fee coins
+  out[0] buyer change = value(in[0]) − net     (so out[0] + out[1] end exactly where the dog sat starts)
+  out[1] signed: net → pay_to
+  out[2] dog → buyer, value = dog postage
+  out[3…] royalty, listing, settlement outputs, optional OP_RETURN, buyer change
+  ```
+
+  With `value(out[0]) + value(out[1]) = value(in[0])`, the dog's `abs = value(in[0])` is the first sat
+  of `out[2]`, at offset 0. This is dogex's `postage_safe_plan` and the v1 "postage-safe fill".
+- **Other valid layouts.** Any layout that meets the fill rule is a valid fill, and §8.1 decides
+  whether it is a sale. Example: a venue uses a 1,000,000-koinu buyer coin as `in[0]` and pays
+  `out[0] = 1,000,000 + postage` to the buyer. The dog lands on `out[0]` at offset 1,000,000, and the
+  buyer owns it. This is the diggydoge layout. Wallets SHOULD keep the dog at offset 0 (the canonical
+  layout), because some wallets spend high-offset sats by accident.
+- **State.** `listed → settle_pending` (on a sale) `→ settled`. A fill is `settled` once it has at
+  least 6 confirmations, i.e. `tip − fill_height + 1 ≥ 6`. The pending record's seller amount is `net`
+  to `pay_to`.
 - **Compliance flags** are recorded on the fill. They **never** invalidate a sale:
   - `seller_paid_ok`: the fill rule holds.
   - `royalty_ok`: `null` if no royalty is owed, else (sum paid to `royalty_to`, excluding output 1) ≥ `royalty`.
   - `listing_fee_ok`: same for `listing_to` / `listing`.
-  - `settlement_fee_ok`: `null` unless the fill carries a venue tag and `settlement > 0`; then the
-    sum paid to the tagged venue script ≥ `settlement`.
+  - `settlement_fee_ok`: `null` unless the fill carries a `dmp2` venue tag (§8.3) and `settlement > 0`;
+    then the sum paid to the tagged venue script ≥ `settlement`.
   - `fee_split_ok`: `seller_paid_ok` and no flag is `false`.
   - `after_cancel`, `after_expiry`: the fill happened after a signed cancel / after expiry.
-- **Venue tag.** The buyer-side venue SHOULD add one output
-  `OP_RETURN PUSH("dmp2") PUSH(<settlement venue scriptPubKey>)`, value 0.
 - **Why flags, not rules.** Under `SIGHASH_SINGLE|ANYONECANPAY` the buyer chooses every other input
   and output. Royalty and venue fees cannot be enforced by the seller's signature, so indexers
   report them. The seller signs `net`; buyer-side venues add the fee outputs.
+
+Vectors: `fill_layout` (canonical `out[2]` with and without fees, diggydoge `out[0]` at offset
+1,000,000 with a `ds` tag and with fees unpaid, dog back to the seller, altered `out[1]` (a transfer,
+not a fill), dog lost to fee, dog on `in[2]`).
+
+### 8.3 OP_RETURN and the venue tag
+
+Dogecoin Core relays at most **one** OP_RETURN output per transaction, up to 80 bytes of data. So:
+
+- The `dmp2` venue tag `OP_RETURN PUSH("dmp2") PUSH(<settlement venue scriptPubKey>)` (value 0) is
+  **OPTIONAL**. It only drives `settlement_fee_ok`.
+- A venue that already writes its own OP_RETURN, such as dogesoft's JSON `{"ds":{…}}`, keeps it and
+  omits the `dmp2` tag. The fill stays valid and `settlement_fee_ok` is `null`. Venues MUST NOT
+  add a second OP_RETURN.
+- Indexers read **only the first** OP_RETURN output. They MUST NOT reject a fill for having an
+  OP_RETURN of any kind, or several of them (a non-standard but mined transaction is still a fill).
+- Informative: indexers MAY record `op_return_kind` on the fill. It is `"dmp2"` for a venue tag, and
+  `"json:<k>"` when the data parses as a JSON object, with `<k>` its lexicographically smallest key
+  (e.g. `"json:ds"`). It is `"other"` for anything else and absent/`null` when there is no OP_RETURN.
+
+### 8.4 Dust and fees (guidance)
+
+These are Dogecoin Core relay defaults, not ÐMP validity rules. A mined fill is a fill whatever it pays.
+
+- Hard dust limit 0.001 DOGE (100000 koinu): outputs below it are not relayed. `net ≥ 100000` is
+  already a §6 rule.
+- Soft dust 0.01 DOGE (1000000 koinu): each output below it adds 0.01 DOGE to the required fee.
+  Venues SHOULD keep royalty, listing and settlement outputs ≥ 0.01 DOGE or merge them into change.
+- Fee: Dogecoin Core 1.14.4+ recommends at least 0.01 DOGE/kB. dogex and the reference fills pay
+  1 DOGE/kB for margin. A typical canonical fill is 400–700 bytes.
+- Sellers SHOULD list with `net ≥ 1 DOGE`.
+- Postage: dogs SHOULD keep 100000 koinu (0.001 DOGE) postage; the canonical template's `out[0]`
+  placeholder uses that value.
 
 ## 9. Cancel and expiry
 
 - **Cancel-by-move (authoritative).** Spending `utxo` other than by a fill cancels the order
   (`cancel_kind:"moved"`). The signature can never be used again because its outpoint is gone.
-  A replay of the old order is INVALID by §6.2.
+  A replay of the old order is INVALID by §6 step 2 (the indexer no longer places the dog at `utxo`).
 - **Cancel inscription (advisory).**
   `{"p":"dmp","v":"2","op":"cancel","list_id":"<list inscription id>"}`, optionally with `"asig"`
   (§7.2, signed by the listing's order key, so any inscriber may publish it; multisig listings need
@@ -483,3 +586,54 @@ every valid case, rejects every invalid case and matches every `supersedes`.
 The `asig-*` invalid cases all carry a valid `sig`; only §7.2 rejects them. `reference/dmp_v2_reconstruct.py`
 is an independent (non-dogex, non-dojak) implementation that checks every vector, including its own
 pubkey recovery for `asig`.
+
+`vectors/dmp_v2_state_vectors.json` covers what single-order vectors cannot: `location[]` and
+`genesis[]` (§8.1: inputs, inscriptions with offsets, outputs → expected location or `null` for lost),
+`fill_layout[]` (§8.2: a raw fill tx against an order → `is_fill`, `outcome` sale | cancelled_moved,
+dog location, `op_return_kind`), `reveal_authorship[]` (§7.1: raw reveal tx → authorized or not), and
+`state[]` (§6.1, §9, §10: a sequence of blocks, each with `nTime`, list, cancel, fill and move events,
+and `reorg` steps that disconnect blocks; the expected listing record after each step). The state is a
+pure fold over the connected chain, so a reorg is replayed by disconnecting and reconnecting blocks.
+An implementation conforms if it reproduces every expectation. Check them with
+`python3 reference/dmp_v2_reconstruct.py state vectors/dmp_v2_state_vectors.json`.
+
+## 15. v1 lists already on mainnet
+
+Four v1 `list` ops were inscribed on Dogecoin mainnet before v2:
+
+| list inscription | block | dog | price | seller | form |
+|---|---|---|---|---|---|
+| `bd75ee39…c2d4i0` | 6417318 | `315fdeb6…80edi0` | 420 DOGE | `DDMg44HLnLCHsjdviuxfLsqvUJUG7Rmrat` | embedded `psdt`, dog at input 0 |
+| `54f111c3…6236i0` | 6421388 | `169ff297…c3a2i0` | 42 DOGE | `DDMg44HLnLCHsjdviuxfLsqvUJUG7Rmrat` | embedded `psdt`, dog at input 0 |
+| `ee6fb2d8…0a42i0` | 6424225 | `12547783…92f4i0` | 1 DOGE | `DLJRAQxPQj9xSzmwvcRP1QzHAS9CJPo2RU` | `psdt_hash`, 3% royalty, 1% market fee |
+| `65992ab5…cd6ci0` | 6424299 | `d7a47274…9ffdi0` | 1 DOGE | `DNVASM9WAz1Tc4VGE4ifCwAmv4fnREwSKk` | `psdt_hash`, 3% royalty, 1% market fee |
+
+(The full IDs are in [IMPLEMENTERS.md](IMPLEMENTERS.md#v1-mainnet-lists).)
+
+**The two hash-only lists** (`listing_marketplace:"marketplace.dogesoft.io"`) are valid v1 records.
+The §2 v1 hardening applies only to an embedded `psdt`, so it does not apply here. They are
+venue-dependent by design: another venue cannot fill them without the off-band PSDT. Their outcome
+follows the dog's location, like any v1 list. A spend where the dog lands (§8.1) with a non-seller
+owner and the seller is paid by the v1 fee plan is a sale. Any other spend is cancel-by-move.
+
+**The two embedded lists** (`listing_marketplace:"dogecoin.dog"`) predate the postage-safe rule
+(`bd900e2`). Each embeds a PSDT
+with **one input, the dog at input 0** (its genesis outpoint, a 100000-koinu postage coin), and
+**one output**, output 0, which pays the price to the seller's own P2PKH. The `0x83` signature is
+valid (strict DER, and the key hashes to the dog's prevout), but the shape is the one the v1
+postage-safe rule forbids (spec.md §3, "Postage-safe fill"). The dog's sat sits at offset 0 of input
+0, so by §8.1 it always lands in output 0, which pays the seller. No transaction that uses these
+signatures can deliver the dog to a buyer. A buyer who "fills" one pays the seller and receives
+nothing.
+
+**Classification (normative).** A v1 `list` whose embedded PSDT signs the dog at input 0 is
+**INVALID** (`postage_unsafe`). It is never `listed`, and venues MUST NOT serve it. Both embedded
+mainnet lists fall under this rule, which is defined by shape, not by ID. If either signature is ever used,
+the spend is an ordinary transfer back to the seller. Nothing is listed, so nothing is cancelled and
+no sale is recorded. A v1 indexer that settles on "the spend pays the seller ≥ price" (662f8d1
+MUST-112) would record a false sale here, so v1 indexers MUST also require the §8.2 sale condition:
+the dog lands with an owner other than the seller. The seller retires them by moving the dog or by
+listing it in v2. Moving the dog also stops a buyer from being misled by an off-index copy of the
+PSDT. These two dogs are Doginals era-1 inscriptions, so judging their current owner requires an index
+built from the era-1 floor. The vectors are in `vectors/dmp_v1_psdt_vectors.json`
+(`dmp_v2_reconstruct.py v1`).
