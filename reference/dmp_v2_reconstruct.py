@@ -241,6 +241,22 @@ def verify_asig(op, pk):
     from ecdsa.util import sigdecode_string
     ecdsa.VerifyingKey.from_string(pk, curve=ecdsa.SECP256k1).verify_digest(raw[1:], asig_digest(asig_canonical(op)), sigdecode=sigdecode_string)
 
+# ---- spec-v2 §4.2 duplicate keys, §6.1 newer-ts-wins ----
+def _no_dup_hook(pairs):
+    seen = set()
+    for k, _ in pairs:
+        if k in seen: raise ValueError(f"duplicate JSON key {k!r}")
+        seen.add(k)
+    return dict(pairs)
+
+def loads_v2(text):
+    """Strict v2 parse: a duplicate object key at any depth makes the op INVALID."""
+    return json.loads(text, object_pairs_hook=_no_dup_hook)
+
+def supersedes(new, cur):
+    """new may replace the indexed order cur only on a different outpoint or a strictly newer ts."""
+    return new["utxo"] != cur["utxo"] or int(new["ts"]) > int(cur["ts"])
+
 def check_vectors(path):
     v = json.load(open(path)); chain = v.get("network", "dogecoin-regtest"); bad = 0
     for case in v["valid"]:
@@ -255,8 +271,11 @@ def check_vectors(path):
             ok = ok and asig_canonical(case["order"]) == case["asig_canonical"] and asig_digest(case["asig_canonical"]).hex() == case["asig_digest"]
         bad += not ok
         print(f"{'OK  ' if ok else 'FAIL'} valid   {case['name']:<26} psdt {len(psbt)} B sha256 {hashlib.sha256(psbt).hexdigest()[:16]}… fill {txid(fill)[:16]}… fee_split_ok={c['fee_split_ok']}")
+    for case in v["valid"]:
+        loads_v2(case["order_json"])
     for case in v["invalid"]:
         try:
+            if "order_json" in case: loads_v2(case["order_json"])
             d = parse_order(case["order"], chain); rebuild(d, bytes.fromhex(case["parent_tx_hex"]))
             if "asig" in case["order"]: verify_asig(case["order"], d["pk"])
             err = None
@@ -264,6 +283,9 @@ def check_vectors(path):
             err = str(e) or type(e).__name__
         bad += err is None
         print(f"{'OK  ' if err else 'FAIL'} invalid {case['name']:<26} rejected: {err}")
+    for case in v.get("ordering", []):
+        got = supersedes(case["new"], case["current"]); ok = got == case["supersedes"]; bad += not ok
+        print(f"{'OK  ' if ok else 'FAIL'} order   {case['name']:<26} supersedes={got}")
     for case in v.get("cancel", []):
         try: verify_asig(case["cancel"], bytes.fromhex(case["order_pubkey"])); err = None
         except (ValueError, ecdsa.BadSignatureError) as e: err = str(e) or type(e).__name__
@@ -274,7 +296,7 @@ def check_vectors(path):
 def main(a):
     if a[:1] == ["vectors"]: sys.exit(1 if check_vectors(a[1]) else 0)
     if a[:1] == ["order"]:
-        o = json.load(open(a[1])) if a[1] != "-" else json.load(sys.stdin)
+        o = loads_v2(open(a[1]).read() if a[1] != "-" else sys.stdin.read())
         chain = o.get("chain")
         if "--parent-hex" in a: parent = bytes.fromhex(a[a.index("--parent-hex") + 1])
         else:

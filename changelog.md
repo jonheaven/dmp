@@ -17,6 +17,12 @@ Future changes after public launch should be tracked here with clear versioning 
 
 ## Draft updates (pre-launch)
 
+### 2026-10-21 — v2 ordering and duplicate keys
+
+- **Newer `ts` wins** ([spec-v2.md §6.1](spec-v2.md)). A v2 `list` for an outpoint that already has an indexed v2 order (listed, cancelled or expired) is valid only with a strictly larger `ts`. On equal `ts`, the op first in chain order (height, tx index, inscription index) stays. A third party re-inscribing an older or identical `asig` order is rejected, and a cancelled order cannot be revived. Cancels stay bound to `list_id`.
+- **Duplicate JSON keys** ([§4.2](spec-v2.md)) at any depth make a v2 op INVALID. v1 parsing is unchanged.
+- Vectors: `ordering[]` (5 cases) and the `duplicate-key` invalid case with a raw `order_json`.
+
 ### 2026-10-21 — v2 compact signed orders (draft, regtest-tested)
 
 New `"v":"2"` `list`/`cancel` ([spec-v2.md](spec-v2.md)). No venue hosts the PSDT any more.

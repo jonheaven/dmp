@@ -78,6 +78,16 @@ Regtest and testnet share address prefixes; `chain` is what tells them apart. Ad
 - Unknown fields are ignored (v1 §3.2).
 - JSON Schema: `schemas/list-v2.schema.json`.
 
+### 4.2 Duplicate keys
+
+A v2 op (`list` or `cancel`) whose body contains the same object key twice, at any depth (top level,
+`fees`, …), is INVALID. Keys are compared after JSON string unescaping, so `"pay_to"` and
+`"pay\u005fto"` collide. Parsers disagree on duplicates (most keep the last, some the first, some
+error), so without this rule two indexers could read different `pay_to` or `fees` from the same bytes.
+The SINGLE|ACP signature does not cover `fees` or `pay_to`'s position in the JSON, and `asig` signs the
+canonical re-serialization, which has already collapsed the duplicate. This rule applies to v2 ops only;
+v1 parsing is unchanged.
+
 ### 4.1 Fee split (integer math, floor)
 
 ```
@@ -153,8 +163,33 @@ change) on the first failure:
 6. `|ts − nTime(B)| ≤ 7200`.
 7. `expiry`, if present, `> nTime(B)`.
 8. If `psdt` is present it equals the §5.3 rebuild byte-for-byte.
+9. **Newer `ts` wins** (§6.1).
 
-A valid v2 list supersedes any earlier listing record for that inscription (the owner signed it).
+(§4.2 duplicate keys are checked before step 1.) A list that passes every step supersedes any earlier
+listing record for that inscription.
+
+### 6.1 Ordering: newer `ts` wins
+
+Let `cur` be the indexer's current listing record for `inscription_id` if it is a v2 order, whatever
+its status (`listed`, `cancelled`, `expired`). A new valid v2 `list` `new` replaces `cur` only if
+
+- `new.utxo ≠ cur.utxo` (the dog has moved since `cur`; `cur`'s outpoint is gone), or
+- `new.ts > cur.ts` (strictly).
+
+Otherwise `new` is INVALID: `ts not newer than the indexed order for this outpoint`.
+
+- **Same outpoint ⇒ same signer.** The owner of `utxo` is fixed, so `cur` and `new` were both signed by
+  that key. The rule only decides which of the seller's own orders is current.
+- **Tie-break.** Ops are applied in chain order: block height, then transaction index in the block,
+  then inscription index in the transaction. With equal `ts` the one applied first stays. Re-inscribing
+  an identical order is therefore always a no-op rejection.
+- **Why.** An `asig` order (§7.2) can be inscribed by anyone. Without ordering, a third party could
+  re-inscribe an older order the seller has replaced (e.g. a lower price) and revert it, or revive a
+  cancelled order by re-inscribing it. With this rule the seller's latest order stays current, and a
+  cancel (§9) is final for every order with `ts ≤` the cancelled one.
+- **Re-pricing on the same outpoint.** Sellers MUST use a strictly larger `ts` than their previous
+  order. `ts` is bounded by §6 step 6 (`±7200 s` of `nTime`), so a re-price normally uses the current time.
+- v1 records (no v2 order) are not compared; a valid v2 list replaces them as before.
 
 **Time base.** v2 uses block header `nTime` for `ts` and `expiry` (not MTP). Every indexer has it
 without reading 11 prior headers, and it is deterministic per block. This deviates from v1 MUST-102,
@@ -262,6 +297,10 @@ is the seller's own terms (and is a no-op if it is already the active listing).
   (§7.2, signed by the listing's order key, so any inscriber may publish it). Valid only if
   authorized by the order key (§7) and `list_id` is the current list for that inscription (not
   superseded).
+  Cancels carry no `ts` and are not ordered by §6.1. They are bound to `list_id` instead: a cancel
+  naming a superseded `list_id` is INVALID, and a cancel of an already-cancelled order changes nothing.
+  Re-inscribing the cancelled order (or any older one for the same `utxo`) is INVALID by §6.1, so a
+  cancel cannot be undone by a third party. The seller re-lists with a newer `ts`.
   The order becomes `cancelled` (`cancel_kind:"inscription"`). Venues MUST NOT serve or build fills
   for it. The signature remains valid on-chain until the dog moves, so a later fill is still
   recorded, flagged `after_cancel`. Sellers who need certainty MUST cancel by moving.
@@ -319,9 +358,11 @@ Tested on regtest:
 
 `vectors/dmp_v2_vectors.json`: `valid[]` (order, parent tx, canonical PSDT hex, sighash, fill tx,
 fill txid, `fee_split_ok`; for `asig` cases also `asig_canonical`, `asig_message`, `asig_digest`,
-`asig_address`), `invalid[]` (order, parent tx, reason) and `cancel[]` (signed cancel, order pubkey,
-`valid`). An implementation conforms if it reproduces every `psdt_hex`, `sighash`, `fill_txid`,
-`asig_canonical` and `asig_digest`, accepts every valid case and rejects every invalid case.
+`asig_address`), `invalid[]` (order, parent tx, reason; `duplicate-key` also carries the raw
+`order_json`, which MUST be parsed as given) and `cancel[]` (signed cancel, order pubkey,
+`valid`), and `ordering[]` (`current`, `new`, expected `supersedes`, §6.1). An implementation conforms
+if it reproduces every `psdt_hex`, `sighash`, `fill_txid`, `asig_canonical` and `asig_digest`, accepts
+every valid case, rejects every invalid case and matches every `supersedes`.
 The `asig-*` invalid cases all carry a valid `sig`; only §7.2 rejects them. `reference/dmp_v2_reconstruct.py`
 is an independent (non-dogex, non-dojak) implementation that checks every vector, including its own
 pubkey recovery for `asig`.
