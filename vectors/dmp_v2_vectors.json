@@ -1,0 +1,578 @@
+{
+  "spec": "dmp-spec spec-v2.md",
+  "network": "dogecoin-regtest",
+  "generated_by": "dmp-v2/js/gen_vectors.mjs (dojak dmp-compact-order.ts)",
+  "keys": {
+    "seller": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+    "buyer": "024d3fffdb4bf150fdf4cade6e1b0c506ff0d038e636927a5e61b12aabc04a74e5",
+    "attacker": "038ce53a62e9356ce82583f0983fabbf69eb486d96ec186232c2282e257753b64c",
+    "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+    "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3",
+    "settlement_venue": "mzC4uStsYZw4hwJSNCK69dUgtJtZY8Ghoj",
+    "p2sh_pay_to": "2ND8PB9RrfCaAcjfjP1Y6nAgFd9zWHYX4DN"
+  },
+  "valid": [
+    {
+      "name": "no-fees",
+      "note": "plain order, fill pays seller net = price",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "price": "500000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "30440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d93613035645283",
+        "ts": 1790000000
+      },
+      "order_json": "{\"p\":\"dmp\",\"v\":\"2\",\"op\":\"list\",\"chain\":\"dogecoin-regtest\",\"inscription_id\":\"ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0\",\"utxo\":\"90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0\",\"price\":\"500000000\",\"pay_to\":\"mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c\",\"pubkey\":\"03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1\",\"sig\":\"30440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d93613035645283\",\"ts\":1790000000}",
+      "order_json_bytes": 531,
+      "parent_tx_hex": "0100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+      "psdt_hex": "70736274ff0100a0020000000200000000000000000000000000000000000000000000000000000000000000000000000000feffffff910e31a2c94b8c706bb739779f8a4d741ff2e1cddc99ede3491514a8246f50900000000000ffffffff02a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac0065cd1d000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac0000000000000100560100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000220203df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b14730440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d9361303564528301030483000000000000",
+      "psdt_bytes": 376,
+      "psdt_sha256": "12911c0a6c517dbe2fc8505df7aa958b90239c424ced3cb9312ffd47504c3826",
+      "sighash": "6e12fa994750300ea2ec4b53c08316af04183153db7b93dc623e9772b3af8c2e",
+      "fill_tx_hex": "0200000002785e63051c79088df81e0eeebc37bdfe03edfc18020e02b3d4e556b8d514e51a000000006b4830450221009e02aefe634fa8a58e0b6fb6963f2d8d266cce7991e7df472dd8e4d349e6a8ad0220175ba9d6c5b95ad3a970e8f819930ff9d786515eb7f787f8bf8e35f49aa58f930121024d3fffdb4bf150fdf4cade6e1b0c506ff0d038e636927a5e61b12aabc04a74e5feffffff910e31a2c94b8c706bb739779f8a4d741ff2e1cddc99ede3491514a8246f5090000000006a4730440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d936130356452832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffff03a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac0065cd1d000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188aca0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac00000000",
+      "fill_txid": "7b175522f372e0f1fbd0b86dcff6f0661876c2e10ed5ef0eb3f9acb18ed8990b",
+      "compliance": {
+        "fee_split_ok": true
+      }
+    },
+    {
+      "name": "fees-all-paid",
+      "note": "royalty 5% + market 2% (50/50 listing/settlement), all paid, venue tag present",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "d8fa5a07777b1b492c67552690a101f6ac553df8da85f22f6db0c19f34871d52i0",
+        "utxo": "7524105a6a6393063d1ab03e81ae0127790ccfcd00e3d636ce45b4574988d293:1",
+        "price": "1000000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "30450221009e4779992d6147e3e5ce2cdb9103068f26d6e715cea076a079faac6ac23d6ffb022016322b76d1f42ae995935903cd9694c0fcff2fa42f24fc16da44dba5a7ceb6db83",
+        "fees": {
+          "royalty_bps": "500",
+          "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+          "market_bps": "200",
+          "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3"
+        },
+        "ts": 1790000000
+      },
+      "order_json": "{\"p\":\"dmp\",\"v\":\"2\",\"op\":\"list\",\"chain\":\"dogecoin-regtest\",\"inscription_id\":\"d8fa5a07777b1b492c67552690a101f6ac553df8da85f22f6db0c19f34871d52i0\",\"utxo\":\"7524105a6a6393063d1ab03e81ae0127790ccfcd00e3d636ce45b4574988d293:1\",\"price\":\"1000000000\",\"pay_to\":\"mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c\",\"pubkey\":\"03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1\",\"sig\":\"30450221009e4779992d6147e3e5ce2cdb9103068f26d6e715cea076a079faac6ac23d6ffb022016322b76d1f42ae995935903cd9694c0fcff2fa42f24fc16da44dba5a7ceb6db83\",\"fees\":{\"royalty_bps\":\"500\",\"royalty_to\":\"mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je\",\"market_bps\":\"200\",\"listing_to\":\"n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3\"},\"ts\":1790000000}",
+      "order_json_bytes": 682,
+      "parent_tx_hex": "0100000001eac789000a9410d7e8db81bccb2041baef56cc40299f36cd59f7f436692e8672000000000151ffffffff02404b4c00000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888aca0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+      "psdt_hex": "70736274ff0100a0020000000200000000000000000000000000000000000000000000000000000000000000000000000000feffffff93d2884957b445ce36d6e300cdcf0c792701ae813eb01a3d0693636a5a1024750100000000ffffffff02a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac80ac6e37000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac0000000000000100780100000001eac789000a9410d7e8db81bccb2041baef56cc40299f36cd59f7f436692e8672000000000151ffffffff02404b4c00000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888aca0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000220203df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b14830450221009e4779992d6147e3e5ce2cdb9103068f26d6e715cea076a079faac6ac23d6ffb022016322b76d1f42ae995935903cd9694c0fcff2fa42f24fc16da44dba5a7ceb6db8301030483000000000000",
+      "psdt_bytes": 411,
+      "psdt_sha256": "83eaae10e700df77c78c2737e375e363ef767dce712a86c0e09e86932470f74f",
+      "sighash": "e4b66ecd7f64cc928d0312010d1cc7021769387da6adeea4e7dc7d797945b4c9",
+      "fill_tx_hex": "02000000028abee11518cf7b5ebd8fb55f2c2405f309456b77dc3600bfc4b185d2a229b610000000006b483045022100edb143fa2b7a8683ad4492edfd84cfdc3f04fa9f3a542b41f914696cdae2295e0220278d1259be317f30be4c414e722cf9ed0bedd2b6fe731ee1edd20876b765ec3d0121024d3fffdb4bf150fdf4cade6e1b0c506ff0d038e636927a5e61b12aabc04a74e5feffffff93d2884957b445ce36d6e300cdcf0c792701ae813eb01a3d0693636a5a102475010000006b4830450221009e4779992d6147e3e5ce2cdb9103068f26d6e715cea076a079faac6ac23d6ffb022016322b76d1f42ae995935903cd9694c0fcff2fa42f24fc16da44dba5a7ceb6db832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffff07a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac80ac6e37000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188aca0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac80f0fa02000000001976a91493ad8c28538271dbb24ac93a3e0d20d8a56acd7288ac80969800000000001976a914e44f2714c0974e1bde18ebb4793bb9e451bffed888ac80969800000000001976a914ccd8012ac0a3497e04450df6a1987f889d8b391f88ac0000000000000000206a04646d70321976a914ccd8012ac0a3497e04450df6a1987f889d8b391f88ac00000000",
+      "fill_txid": "85356428d07e72b1707a220e0ae00540d14b1896c9eb4bfa643c1d5434aec321",
+      "compliance": {
+        "fee_split_ok": true
+      }
+    },
+    {
+      "name": "fees-dropped",
+      "note": "same order, buyer drops all fee outputs: still a valid fill, fee_split_ok=false",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "d8fa5a07777b1b492c67552690a101f6ac553df8da85f22f6db0c19f34871d52i0",
+        "utxo": "7524105a6a6393063d1ab03e81ae0127790ccfcd00e3d636ce45b4574988d293:1",
+        "price": "1000000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "30450221009e4779992d6147e3e5ce2cdb9103068f26d6e715cea076a079faac6ac23d6ffb022016322b76d1f42ae995935903cd9694c0fcff2fa42f24fc16da44dba5a7ceb6db83",
+        "fees": {
+          "royalty_bps": "500",
+          "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+          "market_bps": "200",
+          "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3"
+        },
+        "ts": 1790000000
+      },
+      "order_json": "{\"p\":\"dmp\",\"v\":\"2\",\"op\":\"list\",\"chain\":\"dogecoin-regtest\",\"inscription_id\":\"d8fa5a07777b1b492c67552690a101f6ac553df8da85f22f6db0c19f34871d52i0\",\"utxo\":\"7524105a6a6393063d1ab03e81ae0127790ccfcd00e3d636ce45b4574988d293:1\",\"price\":\"1000000000\",\"pay_to\":\"mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c\",\"pubkey\":\"03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1\",\"sig\":\"30450221009e4779992d6147e3e5ce2cdb9103068f26d6e715cea076a079faac6ac23d6ffb022016322b76d1f42ae995935903cd9694c0fcff2fa42f24fc16da44dba5a7ceb6db83\",\"fees\":{\"royalty_bps\":\"500\",\"royalty_to\":\"mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je\",\"market_bps\":\"200\",\"listing_to\":\"n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3\"},\"ts\":1790000000}",
+      "order_json_bytes": 682,
+      "parent_tx_hex": "0100000001eac789000a9410d7e8db81bccb2041baef56cc40299f36cd59f7f436692e8672000000000151ffffffff02404b4c00000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888aca0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+      "psdt_hex": "70736274ff0100a0020000000200000000000000000000000000000000000000000000000000000000000000000000000000feffffff93d2884957b445ce36d6e300cdcf0c792701ae813eb01a3d0693636a5a1024750100000000ffffffff02a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac80ac6e37000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac0000000000000100780100000001eac789000a9410d7e8db81bccb2041baef56cc40299f36cd59f7f436692e8672000000000151ffffffff02404b4c00000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888aca0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000220203df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b14830450221009e4779992d6147e3e5ce2cdb9103068f26d6e715cea076a079faac6ac23d6ffb022016322b76d1f42ae995935903cd9694c0fcff2fa42f24fc16da44dba5a7ceb6db8301030483000000000000",
+      "psdt_bytes": 411,
+      "psdt_sha256": "83eaae10e700df77c78c2737e375e363ef767dce712a86c0e09e86932470f74f",
+      "sighash": "e4b66ecd7f64cc928d0312010d1cc7021769387da6adeea4e7dc7d797945b4c9",
+      "fill_tx_hex": "02000000028abee11518cf7b5ebd8fb55f2c2405f309456b77dc3600bfc4b185d2a229b610000000006a47304402205d7079c5e46f395d092584131c2bf84d75fc99feba59e206a956e48d5da41154022023d27e75960b49ba43abd155b5cbe4e5611c729bb8de0f300f400b9525c727cc0121024d3fffdb4bf150fdf4cade6e1b0c506ff0d038e636927a5e61b12aabc04a74e5feffffff93d2884957b445ce36d6e300cdcf0c792701ae813eb01a3d0693636a5a102475010000006b4830450221009e4779992d6147e3e5ce2cdb9103068f26d6e715cea076a079faac6ac23d6ffb022016322b76d1f42ae995935903cd9694c0fcff2fa42f24fc16da44dba5a7ceb6db832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffff03a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac80ac6e37000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188aca0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac00000000",
+      "fill_txid": "ceb167fcc756acf19bb2c4fea6b7eae60518a8d3844d08b6047302e814f5613b",
+      "compliance": {
+        "fee_split_ok": false
+      }
+    },
+    {
+      "name": "p2sh-payto-expiry-share",
+      "note": "pay_to P2SH, expiry set, listing_share 3000, no settlement tag (settlement_fee_ok = null)",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "c3315befc86523e72776ea0dd1c4906a83f9da8debe7578ee27d9ea99bf33b3fi0",
+        "utxo": "0cc98bde1e8686ae25bab778edc81d280c70a84959b27b706ba8116a0a023e54:0",
+        "price": "250000000",
+        "pay_to": "2ND8PB9RrfCaAcjfjP1Y6nAgFd9zWHYX4DN",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "3045022100c2562a898d168f51cf48c04df53c78d2e395595ac8aae8d24eb1972a64cc78f1022059579d42d195a1cedeea0a3f47a18c1f9a9818befd3d6825586bb974b6536b3583",
+        "fees": {
+          "market_bps": "100",
+          "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3",
+          "listing_share_bps": "3000"
+        },
+        "ts": 1790000000,
+        "expiry": 1790086400
+      },
+      "order_json": "{\"p\":\"dmp\",\"v\":\"2\",\"op\":\"list\",\"chain\":\"dogecoin-regtest\",\"inscription_id\":\"c3315befc86523e72776ea0dd1c4906a83f9da8debe7578ee27d9ea99bf33b3fi0\",\"utxo\":\"0cc98bde1e8686ae25bab778edc81d280c70a84959b27b706ba8116a0a023e54:0\",\"price\":\"250000000\",\"pay_to\":\"2ND8PB9RrfCaAcjfjP1Y6nAgFd9zWHYX4DN\",\"pubkey\":\"03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1\",\"sig\":\"3045022100c2562a898d168f51cf48c04df53c78d2e395595ac8aae8d24eb1972a64cc78f1022059579d42d195a1cedeea0a3f47a18c1f9a9818befd3d6825586bb974b6536b3583\",\"fees\":{\"market_bps\":\"100\",\"listing_to\":\"n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3\",\"listing_share_bps\":\"3000\"},\"ts\":1790000000,\"expiry\":1790086400}",
+      "order_json_bytes": 659,
+      "parent_tx_hex": "01000000016b4246f548a0f70eebfbc5db9eca121ca5da6b25a47e3fad3c1553e4fdf54d70000000000151ffffffff01f0490200000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+      "psdt_hex": "70736274ff01009c020000000200000000000000000000000000000000000000000000000000000000000000000000000000feffffff543e020a6a11a86b707bb25949a8700c281dc8ed78b7ba25ae86861ede8bc90c0000000000ffffffff02a08601000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87e08cc00e0000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b8700000000000001005601000000016b4246f548a0f70eebfbc5db9eca121ca5da6b25a47e3fad3c1553e4fdf54d70000000000151ffffffff01f0490200000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000220203df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1483045022100c2562a898d168f51cf48c04df53c78d2e395595ac8aae8d24eb1972a64cc78f1022059579d42d195a1cedeea0a3f47a18c1f9a9818befd3d6825586bb974b6536b358301030483000000000000",
+      "psdt_bytes": 373,
+      "psdt_sha256": "9b2adffe4c30c5da16120877668e271fab73d9b1af12a4347c7b085ed7a3e97f",
+      "sighash": "f8e4f5c9d13c7a0dac97a3f04c3cd93f2f5a8276d68e5a6db0420b95d81cea11",
+      "fill_tx_hex": "02000000028c3aa64ddb98a4b80bf876ece2513a951f0a71d48b942e950661a208df102790000000006a47304402204b2c31dfef019d1a781d3d439ed4302756988e96836d5b5b642e13890cc287be022068cec4553d0924cd8b4cfef819f00b9f502a6adaf55dfc55314080174baebadd0121024d3fffdb4bf150fdf4cade6e1b0c506ff0d038e636927a5e61b12aabc04a74e5feffffff543e020a6a11a86b707bb25949a8700c281dc8ed78b7ba25ae86861ede8bc90c000000006b483045022100c2562a898d168f51cf48c04df53c78d2e395595ac8aae8d24eb1972a64cc78f1022059579d42d195a1cedeea0a3f47a18c1f9a9818befd3d6825586bb974b6536b35832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffff04a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ace08cc00e0000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888acb0710b00000000001976a914e44f2714c0974e1bde18ebb4793bb9e451bffed888ac00000000",
+      "fill_txid": "d12be11056c35483ee3949d1e3887a1acba23f6296395abe7b9b25c07411e2a6",
+      "compliance": {
+        "fee_split_ok": true
+      }
+    },
+    {
+      "name": "embedded-psdt",
+      "note": "optional psdt field equals the canonical rebuild",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "fc74658d361d14563408273dccd4ab6ffe70671964cac9ac09db6d61053ac5b5i0",
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "price": "700000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "3045022100f37a4c6c0725f69e97fa79519805474cc5c40c5551a81b64baab0e4586293e7302200e3287039ccee8b0b932648b1228ef7168dfd7b2e59b3d1655dd194f953c6fbf83",
+        "ts": 1790000000,
+        "psdt": "cHNidP8BAKACAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD+////kQ4xoslLjHBrtzl3n4pNdB/y4c3cme3jSRUUqCRvUJAAAAAAAP////8CoIYBAAAAAAAZdqkUit/OETOhJ/Le4gS99WNJTxaf0fGIrAAnuSkAAAAAGXapFIrfzhEzoSfy3uIEvfVjSU8Wn9HxiKwAAAAAAAABAFYBAAAAAUMMq8VnB5AtA6NTNiohf1NYCNjfh0Jov2S/QKNLNSyxAAAAAAFR/////wGghgEAAAAAABl2qRSK384RM6En8t7iBL31Y0lPFp/R8YisAAAAACICA98LjiHMLBZP5Ya9gxq0YPJg1+aUC0XgyosP6n78QxixSDBFAiEA83pMbAcl9p6X+nlRmAVHTMXEDFVRqBtkuqsORYYpPnMCIA4yhwOczuiwuTJkixIo73Fo39ey5Zs9FlXdGU+VPG+/gwEDBIMAAAAAAAA="
+      },
+      "order_json": "{\"p\":\"dmp\",\"v\":\"2\",\"op\":\"list\",\"chain\":\"dogecoin-regtest\",\"inscription_id\":\"fc74658d361d14563408273dccd4ab6ffe70671964cac9ac09db6d61053ac5b5i0\",\"utxo\":\"90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0\",\"price\":\"700000000\",\"pay_to\":\"mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c\",\"pubkey\":\"03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1\",\"sig\":\"3045022100f37a4c6c0725f69e97fa79519805474cc5c40c5551a81b64baab0e4586293e7302200e3287039ccee8b0b932648b1228ef7168dfd7b2e59b3d1655dd194f953c6fbf83\",\"ts\":1790000000,\"psdt\":\"cHNidP8BAKACAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD+////kQ4xoslLjHBrtzl3n4pNdB/y4c3cme3jSRUUqCRvUJAAAAAAAP////8CoIYBAAAAAAAZdqkUit/OETOhJ/Le4gS99WNJTxaf0fGIrAAnuSkAAAAAGXapFIrfzhEzoSfy3uIEvfVjSU8Wn9HxiKwAAAAAAAABAFYBAAAAAUMMq8VnB5AtA6NTNiohf1NYCNjfh0Jov2S/QKNLNSyxAAAAAAFR/////wGghgEAAAAAABl2qRSK384RM6En8t7iBL31Y0lPFp/R8YisAAAAACICA98LjiHMLBZP5Ya9gxq0YPJg1+aUC0XgyosP6n78QxixSDBFAiEA83pMbAcl9p6X+nlRmAVHTMXEDFVRqBtkuqsORYYpPnMCIA4yhwOczuiwuTJkixIo73Fo39ey5Zs9FlXdGU+VPG+/gwEDBIMAAAAAAAA=\"}",
+      "order_json_bytes": 1047,
+      "parent_tx_hex": "0100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+      "psdt_hex": "70736274ff0100a0020000000200000000000000000000000000000000000000000000000000000000000000000000000000feffffff910e31a2c94b8c706bb739779f8a4d741ff2e1cddc99ede3491514a8246f50900000000000ffffffff02a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac0027b929000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac0000000000000100560100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000220203df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1483045022100f37a4c6c0725f69e97fa79519805474cc5c40c5551a81b64baab0e4586293e7302200e3287039ccee8b0b932648b1228ef7168dfd7b2e59b3d1655dd194f953c6fbf8301030483000000000000",
+      "psdt_bytes": 377,
+      "psdt_sha256": "d6d4af3def70fd31c6d30c02405aad8ec89f01008b4fcbf473268bf48532ba6b",
+      "sighash": "b667eff7418bd7978b07fe27a27bec0ca5794ae295a944a66566c3761d1ead04",
+      "fill_tx_hex": "0200000002785e63051c79088df81e0eeebc37bdfe03edfc18020e02b3d4e556b8d514e51a000000006a473044022040980ff5f044daeaa5274478bf38e5bcfb931ff2c00c06ca73f5b99b46a09eef0220246317529c9d0b23bceff84f4960c4f410ae6c2a0cd42d67af5eb0048b0adbf60121024d3fffdb4bf150fdf4cade6e1b0c506ff0d038e636927a5e61b12aabc04a74e5feffffff910e31a2c94b8c706bb739779f8a4d741ff2e1cddc99ede3491514a8246f5090000000006b483045022100f37a4c6c0725f69e97fa79519805474cc5c40c5551a81b64baab0e4586293e7302200e3287039ccee8b0b932648b1228ef7168dfd7b2e59b3d1655dd194f953c6fbf832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffff03a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac0027b929000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188aca0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac00000000",
+      "fill_txid": "86d95b6f1925e30b45e6c485fd68839cd934d43c705a67ec6b5423dc4cb84dab",
+      "compliance": {
+        "fee_split_ok": true
+      }
+    },
+    {
+      "name": "asig-valid",
+      "note": "asig over the canonical op (fees, listing_to, expiry covered): any inscriber may publish it; verify with Core verifymessage(asig_address, asig, asig_message)",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "d4e24bafb2e3bd341002d7d135b3c7489e8eb01a8a4c3383c3974cc5c653ac2di0",
+        "utxo": "47c7db69fda4358129a5a88efb5fb986d73091b06bb5c2772d10d86143ef4869:0",
+        "price": "800000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "304402201c9114c0f252d81a9b09f6491b9b0de9d51ecfd7bdcbbcb42ef07b844be7f40402204dc0adc13f3e2f3d5b258fa8208077f5309598cffe84dd202ca08888d582801b83",
+        "fees": {
+          "royalty_bps": "300",
+          "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+          "market_bps": "150",
+          "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3",
+          "listing_share_bps": "6000"
+        },
+        "ts": 1790000000,
+        "expiry": 1790172800,
+        "asig": "IAtPSEOwIgtWFCfzuJIPe7RXJqwIpBd77kIeOfxNhC7dGptkH1FesW98Dh/P1IGp1qHjL25+giq4FAB60LnAf8A="
+      },
+      "order_json": "{\"p\":\"dmp\",\"v\":\"2\",\"op\":\"list\",\"chain\":\"dogecoin-regtest\",\"inscription_id\":\"d4e24bafb2e3bd341002d7d135b3c7489e8eb01a8a4c3383c3974cc5c653ac2di0\",\"utxo\":\"47c7db69fda4358129a5a88efb5fb986d73091b06bb5c2772d10d86143ef4869:0\",\"price\":\"800000000\",\"pay_to\":\"mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c\",\"pubkey\":\"03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1\",\"sig\":\"304402201c9114c0f252d81a9b09f6491b9b0de9d51ecfd7bdcbbcb42ef07b844be7f40402204dc0adc13f3e2f3d5b258fa8208077f5309598cffe84dd202ca08888d582801b83\",\"fees\":{\"royalty_bps\":\"300\",\"royalty_to\":\"mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je\",\"market_bps\":\"150\",\"listing_to\":\"n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3\",\"listing_share_bps\":\"6000\"},\"ts\":1790000000,\"expiry\":1790172800,\"asig\":\"IAtPSEOwIgtWFCfzuJIPe7RXJqwIpBd77kIeOfxNhC7dGptkH1FesW98Dh/P1IGp1qHjL25+giq4FAB60LnAf8A=\"}",
+      "order_json_bytes": 824,
+      "parent_tx_hex": "0100000001eeeb71a1c9db065dab761e761fdfa2a1227b8b4d15dc16385355e0124fb32777000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+      "psdt_hex": "70736274ff0100a0020000000200000000000000000000000000000000000000000000000000000000000000000000000000feffffff6948ef4361d8102d77c2b56bb09130d786b95ffb8ea8a5298135a4fd69dbc7470000000000ffffffff02a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00b7892d000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac0000000000000100560100000001eeeb71a1c9db065dab761e761fdfa2a1227b8b4d15dc16385355e0124fb32777000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000220203df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b147304402201c9114c0f252d81a9b09f6491b9b0de9d51ecfd7bdcbbcb42ef07b844be7f40402204dc0adc13f3e2f3d5b258fa8208077f5309598cffe84dd202ca08888d582801b8301030483000000000000",
+      "psdt_bytes": 376,
+      "psdt_sha256": "1fcf6bf539feea09dc42a310bb02e1bb1eb3334afe8578630380a85f6c527897",
+      "sighash": "fb6432220a039eceb08d2a757814dc03a1fb4d9b87a38b542eb2c3d740c401f7",
+      "fill_tx_hex": "0200000002aa3dcbea880d3e8810ef1147156b2a7038e7ad7920772dec0266bc0560c79f20000000006b483045022100fd140bab642c80531fb92910638a44de3f917b5615b18e4bee54b81b3760ce5a022037c267a2746314980cbac5ee4a6ca5d339e72244fb9290e7d5547f59bfb4e24a0121024d3fffdb4bf150fdf4cade6e1b0c506ff0d038e636927a5e61b12aabc04a74e5feffffff6948ef4361d8102d77c2b56bb09130d786b95ffb8ea8a5298135a4fd69dbc747000000006a47304402201c9114c0f252d81a9b09f6491b9b0de9d51ecfd7bdcbbcb42ef07b844be7f40402204dc0adc13f3e2f3d5b258fa8208077f5309598cffe84dd202ca08888d582801b832103df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1ffffffff07a0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac00b7892d000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188aca0860100000000001976a914d4eedfaed8d502269bd7b150fcf14c74028e0f4888ac00366e01000000001976a91493ad8c28538271dbb24ac93a3e0d20d8a56acd7288ac00dd6d00000000001976a914e44f2714c0974e1bde18ebb4793bb9e451bffed888ac003e4900000000001976a914ccd8012ac0a3497e04450df6a1987f889d8b391f88ac0000000000000000206a04646d70321976a914ccd8012ac0a3497e04450df6a1987f889d8b391f88ac00000000",
+      "fill_txid": "83a8237a2d625ef2dc7c31b50563f10f7357add9f9b4f3b29fb9031ad412ce90",
+      "compliance": {
+        "fee_split_ok": true
+      },
+      "asig_canonical": "{\"chain\":\"dogecoin-regtest\",\"expiry\":1790172800,\"fees\":{\"listing_share_bps\":\"6000\",\"listing_to\":\"n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3\",\"market_bps\":\"150\",\"royalty_bps\":\"300\",\"royalty_to\":\"mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je\"},\"inscription_id\":\"d4e24bafb2e3bd341002d7d135b3c7489e8eb01a8a4c3383c3974cc5c653ac2di0\",\"op\":\"list\",\"p\":\"dmp\",\"pay_to\":\"mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c\",\"price\":\"800000000\",\"pubkey\":\"03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1\",\"sig\":\"304402201c9114c0f252d81a9b09f6491b9b0de9d51ecfd7bdcbbcb42ef07b844be7f40402204dc0adc13f3e2f3d5b258fa8208077f5309598cffe84dd202ca08888d582801b83\",\"ts\":1790000000,\"utxo\":\"47c7db69fda4358129a5a88efb5fb986d73091b06bb5c2772d10d86143ef4869:0\",\"v\":\"2\"}",
+      "asig_message": "dmp-v2-asig:{\"chain\":\"dogecoin-regtest\",\"expiry\":1790172800,\"fees\":{\"listing_share_bps\":\"6000\",\"listing_to\":\"n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3\",\"market_bps\":\"150\",\"royalty_bps\":\"300\",\"royalty_to\":\"mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je\"},\"inscription_id\":\"d4e24bafb2e3bd341002d7d135b3c7489e8eb01a8a4c3383c3974cc5c653ac2di0\",\"op\":\"list\",\"p\":\"dmp\",\"pay_to\":\"mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c\",\"price\":\"800000000\",\"pubkey\":\"03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1\",\"sig\":\"304402201c9114c0f252d81a9b09f6491b9b0de9d51ecfd7bdcbbcb42ef07b844be7f40402204dc0adc13f3e2f3d5b258fa8208077f5309598cffe84dd202ca08888d582801b83\",\"ts\":1790000000,\"utxo\":\"47c7db69fda4358129a5a88efb5fb986d73091b06bb5c2772d10d86143ef4869:0\",\"v\":\"2\"}",
+      "asig_digest": "fca74f0876ef3a12d4b4dc2267af43800a31f87dbbcebf4d5c0a9ea7ee66fbf6",
+      "asig_address": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c"
+    }
+  ],
+  "invalid": [
+    {
+      "name": "tampered-price",
+      "why": "sig no longer verifies",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "price": "400000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "30440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d93613035645283",
+        "ts": 1790000000
+      },
+      "parent_tx_hex": "0100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "tampered-pay_to",
+      "why": "sig no longer verifies",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "price": "500000000",
+        "pay_to": "n3XNZ9kuB2hAzCNgxhgt58B17yrN57YXQm",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "30440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d93613035645283",
+        "ts": 1790000000
+      },
+      "parent_tx_hex": "0100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "high-s",
+      "why": "non low-S",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "price": "500000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "30450220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e022100841159ef352fb24b723363fba203e7a8eb0b1d2dd87d4bf6d484cb2ba000dcef83",
+        "ts": 1790000000
+      },
+      "parent_tx_hex": "0100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "hashtype-81",
+      "why": "sighash must be 0x83",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "price": "500000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "30440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d93613035645281",
+        "ts": 1790000000
+      },
+      "parent_tx_hex": "0100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "psdt_hash-present",
+      "why": "psdt_hash is venue-only",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "price": "500000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "30440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d93613035645283",
+        "ts": 1790000000,
+        "psdt_hash": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "parent_tx_hex": "0100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "chain-mainnet",
+      "why": "chain mismatch",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin",
+        "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "price": "500000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "30440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d93613035645283",
+        "ts": 1790000000
+      },
+      "parent_tx_hex": "0100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "royalty-over-cap",
+      "why": "cap is a rejection",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "price": "500000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "30440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d93613035645283",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "2600",
+          "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je"
+        }
+      },
+      "parent_tx_hex": "0100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "price-number",
+      "why": "price must be a decimal string",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "price": 500000000,
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "30440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d93613035645283",
+        "ts": 1790000000
+      },
+      "parent_tx_hex": "0100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "wrong-parent",
+      "why": "parent txid mismatch",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "price": "500000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "30440220561a05438b87f11c9e74478f48b7bb424833a8f4f39cd317b2d6811adffee79e02207beea610cad04db48dcc9c045dfc1855cfa3bfb8d6cb5444eb4d93613035645283",
+        "ts": 1790000000
+      },
+      "parent_tx_hex": "01000000016b4246f548a0f70eebfbc5db9eca121ca5da6b25a47e3fad3c1553e4fdf54d70000000000151ffffffff01f0490200000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "hijack-non-owner-key",
+      "why": "sig is valid for the attacker key but the dog prevout is P2PKH(seller); dojak builder: dog output is not P2PKH of the signer key",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "price": "100000000",
+        "pay_to": "n3XNZ9kuB2hAzCNgxhgt58B17yrN57YXQm",
+        "pubkey": "038ce53a62e9356ce82583f0983fabbf69eb486d96ec186232c2282e257753b64c",
+        "sig": "304402203edb28366b6008b46198d996a276e92fda85949619e3fdf7f36cb8231e90386d022017309cfbb3698f39e93055c334de2a9afb7b0114e4c098c2f5843e5051ebef9383",
+        "ts": 1790000000
+      },
+      "parent_tx_hex": "0100000001430cabc56707902d03a353362a217f535808d8df874268bf64bf40a34b352cb1000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "net-below-dust",
+      "why": "price 120000 with 20% market fee → net 96000 < 100000",
+      "parent_tx_hex": "01000000014876f1ad8bf5af7033e339d0fb92d699aa78e53aaef4e1ee7c4ce6d9e5988b09000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "ad44e7171249ac16f620521cf6537b2575ae01044ef11293a519666570e6a22fi0",
+        "utxo": "b055a5b6dac95cc7d66b7446d2d117934d5bb06f2eed144363d08f2fd58fb23c:0",
+        "price": "120000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "3044022013b03830661c266e3a152a6e71e47e9606e9c7ede40f9bcb5e8f4892938a4f9202200a50255d3d47ece6a8fdcbf6d4db4e60fc75fcd08a62a3bc725e901a8d05b8f883",
+        "ts": 1790000000,
+        "fees": {
+          "market_bps": "2000"
+        }
+      }
+    },
+    {
+      "name": "asig-tampered-fee",
+      "why": "listing_to swapped after signing; SINGLE sig still valid (net unchanged) but asig fails",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "d4e24bafb2e3bd341002d7d135b3c7489e8eb01a8a4c3383c3974cc5c653ac2di0",
+        "utxo": "47c7db69fda4358129a5a88efb5fb986d73091b06bb5c2772d10d86143ef4869:0",
+        "price": "800000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "304402201c9114c0f252d81a9b09f6491b9b0de9d51ecfd7bdcbbcb42ef07b844be7f40402204dc0adc13f3e2f3d5b258fa8208077f5309598cffe84dd202ca08888d582801b83",
+        "fees": {
+          "royalty_bps": "300",
+          "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+          "market_bps": "150",
+          "listing_to": "n3XNZ9kuB2hAzCNgxhgt58B17yrN57YXQm",
+          "listing_share_bps": "6000"
+        },
+        "ts": 1790000000,
+        "expiry": 1790172800,
+        "asig": "IAtPSEOwIgtWFCfzuJIPe7RXJqwIpBd77kIeOfxNhC7dGptkH1FesW98Dh/P1IGp1qHjL25+giq4FAB60LnAf8A="
+      },
+      "parent_tx_hex": "0100000001eeeb71a1c9db065dab761e761fdfa2a1227b8b4d15dc16385355e0124fb32777000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "asig-wrong-key",
+      "why": "asig is a valid signature, but by the attacker key, not the order pubkey",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "d4e24bafb2e3bd341002d7d135b3c7489e8eb01a8a4c3383c3974cc5c653ac2di0",
+        "utxo": "47c7db69fda4358129a5a88efb5fb986d73091b06bb5c2772d10d86143ef4869:0",
+        "price": "800000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "304402201c9114c0f252d81a9b09f6491b9b0de9d51ecfd7bdcbbcb42ef07b844be7f40402204dc0adc13f3e2f3d5b258fa8208077f5309598cffe84dd202ca08888d582801b83",
+        "fees": {
+          "royalty_bps": "300",
+          "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+          "market_bps": "150",
+          "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3",
+          "listing_share_bps": "6000"
+        },
+        "ts": 1790000000,
+        "expiry": 1790172800,
+        "asig": "IPGLtY7MpFvJc7vZjNYqnOobXiQCGIDWpcIRboe4S7edIaKluqy223o3bRbBD2powU7PRG5oO++k7ML+8q30NQE="
+      },
+      "parent_tx_hex": "0100000001eeeb71a1c9db065dab761e761fdfa2a1227b8b4d15dc16385355e0124fb32777000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "asig-replay-other-dog",
+      "why": "valid order for a different dog by the same seller, with asig copied from asig-valid (inscription_id/utxo/sig are covered)",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "c550b14d569849c5186fb98ed5667dc5b3af919a64f9af0f7260106aa6bbd0d4i0",
+        "utxo": "36e02fc6470a229fb4943961775e7b65247b6f6981b28a7a039a7fcc54b5c01a:0",
+        "price": "800000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "304402203c9336733d7383093d362f9b2ea055f3812cacf764e854f0b94999939406be63022075af1fdf50738b2f69b723f1012b5ac051d0900ad94a16fccc3a09268478de5b83",
+        "fees": {
+          "royalty_bps": "300",
+          "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+          "market_bps": "150",
+          "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3",
+          "listing_share_bps": "6000"
+        },
+        "ts": 1790000000,
+        "expiry": 1790172800,
+        "asig": "IAtPSEOwIgtWFCfzuJIPe7RXJqwIpBd77kIeOfxNhC7dGptkH1FesW98Dh/P1IGp1qHjL25+giq4FAB60LnAf8A="
+      },
+      "parent_tx_hex": "0100000001b27761c32dfe8be59c92ec0f49c3d9ce17992813dd4b6319b82f363378aea3a2000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    },
+    {
+      "name": "asig-high-s",
+      "why": "same signature with s → n−s (and flipped recid): mathematically valid, rejected as non low-S",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "d4e24bafb2e3bd341002d7d135b3c7489e8eb01a8a4c3383c3974cc5c653ac2di0",
+        "utxo": "47c7db69fda4358129a5a88efb5fb986d73091b06bb5c2772d10d86143ef4869:0",
+        "price": "800000000",
+        "pay_to": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+        "pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+        "sig": "304402201c9114c0f252d81a9b09f6491b9b0de9d51ecfd7bdcbbcb42ef07b844be7f40402204dc0adc13f3e2f3d5b258fa8208077f5309598cffe84dd202ca08888d582801b83",
+        "fees": {
+          "royalty_bps": "300",
+          "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+          "market_bps": "150",
+          "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3",
+          "listing_share_bps": "6000"
+        },
+        "ts": 1790000000,
+        "expiry": 1790172800,
+        "asig": "HwtPSEOwIgtWFCfzuJIPe7RXJqwIpBd77kIeOfxNhC7d5WSb4K6hTpCD8eAwK35WKBjLrXgwxnWDq9HjvBZ1wYE="
+      },
+      "parent_tx_hex": "0100000001eeeb71a1c9db065dab761e761fdfa2a1227b8b4d15dc16385355e0124fb32777000000000151ffffffff01a0860100000000001976a9148adfce1133a127f2dee204bdf563494f169fd1f188ac00000000"
+    }
+  ],
+  "cancel": [
+    {
+      "name": "cancel-asig-valid",
+      "valid": true,
+      "order_pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+      "cancel": {
+        "p": "dmp",
+        "v": "2",
+        "op": "cancel",
+        "list_id": "d4e24bafb2e3bd341002d7d135b3c7489e8eb01a8a4c3383c3974cc5c653ac2di0",
+        "asig": "ILomGYl5eh8PTQJ6mEXwU67HDuojbF5yjqXzDO4LyynfElBxTa/SCBISp6S+QOfJ6acZeqrY3ItTkt+wJxtov8k="
+      },
+      "asig_canonical": "{\"list_id\":\"d4e24bafb2e3bd341002d7d135b3c7489e8eb01a8a4c3383c3974cc5c653ac2di0\",\"op\":\"cancel\",\"p\":\"dmp\",\"v\":\"2\"}",
+      "asig_digest": "18276e294184e43218fb35ba042fd9ab396b8195de2f42e8cb90ca8c33bae85a"
+    },
+    {
+      "name": "cancel-asig-wrong-key",
+      "valid": false,
+      "order_pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+      "cancel": {
+        "p": "dmp",
+        "v": "2",
+        "op": "cancel",
+        "list_id": "d4e24bafb2e3bd341002d7d135b3c7489e8eb01a8a4c3383c3974cc5c653ac2di0",
+        "asig": "IAoyRfdkvrRpxR+PRzmoWlgD5ojgmwHV6DFaIlUfhedgezvryNqNmExIf3jmxc0RLSrYvwD/eUpLyTabwtzhD6I="
+      }
+    },
+    {
+      "name": "cancel-asig-other-listing",
+      "valid": false,
+      "order_pubkey": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
+      "cancel": {
+        "p": "dmp",
+        "v": "2",
+        "op": "cancel",
+        "list_id": "e74dc97214cd673661368bdb6fb16b0167f884f6cb8d7efba9292245333f534ci0",
+        "asig": "ILomGYl5eh8PTQJ6mEXwU67HDuojbF5yjqXzDO4LyynfElBxTa/SCBISp6S+QOfJ6acZeqrY3ItTkt+wJxtov8k="
+      }
+    }
+  ]
+}
