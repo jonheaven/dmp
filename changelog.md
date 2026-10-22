@@ -1,15 +1,35 @@
 # Launch Draft Summary
 
-## v2 implementer-ready (this branch)
+## Naming: ÐMP 1.0 (no "v2")
 
-- spec-v2 §8.1 is a normative inscription location rule: ord FIFO, offsets, several inscriptions per
+ÐMP has not launched, so the protocol's first release is **ÐMP 1.0**. "v1" and "v2" were working
+names during development. This is a naming change only: no wire bytes, vectors or examples changed.
+
+- `spec-v2.md` → [compact-orders.md](compact-orders.md) ("ÐMP 1.0 — Compact Signed Orders"), with the
+  same section numbers. `spec-v2.md` stays as a redirect.
+- `MIGRATION-v1-to-v2.md` → [MIGRATION-from-draft.md](MIGRATION-from-draft.md). The old path redirects.
+- The "v1 list" (spec.md §4.1 `list` with an embedded `psdt` or `psdt_hash`) is now the **draft list
+  format (pre-1.0)**. Wallets and venues MUST NOT create new draft lists, and indexers SHOULD ignore
+  them. An indexer that still indexes them MUST apply the draft-list hardening and the §15
+  classification.
+- Kept unchanged on the wire: `"v":"2"` (the compact-order marker), `"v":"1.0"` (spec.md ops), the
+  `dmp-v2-asig:` prefix and the `dmp2` OP_RETURN tag. File names with `v2`/`v1` (schemas, vectors,
+  `EXAMPLES/v2/`, the reconstructor and its `v1` mode) are kept so existing links and scripts work.
+- IMPLEMENTERS.md: the "v1 mainnet lists" section is now "Draft lists on mainnet"
+  (`#draft-lists-on-mainnet`).
+- Reference indexer API: `/api/dmp/psdt/{id}` and `/api/dmp/verify-order` are canonical, and the
+  `/api/dmp/v2/…` paths stay as aliases.
+
+## Compact orders implementer-ready (formerly "v2 implementer-ready")
+
+- compact-orders (then spec-v2) §8.1 is a normative inscription location rule: ord FIFO, offsets, several inscriptions per
   UTXO, zero-value outputs, sats lost to fee, and multi-part reveal genesis.
 - §8.2 makes fill validation layout-agnostic. Only the `in[1]`/`out[1]` binding is fixed, the
   canonical layout puts the dog on `out[2]`, and a fill with the dog on `out[0]` is also a sale.
 - §8.3 limits a fill to one OP_RETURN, makes the `dmp2` tag optional, and lets a dogesoft `ds` tag
   coexist with it. §8.4 adds dust and fee guidance.
-- The v1 hardening rejects a PSDT that signs the dog at input 0 (`postage_unsafe`). §15 classifies
-  the four v1 mainnet lists.
+- The draft-list (then "v1") hardening rejects a PSDT that signs the dog at input 0 (`postage_unsafe`). §15 classifies
+  the four draft (then "v1") mainnet lists.
 - New: IMPLEMENTERS.md, MIGRATION-v1-to-v2.md, CONFORMANCE.md, `schemas/cancel-v2.schema.json`,
   `EXAMPLES/v2/`, the state and v1 vector files, and the reconstructor `state` and `v1` modes.
 - spec.md: fixed the inscription-ID definition (`i<n>` is the index within the reveal, not an
@@ -17,8 +37,8 @@
 
 ## v1.0 launch draft
 
-ÐMP v1.0 is the Doginals Marketplace Protocol launch draft. Four v1 `list` inscriptions exist on
-mainnet (spec-v2 §15).
+ÐMP v1.0 is the Doginals Marketplace Protocol launch draft. Four draft-format (pre-1.0) `list`
+inscriptions exist on mainnet (compact-orders §15).
 
 ## Included
 

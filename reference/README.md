@@ -59,10 +59,11 @@ python reference/dmp_reference.py demo-gap --ownership-changed
 
 Production implementations will need real chain ingestion, signature verification, transaction output inspection, rollback handling, and durable state storage.
 
-## ÐMP v2 compact orders: `dmp_v2_reconstruct.py`
+## ÐMP 1.0 compact orders: `dmp_v2_reconstruct.py`
 
-An independent reconstructor for [spec-v2.md](../spec-v2.md). It shares no code with dogex or dojak: it parses a
-v2 order, rebuilds the canonical template and PSDT bytes (§5), verifies the SINGLE|ACP signature, checks fill
+An independent reconstructor for [compact-orders.md](../compact-orders.md) (formerly `spec-v2.md`; the
+file name keeps `v2` because compact orders carry the wire marker `"v":"2"`). It shares no code with dogex or dojak: it parses a
+compact order, rebuilds the canonical template and PSDT bytes (§5), verifies the SINGLE|ACP signature, checks fill
 compliance (§8), and verifies `asig` (§7.2) with its own canonicalizer and its own pubkey recovery.
 It needs `pip install ecdsa`.
 

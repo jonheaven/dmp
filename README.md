@@ -6,14 +6,14 @@
 with a full node can verify that intent against UTXO movement, so no venue's API is the source of
 truth.
 
-**v2 compact signed orders** are the current fixed-price format. A v2 `list` inscription carries
+**ÐMP 1.0** has not launched yet. Its fixed-price format is the **compact signed order**. A compact `list` inscription carries
 the seller's `SIGHASH_SINGLE|ANYONECANPAY` signature and the order terms. Every indexer rebuilds
 the same seller PSDT byte for byte from its own node, and any wallet can fill the order.
 
 | | |
 | ---: | --- |
-| **Versions** | `"2"` compact orders ([spec-v2.md](spec-v2.md)). v1.0 ops ([spec.md](spec.md)) remain valid unless spec-v2 says otherwise |
-| **Status** | v2: pre-launch draft, tested on regtest. v1.0: launch draft |
+| **Version** | ÐMP 1.0 = compact signed orders ([compact-orders.md](compact-orders.md), wire `"v":"2"`) + the ops in [spec.md](spec.md) (wire `"v":"1.0"`). There is no ÐMP 2; `"2"` is only the compact-order wire marker |
+| **Status** | Pre-launch draft, tested on regtest. The earlier `list` format with an embedded `psdt`/`psdt_hash` is a **draft (pre-1.0)** format: do not create it; indexers should ignore it |
 | **Durable payload** | JSON in a Dogecoin inscription with `"p": "dmp"` |
 | **Fill** | One transaction, with the seller's signature on `in[1]`/`out[1]` and the dog on any buyer output. The fill is the settlement |
 | **Chain** | Dogecoin |
@@ -33,13 +33,13 @@ shapes identical, so every indexer sees one order book.
 
 | You are… | Read |
 | --- | --- |
-| **Building an indexer, wallet or venue** | **[IMPLEMENTERS.md](IMPLEMENTERS.md)**, then [spec-v2.md](spec-v2.md) |
-| **Already shipped v1** | **[MIGRATION-v1-to-v2.md](MIGRATION-v1-to-v2.md)** |
+| **Building an indexer, wallet or venue** | **[IMPLEMENTERS.md](IMPLEMENTERS.md)**, then [compact-orders.md](compact-orders.md) |
+| **Already shipped draft (pre-1.0) lists** | **[MIGRATION-from-draft.md](MIGRATION-from-draft.md)** |
 | **Claiming conformance** | [CONFORMANCE.md](CONFORMANCE.md) and [vectors/](vectors/) |
 | **Need JSON today** | [EXAMPLES/v2/](EXAMPLES/v2/) and [schemas/](schemas/) |
-| **v1 ops (auctions, offers, collections, …)** | [spec.md](spec.md) and [implementation-guide.md](implementation-guide.md) |
+| **Other ops (auctions, offers, collections, …)** | [spec.md](spec.md) and [implementation-guide.md](implementation-guide.md) |
 
-## v2 in one screen
+## Compact orders in one screen
 
 ```json
 {"p":"dmp","v":"2","op":"list","chain":"dogecoin",
@@ -65,16 +65,16 @@ shapes identical, so every indexer sees one order book.
 python3 -m pip install ecdsa
 python3 reference/dmp_v2_reconstruct.py vectors vectors/dmp_v2_vectors.json
 python3 reference/dmp_v2_reconstruct.py state   vectors/dmp_v2_state_vectors.json
-python3 reference/dmp_v2_reconstruct.py v1      vectors/dmp_v1_psdt_vectors.json
+python3 reference/dmp_v2_reconstruct.py v1      vectors/dmp_v1_psdt_vectors.json   # draft-list hardening
 ```
 
 ---
 
-## v1.0 operations (spec.md)
+## Other ÐMP 1.0 operations (spec.md)
 
 | Operation | Purpose |
 | --- | --- |
-| `list` | Seller declares intent to sell at fixed price |
+| `list` | Fixed-price listing. Use the compact order ([compact-orders.md](compact-orders.md)); the spec.md form with `psdt`/`psdt_hash` is the draft (pre-1.0) format |
 | `bid` | Buyer declares intent to purchase |
 | `settle` | Records completed transfer + payment verification |
 | `cancel` | Revokes any active intent (list, bid, offer, counteroffer) |
@@ -94,11 +94,11 @@ python3 reference/dmp_v2_reconstruct.py v1      vectors/dmp_v1_psdt_vectors.json
 
 | Document | Description |
 | --- | --- |
-| [spec-v2.md](spec-v2.md) | v2 compact signed orders (normative) |
-| [IMPLEMENTERS.md](IMPLEMENTERS.md) | v2 implementer guide, reference, vectors, mainnet v1 lists |
-| [MIGRATION-v1-to-v2.md](MIGRATION-v1-to-v2.md) | What a v1 implementation must change |
+| [compact-orders.md](compact-orders.md) | ÐMP 1.0 compact signed orders (normative; formerly `spec-v2.md`, which now redirects) |
+| [IMPLEMENTERS.md](IMPLEMENTERS.md) | Implementer guide, reference, vectors, draft lists on mainnet |
+| [MIGRATION-from-draft.md](MIGRATION-from-draft.md) | What a draft (pre-1.0) implementation must change (formerly `MIGRATION-v1-to-v2.md`) |
 | [CONFORMANCE.md](CONFORMANCE.md) | Conformance checklist |
-| [spec.md](spec.md) | v1.0 protocol specification |
+| [spec.md](spec.md) | ÐMP 1.0 protocol specification (all other ops) |
 | [dogetag-offers.md](dogetag-offers.md) | Lightweight OP_RETURN offer signaling extension |
 | [implementation-guide.md](implementation-guide.md) | How to build a compliant indexer |
 | [security.md](security.md) | Threat model and mitigations |
@@ -108,14 +108,14 @@ python3 reference/dmp_v2_reconstruct.py v1      vectors/dmp_v1_psdt_vectors.json
 | [changelog.md](changelog.md) | Version history |
 | [contributing.md](contributing.md) | How to contribute |
 | [testing.md](testing.md) | Testing approach and scenarios |
-| [EXAMPLES/](EXAMPLES/) | JSON operation examples (incl. `collection-with-parent-inscription.json` for v1.0) |
+| [EXAMPLES/](EXAMPLES/) | JSON operation examples (incl. `collection-with-parent-inscription.json` for ÐMP 1.0) |
 | [schemas/](schemas/) | JSON Schema validation files |
 | [vectors/](vectors/) | Conformance vectors |
-| [reference/](reference/) | Python v1 validator and v2 reconstructor |
+| [reference/](reference/) | Python spec.md validator and compact-order reconstructor |
 
 ---
 
-## v1 reference validator
+## spec.md reference validator
 
 ```bash
 python reference/dmp_reference.py validate EXAMPLES/list-op.json
@@ -127,15 +127,16 @@ python reference/dmp_reference.py test-vectors
 ## Repo layout
 
 ```text
-spec-v2.md              v2 compact orders (normative)
-spec.md                 v1.0 protocol (normative)
-IMPLEMENTERS.md         v2 implementer guide
-MIGRATION-v1-to-v2.md   v1 → v2 changes
+compact-orders.md       ÐMP 1.0 compact orders (normative)
+spec.md                 ÐMP 1.0 other ops (normative)
+IMPLEMENTERS.md         implementer guide
+MIGRATION-from-draft.md draft (pre-1.0) → 1.0 changes
+spec-v2.md, MIGRATION-v1-to-v2.md   redirects to the files above
 CONFORMANCE.md          conformance checklist
 implementation-guide.md indexer / marketplace behavior
 security.md             threat model
 EXAMPLES/               JSON operation examples
 schemas/                JSON Schema files
 vectors/                conformance vectors
-reference/              v1 validator, v2 reconstructor
+reference/              spec.md validator, compact-order reconstructor
 ```

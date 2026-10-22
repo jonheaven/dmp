@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD024 -->
 # ÐMP — Doginals Marketplace Protocol Specification
 
-Version: v1.0 (Draft)
+Version: ÐMP 1.0 (pre-launch draft; `"v":"1.0"` ops and `"v":"2"` compact orders)
 Status: Pre-launch draft
 Last Updated: 2026-10-21
 Chain: Dogecoin (and compatible Dogecoin-fork chains)
@@ -194,12 +194,20 @@ for unique pieces. Do not answer L1-scale critiques by pretending Runes-style ed
 
 ### Versioning
 
-- v1.0 is the launch draft.
+- ÐMP has not launched. Its first release is **ÐMP 1.0**: the ops in this document plus the compact signed
+  orders in [compact-orders.md](compact-orders.md). Earlier drafts called the compact orders "ÐMP v2"; that
+  was a working name only, and there is no ÐMP 2.
 - `v`, when present, MUST be `"1.0"` or `"2"`. When absent, indexers MUST treat the op as `"1.0"`.
+  Both values are ÐMP 1.0: `"2"` is the wire marker of the compact-order format, kept byte-for-byte.
 - After public launch, breaking wire changes MUST be a new `v`.
-- **v2 (`"v":"2"`): compact signed orders**, see [spec-v2.md](spec-v2.md). A v2 `list` carries the seller's
-  `SIGHASH_SINGLE|ANYONECANPAY` signature instead of a PSDT; every indexer rebuilds the canonical PSDT from
-  its own node. v2 defines `list` and `cancel` only. A v1 `list` MUST NOT supersede an active v2 order.
+- **Compact signed orders (`"v":"2"`)**, see [compact-orders.md](compact-orders.md). A compact `list` carries
+  the seller's `SIGHASH_SINGLE|ANYONECANPAY` signature instead of a PSDT; every indexer rebuilds the canonical
+  PSDT from its own node. Compact orders define `list` and `cancel` only, and they are the ÐMP 1.0
+  fixed-price listing format.
+- **Draft list format (pre-1.0).** The §4.1 `list` without `v:"2"` (embedded `psdt` or `psdt_hash`; formerly
+  "v1 list") is a pre-release draft. It is not part of ÐMP 1.0: wallets and venues MUST NOT create new ones,
+  and indexers SHOULD ignore them ([compact-orders.md](compact-orders.md) §2, §15). A draft `list` MUST NOT
+  supersede an active compact order.
 
 ---
 
@@ -211,7 +219,7 @@ for unique pieces. Do not answer L1-scale critiques by pretending Runes-style ed
   transaction in the inscription chain and `n` is the inscription's index within that reveal, in
   canonical decimal. Doginals reveals carry one inscription, so `n` is `0`. `n` is **not** an output
   index, and the ID does not change when the dog moves. For a multi-part reveal, the ID names the first
-  part, and the inscription first exists at the completing reveal's `:0:0` ([spec-v2.md](spec-v2.md) §8.1).
+  part, and the inscription first exists at the completing reveal's `:0:0` ([compact-orders.md](compact-orders.md) §8.1).
 - **ÐMP Intent**: inscription whose JSON includes `p = "dmp"`.
 - **Op**: operation type in `op`.
 - **Manifest**: collection op with creator signature and criteria.
@@ -250,8 +258,8 @@ Every ÐMP Intent MUST include:
   base64 string). If both `psdt` and `psdt_hash` are present, the hash MUST match (MUST-110).
 - Unknown fields MUST be ignored by indexers.
 - JSON payload MUST be valid UTF-8.
-- The `chain` field, when present, MUST equal `"dogecoin"` for mainnet Dogenals (v2 also defines
-  `"dogecoin-testnet"` and `"dogecoin-regtest"`, spec-v2 §3). Indexers SHOULD reject ops
+- The `chain` field, when present, MUST equal `"dogecoin"` for mainnet Dogenals (compact orders also define
+  `"dogecoin-testnet"` and `"dogecoin-regtest"`, compact-orders §3). Indexers SHOULD reject ops
   with `chain` set to any other value when operating on Dogecoin mainnet.
 - The `nonce` field (optional, any string) MAY be included on any op to aid deduplication in tooling. It has
   no semantic effect on validation.
@@ -283,14 +291,16 @@ to themselves at `price` (or the residual seller amount when collaborative fees 
 
 **Portable Buy Now** (any venue, no listing-server): the `list` body SHOULD include `psdt`.
 
-**Compact signed order (v2):** a `list` with `"v":"2"` carries only `sig` + `pubkey` + outpoint + `price` +
-`pay_to` + `fees`; the PSDT is rebuilt deterministically by every indexer ([spec-v2.md](spec-v2.md) §5).
-This is the RECOMMENDED portable form: no venue has to host the PSDT.
+**Compact signed order (ÐMP 1.0):** a `list` with `"v":"2"` carries only `sig` + `pubkey` + outpoint + `price` +
+`pay_to` + `fees`; the PSDT is rebuilt deterministically by every indexer ([compact-orders.md](compact-orders.md) §5).
+This is the ÐMP 1.0 fixed-price form: no venue has to host the PSDT. The embedded-`psdt` and hash-only forms
+below are the draft list format (pre-1.0, §1 Versioning).
 
-**v1 embedded-PSDT signature check (MUST, with v2):** for a v1 `list` with `psdt`, indexers MUST verify the
+**Draft-list embedded-PSDT signature check (MUST for an indexer that indexes draft lists):** for a draft
+`list` with `psdt`, indexers MUST verify the
 partial signature(s) against the dog prevout in `non_witness_utxo` (P2PKH, or P2SH with the PSDT's
 `redeem_script`) and reject the list if it does not verify or the signers do not own the prevout. A PSDT
-that signs the dog at input 0 is rejected as postage-unsafe ([spec-v2.md](spec-v2.md) §2, §15).
+that signs the dog at input 0 is rejected as postage-unsafe ([compact-orders.md](compact-orders.md) §2, §15).
 
 **Hash-only list:** `psdt_hash` without `psdt` is a valid intent. Chain-alone fill is then **impossible**
 until a party publishes the matching PSDT out of band. Indexers MAY cache PSDT bytes keyed by hash when
@@ -315,6 +325,10 @@ is not part of this fill.
 ### 4.1 list
 
 Declares seller intent to sell an inscription.
+
+> **Draft format (pre-1.0).** This embedded-`psdt` / `psdt_hash` `list` is not part of ÐMP 1.0. ÐMP 1.0
+> fixed-price listings are compact signed orders ([compact-orders.md](compact-orders.md)). This section is
+> kept so indexers can classify the four mainnet test listings (compact-orders §15).
 
 #### Schema
 
