@@ -58,6 +58,7 @@ python reference/dmp_reference.py demo-gap --ownership-changed
 - Give wallets, marketplaces, and indexers one small runnable baseline.
 
 Production implementations will need real chain ingestion, signature verification, transaction output inspection, rollback handling, and durable state storage.
+
 ## ÐMP v2 compact orders: `dmp_v2_reconstruct.py`
 
 An independent reconstructor for [spec-v2.md](../spec-v2.md). It shares no code with dogex or dojak: it parses a
