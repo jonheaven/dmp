@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jonheaven/dmp-spec/schemas/list-v2.schema.json",
+  "title": "ÐMP v2 compact signed order (list)",
+  "type": "object",
+  "required": ["p", "v", "op", "chain", "inscription_id", "utxo", "price", "pay_to", "pubkey", "sig", "ts"],
+  "properties": {
+    "p": { "const": "dmp" },
+    "v": { "const": "2" },
+    "op": { "const": "list" },
+    "chain": { "enum": ["dogecoin", "dogecoin-testnet", "dogecoin-regtest"] },
+    "inscription_id": { "type": "string", "pattern": "^[0-9a-f]{64}i(0|[1-9][0-9]*)$" },
+    "utxo": { "type": "string", "pattern": "^[0-9a-f]{64}:(0|[1-9][0-9]*)$" },
+    "price": { "type": "string", "pattern": "^[1-9][0-9]{0,19}$" },
+    "pay_to": { "type": "string", "pattern": "^[1-9A-HJ-NP-Za-km-z]{26,35}$" },
+    "pubkey": { "type": "string", "pattern": "^0[23][0-9a-f]{64}$" },
+    "sig": { "type": "string", "pattern": "^30[0-9a-f]{12,140}83$" },
+    "fees": {
+      "type": "object",
+      "properties": {
+        "royalty_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,3})$" },
+        "royalty_to": { "type": "string" },
+        "market_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,3})$" },
+        "listing_to": { "type": "string" },
+        "listing_share_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,4})$" }
+      },
+      "dependentRequired": { "royalty_bps": ["royalty_to"] }
+    },
+    "ts": { "type": "integer", "minimum": 0 },
+    "expiry": { "type": "integer", "minimum": 0 },
+    "psdt": { "type": "string", "contentEncoding": "base64" },
+    "asig": { "type": "string", "pattern": "^[A-Za-z0-9+/]{87}=$", "description": "spec-v2 §7.2: base64(header 31..34 ‖ r ‖ s) over \"dmp-v2-asig:\" ‖ canonical op, Dogecoin signed-message digest" }
+  },
+  "not": { "required": ["psdt_hash"] },
+  "$comment": "Caps (royalty_bps ≤ 2500, market_bps ≤ 2000), net ≥ 100000 and signature validity are checked by spec-v2 §6, not by this schema."
+}

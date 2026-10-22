@@ -195,8 +195,11 @@ for unique pieces. Do not answer L1-scale critiques by pretending Runes-style ed
 ### Versioning
 
 - v1.0 is the launch draft.
-- `v`, when present, MUST be `"1.0"`. When absent, indexers MUST treat the op as `"1.0"`.
+- `v`, when present, MUST be `"1.0"` or `"2"`. When absent, indexers MUST treat the op as `"1.0"`.
 - After public launch, breaking wire changes MUST be a new `v`.
+- **v2 (`"v":"2"`): compact signed orders**, see [spec-v2.md](spec-v2.md). A v2 `list` carries the seller's
+  `SIGHASH_SINGLE|ANYONECANPAY` signature instead of a PSDT; every indexer rebuilds the canonical PSDT from
+  its own node. v2 defines `list` and `cancel` only. A v1 `list` MUST NOT supersede an active v2 order.
 
 ---
 
@@ -245,7 +248,8 @@ Every ÐMP Intent MUST include:
   base64 string). If both `psdt` and `psdt_hash` are present, the hash MUST match (MUST-110).
 - Unknown fields MUST be ignored by indexers.
 - JSON payload MUST be valid UTF-8.
-- The `chain` field, when present, MUST equal `"dogecoin"` for mainnet Dogenals. Indexers SHOULD reject ops
+- The `chain` field, when present, MUST equal `"dogecoin"` for mainnet Dogenals (v2 also defines
+  `"dogecoin-testnet"` and `"dogecoin-regtest"`, spec-v2 §3). Indexers SHOULD reject ops
   with `chain` set to any other value when operating on Dogecoin mainnet.
 - The `nonce` field (optional, any string) MAY be included on any op to aid deduplication in tooling. It has
   no semantic effect on validation.
@@ -276,6 +280,14 @@ to themselves at `price` (or the residual seller amount when collaborative fees 
 [collaborative-fees.md](collaborative-fees.md)). The portable shape is dog at input 1, payment at output 1.
 
 **Portable Buy Now** (any venue, no listing-server): the `list` body SHOULD include `psdt`.
+
+**Compact signed order (v2):** a `list` with `"v":"2"` carries only `sig` + `pubkey` + outpoint + `price` +
+`pay_to` + `fees`; the PSDT is rebuilt deterministically by every indexer ([spec-v2.md](spec-v2.md) §5).
+This is the RECOMMENDED portable form: no venue has to host the PSDT.
+
+**v1 embedded-PSDT signature check (MUST, with v2):** for a v1 `list` with `psdt`, indexers MUST verify the
+partial signature against the P2PKH dog prevout in `non_witness_utxo` and reject the list if it does not
+verify or the signer does not own the prevout ([spec-v2.md](spec-v2.md) §2).
 
 **Hash-only list:** `psdt_hash` without `psdt` is a valid intent. Chain-alone fill is then **impossible**
 until a party publishes the matching PSDT out of band. Indexers MAY cache PSDT bytes keyed by hash when

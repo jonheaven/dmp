@@ -1,0 +1,291 @@
+#!/usr/bin/env python3
+"""Independent ÐMP v2 compact-order reconstructor (spec-v2.md §3–§8, incl. §7.2 asig).
+
+Written from the spec only: no dogex, dojak or bitcoinjs code. Uses hashlib and the
+`ecdsa` package for signature verification; tx/PSBT serialization, base58 and the
+legacy SIGHASH_SINGLE|ANYONECANPAY digest are implemented here.
+
+  dmp_v2_reconstruct.py vectors <vectors.json>
+  dmp_v2_reconstruct.py order <order.json> (--parent-hex HEX | --rpc URL --rpc-auth user:pass)
+REGTEST/TESTING TOOL. It never signs or broadcasts anything.
+"""
+import base64, hashlib, json, struct, sys, urllib.request
+import ecdsa
+from ecdsa.util import sigdecode_der
+
+N = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+CHAINS = {"dogecoin": (0x1E, 0x16), "dogecoin-testnet": (0x71, 0xC4), "dogecoin-regtest": (0x6F, 0xC4)}
+LEAD, MIN_NET, SIGHASH = 100_000, 100_000, 0x83
+MAX_ROYALTY, MAX_MARKET, DEFAULT_SHARE = 2500, 2000, 5000
+
+def sha256d(b): return hashlib.sha256(hashlib.sha256(b).digest()).digest()
+def hash160(b): return hashlib.new("ripemd160", hashlib.sha256(b).digest()).digest()
+def varint(n):
+    if n < 0xFD: return bytes([n])
+    if n <= 0xFFFF: return b"\xfd" + struct.pack("<H", n)
+    if n <= 0xFFFFFFFF: return b"\xfe" + struct.pack("<I", n)
+    return b"\xff" + struct.pack("<Q", n)
+def varbytes(b): return varint(len(b)) + b
+
+B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+def b58check_decode(s):
+    n = 0
+    for c in s:
+        n = n * 58 + B58.index(c)
+    raw = n.to_bytes((n.bit_length() + 7) // 8, "big")
+    raw = b"\x00" * (len(s) - len(s.lstrip("1"))) + raw
+    data, chk = raw[:-4], raw[-4:]
+    if sha256d(data)[:4] != chk: raise ValueError("bad checksum")
+    return data
+
+def address_script(addr, chain):
+    d = b58check_decode(addr)
+    if len(d) != 21: raise ValueError("bad address length")
+    pkh, sh = CHAINS[chain]
+    if d[0] == pkh: return b"\x76\xa9\x14" + d[1:] + b"\x88\xac"
+    if d[0] == sh: return b"\xa9\x14" + d[1:] + b"\x87"
+    raise ValueError("address is not P2PKH/P2SH on this chain")
+
+# ── transactions ────────────────────────────────────────────────────────────
+class R:
+    def __init__(self, b): self.b, self.i = b, 0
+    def take(self, n): v = self.b[self.i:self.i + n]; self.i += n; return v
+    def u32(self): return struct.unpack("<I", self.take(4))[0]
+    def vi(self):
+        f = self.take(1)[0]
+        return f if f < 0xFD else struct.unpack({0xFD: "<H", 0xFE: "<I", 0xFF: "<Q"}[f], self.take({0xFD: 2, 0xFE: 4, 0xFF: 8}[f]))[0]
+def parse_tx(raw):
+    r = R(raw); v = struct.unpack("<i", r.take(4))[0]
+    ins = [dict(prev=r.take(32), vout=r.u32(), script=r.take(r.vi()), seq=r.u32()) for _ in range(r.vi())]
+    outs = [dict(value=struct.unpack("<Q", r.take(8))[0], script=r.take(r.vi())) for _ in range(r.vi())]
+    lt = r.u32()
+    assert r.i == len(raw), "trailing bytes"
+    return dict(version=v, ins=ins, outs=outs, locktime=lt)
+def ser_tx(t):
+    b = struct.pack("<i", t["version"]) + varint(len(t["ins"]))
+    for i in t["ins"]: b += i["prev"] + struct.pack("<I", i["vout"]) + varbytes(i["script"]) + struct.pack("<I", i["seq"])
+    b += varint(len(t["outs"]))
+    for o in t["outs"]: b += struct.pack("<Q", o["value"]) + varbytes(o["script"])
+    return b + struct.pack("<I", t["locktime"])
+def txid(raw): return sha256d(raw)[::-1].hex()
+
+# ── order rules (spec-v2 §3.2) ──────────────────────────────────────────────
+def dec_str(v, name, maxv=None):
+    if not isinstance(v, str) or not v.isdigit() or (len(v) > 1 and v[0] == "0") or len(v) > 20: raise ValueError(f"{name} must be a decimal string")
+    n = int(v)
+    if maxv is not None and n > maxv: raise ValueError(f"{name} out of range")
+    return n
+
+def strict_der(sig):
+    # BIP66 rules, then low-S.
+    if len(sig) < 8 or len(sig) > 72 or sig[0] != 0x30 or sig[1] != len(sig) - 2: raise ValueError("sig is not strict DER")
+    lr = sig[3]
+    if sig[2] != 0x02 or lr == 0 or 5 + lr >= len(sig): raise ValueError("sig is not strict DER")
+    ls = sig[5 + lr]
+    if sig[4 + lr] != 0x02 or ls == 0 or lr + ls + 6 != len(sig): raise ValueError("sig is not strict DER")
+    r, s = sig[4:4 + lr], sig[6 + lr:]
+    for x in (r, s):
+        if x[0] & 0x80 or (len(x) > 1 and x[0] == 0 and not x[1] & 0x80): raise ValueError("sig is not strict DER")
+    if int.from_bytes(s, "big") > N // 2: raise ValueError("sig must be low-S")
+    return sig
+
+def parse_order(o, chain):
+    if o.get("p") != "dmp" or o.get("v") != "2" or o.get("op") != "list": raise ValueError("not a v2 list")
+    if o.get("chain") != chain: raise ValueError("chain mismatch")
+    if "psdt_hash" in o: raise ValueError("psdt_hash is venue-only")
+    t, vout = o["utxo"].split(":")
+    if len(t) != 64 or t != t.lower() or str(int(vout)) != vout: raise ValueError("utxo")
+    price = dec_str(o.get("price"), "price")
+    if price <= 0: raise ValueError("price")
+    pk = bytes.fromhex(o["pubkey"])
+    if len(pk) != 33 or pk[0] not in (2, 3) or pk.hex() != o["pubkey"]: raise ValueError("pubkey")
+    sig = bytes.fromhex(o["sig"])
+    if sig.hex() != o["sig"]: raise ValueError("sig hex")
+    if sig[-1] != SIGHASH: raise ValueError("sig hashtype must be 0x83")
+    strict_der(sig[:-1])
+    f = o.get("fees", {})
+    if not isinstance(f, dict): raise ValueError("fees")
+    rb = dec_str(f["royalty_bps"], "royalty_bps", 10000) if "royalty_bps" in f else 0
+    mb = dec_str(f["market_bps"], "market_bps", 10000) if "market_bps" in f else 0
+    share = dec_str(f["listing_share_bps"], "listing_share_bps", 10000) if "listing_share_bps" in f else DEFAULT_SHARE
+    if rb > MAX_ROYALTY or mb > MAX_MARKET: raise ValueError("fee above cap")
+    if rb and "royalty_to" not in f: raise ValueError("royalty_to required")
+    for k in ("royalty_to", "listing_to"):
+        if k in f: address_script(f[k], chain)
+    if not isinstance(o.get("ts"), int) or ("expiry" in o and not isinstance(o["expiry"], int)): raise ValueError("ts/expiry must be integers")
+    royalty = price * rb // 10000 if rb and f.get("royalty_to") else 0
+    market = price * mb // 10000
+    listing = market * share // 10000 if market and f.get("listing_to") else 0
+    net = price - royalty - market
+    if net < MIN_NET: raise ValueError("signed seller output below dust")
+    return dict(o=o, txid=t, vout=int(vout), price=price, pk=pk, sig=sig, pay=address_script(o["pay_to"], chain),
+                split=dict(royalty=royalty, market=market, listing=listing, settlement=market - listing, net=net), fees=f, chain=chain)
+
+def template(d):
+    return dict(version=2, locktime=0,
+                ins=[dict(prev=b"\x00" * 32, vout=0, script=b"", seq=0xFFFFFFFE),
+                     dict(prev=bytes.fromhex(d["txid"])[::-1], vout=d["vout"], script=b"", seq=0xFFFFFFFF)],
+                outs=[dict(value=LEAD, script=d["pay"]), dict(value=d["split"]["net"], script=d["pay"])])
+
+def sighash_single_acp(tx, index, script_code):
+    # Legacy digest: ANYONECANPAY keeps only the signing input; SINGLE keeps outputs[0..=index]
+    # with the earlier ones blanked to (-1, empty script).
+    t = dict(version=tx["version"], locktime=tx["locktime"],
+             ins=[dict(tx["ins"][index], script=script_code)],
+             outs=[dict(value=0xFFFFFFFFFFFFFFFF, script=b"") for _ in range(index)] + [tx["outs"][index]])
+    return sha256d(ser_tx(t) + struct.pack("<I", SIGHASH))
+
+def p2pkh(pk): return b"\x76\xa9\x14" + hash160(pk) + b"\x88\xac"
+
+def rebuild(d, parent_raw):
+    if txid(parent_raw) != d["txid"]: raise ValueError("parent tx does not match utxo txid")
+    parent = parse_tx(parent_raw)
+    if d["vout"] >= len(parent["outs"]) or parent["outs"][d["vout"]]["script"] != p2pkh(d["pk"]):
+        raise ValueError("dog output is not P2PKH of pubkey (not the current owner key)")
+    tx = template(d)
+    digest = sighash_single_acp(tx, 1, p2pkh(d["pk"]))
+    vk = ecdsa.VerifyingKey.from_string(d["pk"], curve=ecdsa.SECP256k1)
+    try:
+        vk.verify_digest(d["sig"][:-1], digest, sigdecode=sigdecode_der)
+    except ecdsa.BadSignatureError:
+        raise ValueError("seller signature does not verify")
+    # PSBT: magic, global {00: unsigned tx}, in0 {}, in1 {00 parent, 02<pk> sig, 03 sighash}, out0 {}, out1 {}
+    psbt = b"psbt\xff" + varbytes(b"\x00") + varbytes(ser_tx(tx)) + b"\x00"
+    psbt += b"\x00"
+    psbt += varbytes(b"\x00") + varbytes(parent_raw)
+    psbt += varbytes(b"\x02" + d["pk"]) + varbytes(d["sig"])
+    psbt += varbytes(b"\x03") + varbytes(struct.pack("<I", SIGHASH)) + b"\x00"
+    psbt += b"\x00\x00"
+    return psbt, digest
+
+def fill_tag(tx):
+    for o in tx["outs"]:
+        s = o["script"]
+        if len(s) >= 6 and s[0] == 0x6A and s[1] == 4 and s[2:6] == b"dmp2" and len(s) > 7 and s[6] == len(s) - 7:
+            return s[7:]
+    return None
+
+def compliance(fill_raw, d):
+    tx = parse_tx(fill_raw)
+    seller_ok = (len(tx["ins"]) > 1 and tx["ins"][1]["prev"] == bytes.fromhex(d["txid"])[::-1] and tx["ins"][1]["vout"] == d["vout"]
+                 and len(tx["outs"]) > 1 and tx["outs"][1] == dict(value=d["split"]["net"], script=d["pay"]))
+    paid = lambda script: sum(o["value"] for i, o in enumerate(tx["outs"]) if i != 1 and o["script"] == script)
+    s, f, c = d["split"], d["fees"], dict(seller_paid_ok=seller_ok, royalty_ok=None, listing_fee_ok=None, settlement_fee_ok=None)
+    if s["royalty"]: c["royalty_ok"] = paid(address_script(f["royalty_to"], d["chain"])) >= s["royalty"]
+    if s["listing"]: c["listing_fee_ok"] = paid(address_script(f["listing_to"], d["chain"])) >= s["listing"]
+    venue = fill_tag(tx)
+    if venue is not None and s["settlement"]: c["settlement_fee_ok"] = paid(venue) >= s["settlement"]
+    c["fee_split_ok"] = seller_ok and False not in (c["royalty_ok"], c["listing_fee_ok"], c["settlement_fee_ok"])
+    return c
+
+# ---- spec-v2 §7.2 asig (independent: own canonicalizer + own pubkey recovery) ----
+ASIG_TAG = "dmp-v2-asig:"
+MAGIC = b"Dogecoin Signed Message:\n"
+_P = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+_N = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+_G = (0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798, 0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8)
+
+def _canon(v):
+    if isinstance(v, str):
+        if any(not (0x20 <= ord(c) <= 0x7E) or c in '"\\' for c in v): raise ValueError("asig: bad string")
+        return '"' + v + '"'
+    if isinstance(v, int) and not isinstance(v, bool):
+        if not 0 <= v <= 2**53 - 1: raise ValueError("asig: integer out of range")
+        return str(v)
+    if isinstance(v, dict):
+        ks = sorted(v, key=lambda k: k.encode())
+        return "{" + ",".join(_canon(k) + ":" + _canon(v[k]) for k in ks) + "}"
+    raise ValueError("asig: only strings, integers and objects")
+
+def asig_canonical(op): return _canon({k: x for k, x in op.items() if k not in ("asig", "psdt")})
+def asig_digest(canonical):
+    m = (ASIG_TAG + canonical).encode("ascii")
+    return sha256d(varbytes(MAGIC) + varbytes(m))
+
+def _add(a, b):
+    if a is None: return b
+    if b is None: return a
+    if a[0] == b[0] and (a[1] + b[1]) % _P == 0: return None
+    l = ((3 * a[0] * a[0]) * pow(2 * a[1], -1, _P) if a == b else (b[1] - a[1]) * pow(b[0] - a[0], -1, _P)) % _P
+    x = (l * l - a[0] - b[0]) % _P
+    return (x, (l * (a[0] - x) - a[1]) % _P)
+def _mul(k, pt):
+    r = None
+    while k:
+        if k & 1: r = _add(r, pt)
+        pt, k = _add(pt, pt), k >> 1
+    return r
+def _compress(pt): return bytes([2 + (pt[1] & 1)]) + pt[0].to_bytes(32, "big")
+
+def verify_asig(op, pk):
+    a = op.get("asig")
+    if not isinstance(a, str): raise ValueError("asig must be a base64 string")
+    try: raw = base64.b64decode(a, validate=True)
+    except Exception: raise ValueError("asig not base64")
+    if len(raw) != 65 or base64.b64encode(raw).decode() != a: raise ValueError("asig must be canonical base64 of 65 bytes")
+    if not 31 <= raw[0] <= 34: raise ValueError("asig header must be 31..34")
+    r, s_ = int.from_bytes(raw[1:33], "big"), int.from_bytes(raw[33:], "big")
+    if not (0 < r < _N and 0 < s_ < _N): raise ValueError("asig r/s out of range")
+    if s_ > _N // 2: raise ValueError("asig must be low-S")
+    e = int.from_bytes(asig_digest(asig_canonical(op)), "big")
+    recid = raw[0] - 31
+    x = r + (recid >> 1) * _N
+    if x >= _P: raise ValueError("asig recovery failed")
+    y = pow((x ** 3 + 7) % _P, (_P + 1) // 4, _P)
+    if (y & 1) != (recid & 1): y = _P - y
+    R = (x, y)
+    ri = pow(r, -1, _N)
+    Q = _add(_mul(s_ * ri % _N, R), _mul((-e * ri) % _N, _G))
+    if Q is None or _compress(Q) != pk: raise ValueError("asig does not recover/verify for the order key")
+    # cross-check with the ecdsa library verify (non-recovery path)
+    from ecdsa.util import sigdecode_string
+    ecdsa.VerifyingKey.from_string(pk, curve=ecdsa.SECP256k1).verify_digest(raw[1:], asig_digest(asig_canonical(op)), sigdecode=sigdecode_string)
+
+def check_vectors(path):
+    v = json.load(open(path)); chain = v.get("network", "dogecoin-regtest"); bad = 0
+    for case in v["valid"]:
+        d = parse_order(case["order"], chain)
+        psbt, digest = rebuild(d, bytes.fromhex(case["parent_tx_hex"]))
+        if "psdt" in case["order"] and base64.b64decode(case["order"]["psdt"]) != psbt: raise SystemExit(f"{case['name']}: embedded psdt differs")
+        fill = bytes.fromhex(case["fill_tx_hex"]); c = compliance(fill, d)
+        ok = (psbt.hex() == case["psdt_hex"] and digest.hex() == case["sighash"] and txid(fill) == case["fill_txid"]
+              and c["seller_paid_ok"] and c["fee_split_ok"] == case["compliance"]["fee_split_ok"])
+        if "asig" in case["order"]:
+            verify_asig(case["order"], d["pk"])
+            ok = ok and asig_canonical(case["order"]) == case["asig_canonical"] and asig_digest(case["asig_canonical"]).hex() == case["asig_digest"]
+        bad += not ok
+        print(f"{'OK  ' if ok else 'FAIL'} valid   {case['name']:<26} psdt {len(psbt)} B sha256 {hashlib.sha256(psbt).hexdigest()[:16]}… fill {txid(fill)[:16]}… fee_split_ok={c['fee_split_ok']}")
+    for case in v["invalid"]:
+        try:
+            d = parse_order(case["order"], chain); rebuild(d, bytes.fromhex(case["parent_tx_hex"]))
+            if "asig" in case["order"]: verify_asig(case["order"], d["pk"])
+            err = None
+        except (ValueError, KeyError, ecdsa.BadSignatureError) as e:
+            err = str(e) or type(e).__name__
+        bad += err is None
+        print(f"{'OK  ' if err else 'FAIL'} invalid {case['name']:<26} rejected: {err}")
+    for case in v.get("cancel", []):
+        try: verify_asig(case["cancel"], bytes.fromhex(case["order_pubkey"])); err = None
+        except (ValueError, ecdsa.BadSignatureError) as e: err = str(e) or type(e).__name__
+        ok = (err is None) == case["valid"]; bad += not ok
+        print(f"{'OK  ' if ok else 'FAIL'} cancel  {case['name']:<26} {'accepted' if err is None else 'rejected: ' + err}")
+    print("ALL MATCH" if not bad else f"{bad} MISMATCHES"); return bad
+
+def main(a):
+    if a[:1] == ["vectors"]: sys.exit(1 if check_vectors(a[1]) else 0)
+    if a[:1] == ["order"]:
+        o = json.load(open(a[1])) if a[1] != "-" else json.load(sys.stdin)
+        chain = o.get("chain")
+        if "--parent-hex" in a: parent = bytes.fromhex(a[a.index("--parent-hex") + 1])
+        else:
+            url, auth = a[a.index("--rpc") + 1], a[a.index("--rpc-auth") + 1]
+            req = urllib.request.Request(url, json.dumps({"id": 0, "method": "getrawtransaction", "params": [o["utxo"].split(":")[0], 0]}).encode(),
+                                         {"Authorization": "Basic " + base64.b64encode(auth.encode()).decode(), "content-type": "application/json"})
+            parent = bytes.fromhex(json.load(urllib.request.urlopen(req))["result"])
+        d = parse_order(o, chain); psbt, digest = rebuild(d, parent)
+        if "asig" in o: verify_asig(o, d["pk"])
+        print(json.dumps(dict(psbt_hex=psbt.hex(), sha256=hashlib.sha256(psbt).hexdigest(), sighash=digest.hex(), seller_net_koinu=d["split"]["net"])))
+        return
+    print(__doc__); sys.exit(2)
+
+if __name__ == "__main__": main(sys.argv[1:])
