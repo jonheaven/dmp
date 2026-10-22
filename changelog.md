@@ -17,6 +17,16 @@ Future changes after public launch should be tracked here with clear versioning 
 
 ## Draft updates (pre-launch)
 
+### 2026-10-21 — v2 compact signed orders (draft, regtest-tested)
+
+New `"v":"2"` `list`/`cancel` ([spec-v2.md](spec-v2.md)). No venue hosts the PSDT any more.
+
+- The order carries the seller's SIGHASH_SINGLE|ANYONECANPAY signature, pubkey, outpoint, price, `pay_to` and fee terms. Every indexer rebuilds the same canonical PSDT from its own node.
+- Authorization: either the reveal is signed by the order key, or the op carries `asig`, a Dogecoin signed-message signature over the canonical op (fee terms, `listing_to`, `expiry` included). With `asig`, any inscriber may publish the order.
+- Fee terms are declared; compliance flags never invalidate a sale. Cancel-by-move is authoritative; a signed cancel is advisory. `expiry` uses block nTime.
+- v1: embedded PSDT signatures MUST verify against the P2PKH dog prevout. A v1 `list` cannot supersede an active v2 order.
+- Conformance vectors: `vectors/dmp_v2_vectors.json`. Independent reference: `reference/dmp_v2_reconstruct.py`.
+
 ### 2026-10-21 — The fill is the settle
 
 A fixed-price `settle` inscription does not change listing status (MUST-112). The fill transaction is
