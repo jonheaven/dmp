@@ -15,6 +15,11 @@ is no ÐMP 2.
 | **Seller wallet** | Sign `0x83` on `in[1]`/`out[1]` of the canonical template and emit the JSON order. `psdt` is optional. Inscribe with the seller key, or add `asig`. | §4, §5, §7 |
 | **Buyer wallet / venue** | Build a fill: `in[1]` = `utxo` with the seller's scriptSig, `out[1]` = the signed output, any layout that puts the dog on the buyer's output. Pay declared fees. | §8.2, §8.4 |
 
+Fees are declared only in the order's `fees` object (§4, §4.1). The flat draft fields (`royalty_address`,
+`market_fee_bps`, …) are not 1.0; see the mapping in [collaborative-fees.md §9](collaborative-fees.md#9-draft-pre-10-fee-fields).
+Only the seller's net payout is enforced by the signature. Royalties and venue fees are verified and
+flagged, never enforced: [what is guaranteed vs verified](security.md#21-what-is-guaranteed-vs-verified).
+
 ## The five rules people get wrong
 
 1. **The location rule is ord FIFO** (§8.1). Each sat's absolute position is the sum of the

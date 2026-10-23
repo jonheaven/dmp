@@ -43,8 +43,42 @@ differs from a vector, you are wrong or the vector is, and either way please ope
 - [ ] At most one OP_RETURN.
 - [ ] It does not serve `cancelled`, `expired` or `postage_unsafe` orders.
 
+## Conformance levels
+
+A claim names a level and the **exact dmp-spec commit** (full 40-hex SHA) it was tested against, for
+example `ÐMP 1.0 indexer-conformant @ dmp-spec 0123abc…` (full SHA). "ÐMP compatible" with no level and no
+commit is not a conformance claim. A claim stays tied to that commit; re-test when you move to a newer one.
+
+| Level | Requires |
+|---|---|
+| **Indexer** | every Indexer item above |
+| **Wallet** | every Seller wallet item; plus every Buyer wallet item if the wallet builds fills |
+| **Marketplace** | every Buyer wallet / venue item, and fee compliance reported as it is: shows `fee_split_ok` and the per-fee flags from an indexer (never from a `settle` claim), and never presents royalties or venue fees as enforced ([security.md §2.1](security.md#21-what-is-guaranteed-vs-verified)) |
+| **Interop-tested** | Indexer level, plus a passing agreement test (below) against an independently written indexer |
+
+## Interop agreement test
+
+Two indexers written independently (different codebases), each with its own Dogecoin node on the same
+regtest network. At each checkpoint, both dump every order's `{status, cancel_kind, buyer,
+settlement_txid, compliance flags, dog location}` as canonical JSON (sorted keys). The two dumps MUST be
+identical.
+
+1. **List.** Inscribe three or more compact orders, at least one with `fees` and one with an `asig`.
+   Both report `listed` and the same canonical PSDT SHA-256.
+2. **Fill.** Fill one order in the canonical layout with every fee paid, and one in the `out[0]` layout
+   with a fee omitted. Compare below 6 confirmations (`settle_pending`) and at 6 (`settled`), including
+   `fee_split_ok: true` on the first and `false` on the second.
+3. **Cancel.** Cancel one order by inscription and one by moving the dog. Expect `cancelled` with
+   `cancel_kind` `inscription` and `moved`.
+4. **Reorg.** Before a fill reaches 6 confirmations, `invalidateblock` its block. Compare once both
+   indexers reach the new tip: the order is back to `listed`, with buyer and flags cleared. Then mine a
+   longer branch in which the seller moves the dog instead (a conflicting spend of `utxo`) and compare
+   again: `cancelled`, `cancel_kind` `moved`.
+
+Report both implementations' commits, the spec commit, the block hash at each checkpoint and the
+(empty) diff of the dumps.
+
 ## Reporting
 
-State the spec commit, the vector files and their `ALL MATCH` output, and the roles you claim.
-A regtest run showing a canonical fill and an `out[0]` fill indexed identically by two independent
-indexers is strong evidence, but it is not required.
+State the level, the spec commit, the vector files and their `ALL MATCH` output, and the roles you
+claim. For **Interop-tested**, attach the agreement-test report.
