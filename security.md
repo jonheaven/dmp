@@ -1,7 +1,7 @@
 # ÐMP Security Model
 
-Version: v1.0
-Last Updated: 2026-05-08
+Version: ÐMP 1.0 (pre-launch draft)
+Last Updated: 2026-10-23
 
 ---
 
@@ -52,13 +52,46 @@ Be explicit about this. Anyone building on ÐMP must understand these limitation
 | Risk | Why ÐMP cannot prevent it | ÐMP mitigation |
 |------|---------------------------|----------------|
 | Seller lists and then sells off-protocol | No atomic lock on inscription UTXO | Auto-invalidate on UTXO spend (MUST-015); provenance_gap flag |
-| Marketplace skips royalty payment | No enforcement on DOGE tx outputs | Royalty claim in settle is verified by indexers; non-payment is visible |
+| Marketplace skips royalty or venue fees | The seller's `0x83` signature commits only to the dog input and the seller's net output; the buyer builds every other output | Indexers check fee outputs against the indexed order and set compliance flags (compact-orders.md §8.2); non-payment is visible, never prevented |
 | Bidder never pays after accept | No payment lock or escrow | Negotiate PSDT/PSBT for pre-signed settlement; non-payment is auditable |
 | Stale listing after off-protocol transfer | Intent is separate from UTXO | UTXO-spend auto-invalidation on indexer |
 | Double-list across venues | Inscription UTXO not locked | Single-active-list rule (MUST-013); first settle wins (MUST-036) |
 | Fake settle inscription | Anyone can inscribe anything | Indexers verify settlement_txid against confirmed chain data |
 | Griefing / spam listings | No cost to inscribe intent | offer_fee anti-spam; 4 KB soft limit; indexer filtering |
 | Reorg-based front-running | Chain reorganizations are real | 6-block confirmation depth requirement; provisional state handling |
+
+### 2.1 What is guaranteed vs verified
+
+ÐMP 1.0 compact orders (compact-orders.md) give three different levels of assurance. Keep them apart in
+docs, UIs and marketing.
+
+- **Enforced (consensus):** Dogecoin script validation makes it impossible to do otherwise.
+- **Verified (indexer):** not enforced on chain, but every conforming indexer computes the same answer
+  from chain data and its own node, and reports it.
+- **Venue policy:** only as good as the venue or wallet that builds the transaction.
+
+| Property | Level | How | What a conforming indexer records |
+|---|---|---|---|
+| Listing persistence | Enforced | The order is an inscription. Anyone with a node can rebuild it and its canonical PSDT (§5) | The order record. It stays fillable only while the dog sits at `utxo` |
+| Seller payout (`net` → `pay_to`) | Enforced | The seller signs `in[1]` with `SIGHASH_SINGLE\|ANYONECANPAY` (`0x83`), which commits to `out[1]`. Any transaction that uses the signature must carry that exact `out[1]`, or it fails script validation | `seller_paid_ok` |
+| Fee terms not swapped by a copier | Verified | `fees` and `pay_to` placement are not covered by the `0x83` signature. They are bound to the order key by reveal authorship or `asig` (§7) | A tampered order is INVALID |
+| Dog delivered to the buyer | Verified | The signature does not say where the dog goes. The buyer's own transaction decides, and the buyer's wallet MUST check §8.1 before signing. The indexer applies the §8.1 location rule | Sale if the dog lands with someone other than the order owner. Otherwise cancel-by-move (`cancel_kind:"moved"`), even though the seller was paid |
+| Creator royalty | Verified | Declared in `fees`. Paid only if the buyer's venue adds the output | `royalty_ok` (`null` if none owed) |
+| Listing venue fee | Verified | Declared in `fees` (`listing_to`) | `listing_fee_ok` |
+| Settlement venue fee | Verified, only when tagged | The settlement venue is named only by an optional `dmp2` OP_RETURN on the fill (§8.3) | `settlement_fee_ok`; `null` when the fill has no `dmp2` tag (untagged, or a venue's own OP_RETURN) |
+| Fee-noncompliant sale | Verified | A fill that skips a declared fee is still a fill and still a sale | Valid sale: `settle_pending` → `settled` at 6 confirmations, with `fee_split_ok: false` and the failing flag `false`. The reference indexer (dogex) stores these in a `compliance` object on the fill. There is no separate "noncompliant" status |
+| Cancel by moving the dog | Enforced | Spending `utxo` destroys the outpoint the signature commits to. The order can never be filled | `cancelled`, `cancel_kind:"moved"` |
+| Cancel inscription | Venue policy / indexer | Advisory (§9). The signature stays valid until the dog moves | `cancelled`, `cancel_kind:"inscription"`. A later fill is still recorded, flagged `after_cancel` |
+| Expiry | Venue policy / indexer | Advisory (§9) | `expired`. A later fill is still recorded, flagged `after_expiry` |
+| Finality | Verified | 6 confirmations; reorgs roll back (§10) | `settled` only at depth 6 |
+
+Indexers derive expected fee amounts from the **order they indexed** (compact-orders.md §4.1), never from
+amounts claimed in a `settle` inscription or by a venue API. Section numbers in this table refer to
+compact-orders.md.
+
+The only way to make fees consensus-enforced is to have the seller sign every output, which turns a public
+listing into an interactive order for one buyer. That variant is described in compact-orders.md §12. It is
+informative and not implemented.
 
 ---
 
@@ -72,8 +105,9 @@ Be explicit about this. Anyone building on ÐMP must understand these limitation
 **ÐMP mitigation**:
 - MUST-030: `settlement_txid` must exist in confirmed chain state.
 - MUST-031: Inscription must have transferred to `buyer` in that tx.
-- MUST-032: `seller` must have received at least `price` in that tx.
-- MUST-033: Royalty outputs must match claimed `royalty_paid`.
+- MUST-032: `seller` must have received at least the seller net (`price` minus the declared fees) in that tx.
+- MUST-033: Royalty outputs are checked against the royalty owed and reported as `royalty_ok`. A shortfall
+  is a flag, not a failed settle.
 - The inscriber identity is irrelevant — only on-chain tx reality matters.
 
 **Residual risk**: An indexer that does NOT fully verify MUST-030–037 against the actual
@@ -205,18 +239,29 @@ have off-chain backup for critical data beyond the savepoint depth.
 `royalty_paid` matches the declared `royalty_bps`.
 
 **ÐMP mitigation**:
-- MUST-033: indexers MUST verify actual royalty outputs in `settlement_txid` against claimed
-  `royalty_paid`. The verification formula: `actual_royalty_output >= floor(price * royalty_bps / 10000)`.
-- A settle claiming royalties that don't match on-chain reality is INVALID.
+- MUST-033: indexers compute the royalty owed from the declared fees (compact order `fees`, settle `fees`,
+  or the draft listing's `royalty_bps`) and compare it with the actual outputs to the royalty address in
+  `settlement_txid`: `actual_royalty_output >= floor(price * royalty_bps / 10000)`. A `royalty_paid` claim
+  never substitutes for the outputs.
+- A shortfall sets `royalty_ok: false` and `fee_split_ok: false`. The sale still settles (MUST-031/MUST-032);
+  the flag makes the skipped royalty auditable.
 
-**Residual risk**: If `royalty_paid = "0"` and `royalty_bps` is not in the settle op (optional),
-indexers may not detect royalty skipping without looking up the collection record. Implementations
-SHOULD look up collection-level royalty settings when verifying settle ops that don't explicitly
-state royalties.
+**Residual risk**: A sale whose own terms declare no royalty owes none. A collection manifest's
+`royalty_bps` is informational only (MUST-107): indexers MUST NOT look it up to create a royalty
+obligation, and UIs MAY display it next to the sale. A seller can therefore list without a royalty; that
+is visible on the order itself.
 
-**Important**: ÐMP cannot force royalty payment. It can only make non-payment auditable. Marketplaces
-and creators MUST choose PSDT-based settlement flows if they want cryptographic royalty enforcement
-(royalty output can be built into the PSDT before the seller signs).
+**Important**: ÐMP cannot force royalty payment. It can only make non-payment auditable. PSDT-based
+settlement does **not** change this: the compact-order seller signature (`SIGHASH_SINGLE|ANYONECANPAY`,
+`0x83`) commits only to `in[1]` (the dog) and `out[1]` (the seller's net), so a buyer can omit the royalty
+output and the fill still verifies. Royalties and venue fees are declared listing policy that indexers
+verify from the authoritative order (`royalty_ok`, `listing_fee_ok`, `settlement_fee_ok`,
+`fee_split_ok`; compact-orders.md §8.2), never from what a `settle` inscription claims. Consensus-enforced
+royalties need the seller to sign every output (compact-orders.md §12, informative and not implemented).
+See [§2.1](#21-what-is-guaranteed-vs-verified).
+
+For compact-order fills this section's `settle` checks do not apply: a fixed-price sale is the fill
+transaction itself, and no `settle` inscription is read.
 
 ---
 
@@ -362,7 +407,8 @@ In high-volume ÐMP ecosystems, spam resistance depends on DOGE price and indexe
 following residual risks remain inherent to the model:
 
 1. **No atomic escrow**: Settlement can be raced or double-sold without PSDT flows.
-2. **Royalty non-enforcement**: Non-payment is auditable but not preventable at protocol level.
+2. **Royalty and venue-fee non-enforcement**: Non-payment is auditable but not preventable at protocol
+   level. Only the seller's net payout is enforced by signature ([§2.1](#21-what-is-guaranteed-vs-verified)).
 3. **Key compromise**: Compromised creator key enables unauthorized collection-updates.
 4. **Deep reorg risk**: Reorgs > savepoint depth could require manual recovery.
 5. **Spam economics**: Spam resistance depends on DOGE price and policy enforcement by indexers/UIs.

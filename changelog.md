@@ -1,5 +1,47 @@
 # Launch Draft Summary
 
+## Fee caps, collection royalty, settle net (decisions approved 2026-10-23)
+
+Spec, schemas, reference and one vector change. Compact-order wire bytes and the v2 vectors are unchanged.
+
+- **Royalty cap 2500 bps (25%) everywhere**, as a rejection, not a clamp: collection manifests (MUST-054, was
+  `0..1000`), draft `list` (`schemas/list.json`, string and integer form), compact orders (unchanged),
+  `settle.fees`. `schemas/collection.json` and `schemas/list-v2.schema.json` patterns now encode the caps.
+- **Draft `market_fee_bps` ≤ 2000 in string form too** (`schemas/list.json` pattern; integer form already).
+- **No `fees` ⇒ no fees.** A collection manifest's `royalty_bps` is never inherited and is informational
+  only (MUST-107 rewritten, spec.md §4.3 notes, security.md §3.9, collaborative-fees.md §9.1).
+- **Settle**: MUST-032 is now seller ≥ **seller net** (`price` minus declared fees, compact-orders §4.1
+  math), not ≥ `price`. Royalty, listing and settlement fee mismatches are flags (`royalty_ok`,
+  `listing_fee_ok`, `settlement_fee_ok`, `fee_split_ok`) and never make a settle Failed or Interrupted
+  (MUST-033, MUST-037, §15, §15.1, implementation-guide.md). `settle` gains a 1.0 `fees` object (spec.md
+  §4.3 schema, inline example, §4.13.3, `schemas/settle.json`); `royalty_paid` / `platform_fee` are draft
+  claims. An over-cap or malformed settle `fees` makes the settle invalid.
+- **No brand tags.** Brand-specific OP_RETURN examples removed from compact-orders.md §8.3,
+  collaborative-fees.md, security.md §2.1, IMPLEMENTERS.md and MIGRATION-from-draft.md. A venue MAY use its
+  own OP_RETURN if it respects the one-OP_RETURN rule; `dmp2` stays optional. Tag-free settlement-venue
+  verification is recorded as an open question (§8.3).
+- Reference: `dmp_reference.py` MUST-054 cap 2500, fee-cap checks for draft `list` and `settle.fees`;
+  TV-115 (built-in) and TV-116 (`reference/test_vectors.json`) now use `"2600"` (was `"1500"`, which is
+  valid under the new cap).
+
+## Canonical fees and honest guarantees (docs only)
+
+No wire bytes, vectors or reference code changed.
+
+- The compact order's `fees` object (`royalty_bps`, `royalty_to`, `market_bps`, `listing_to`,
+  `listing_share_bps`; caps 2500 / 2000 as rejections) is the only ÐMP 1.0 fee format.
+- [collaborative-fees.md](collaborative-fees.md) is rewritten in 1.0 fields, with the same 100 DOGE
+  example computed by compact-orders §4.1. The flat fields (`royalty_address`, `market_fee_bps`,
+  `listing_fee_address`, `listing_fee_share_bps`, `listing_marketplace`) are now marked draft (pre-1.0),
+  with a draft → 1.0 mapping table, precedence (compact-order fields win) and the cap differences.
+- security.md §3.9 no longer says PSDT settlement gives cryptographic royalty enforcement. The seller's
+  `0x83` signature commits only to `in[1]` and `out[1]`. New §2.1 "What is guaranteed vs verified",
+  linked from README and IMPLEMENTERS.
+- spec.md §1, §3.4 and §4.1 present the flat fee fields as draft only.
+- CONFORMANCE.md adds levels (indexer, wallet, marketplace, interop-tested) tied to an exact spec commit,
+  and a two-indexer interop agreement test.
+- adoption-roadmap.md: "automatic royalty enforcement" is now royalty compliance reporting.
+
 ## Naming: ÐMP 1.0 (no "v2")
 
 ÐMP has not launched, so the protocol's first release is **ÐMP 1.0**. "v1" and "v2" were working
@@ -115,6 +157,7 @@ collections). This is not a protocol shrink.
 - Implied fields MAY be omitted: `currency` = DOGE, `chain` = `dogecoin`, `v` = `1.0`, `listing_type` =
   `fixed_price` (MUST-109).
 - `listing_fee_address` + `market_fee_bps` are how a listing venue is paid. `listing_marketplace` is a tag.
+  *(Superseded: these are draft (pre-1.0) fields. ÐMP 1.0 uses the compact order's `fees.listing_to` + `fees.market_bps`.)*
 - `psdt` SHOULD be on-chain for portable Buy Now. `psdt_hash` is allowed when the parent tx is fat (MUST-110).
   Hash-only lists are not chain-alone fillable.
 - Do not compact-rename remaining keys (`lm`). Fat bytes are `nonWitnessUtxo` on Dogecoin P2PKH, not JSON labels.
@@ -124,6 +167,7 @@ collections). This is not a protocol shrink.
 
 - [collaborative-fees.md](collaborative-fees.md): multi-venue rake (listing + settlement) + royalty split physics.
 - list schema: `market_fee_bps`, `listing_fee_address`, `listing_fee_share_bps`, `listing_marketplace`.
+  *(Superseded: draft (pre-1.0) fields. ÐMP 1.0 fees are the compact order's `fees` object; see collaborative-fees.md §9.)*
 - Ecosystem: the operator collective plan (not in this repo).
 
 **Hardening status:** The full pre-launch hardening patch (MUST-099 through MUST-108, `bid_id` / `expiry` / `co_sellers` / `list_id`–`auction_id` alignment) is **live** in `spec.md`, `security.md`, examples, and `vectors/conformance.json` for this draft.

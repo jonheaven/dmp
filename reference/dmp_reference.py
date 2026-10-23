@@ -342,7 +342,24 @@ def validate_op_rules(
         _validate_transfer(payload, issues)
 
 
+def _check_bps_caps(obj: Dict, caps: Dict[str, int], issues: List[ValidationIssue],
+                    rule: str, allow_int: bool = False) -> None:
+    """Fee caps are rejections, not clamps (royalty 2500, market 2000, share 10000)."""
+    for key, cap in caps.items():
+        v = obj.get(key)
+        if v is None:
+            continue
+        if allow_int and isinstance(v, int) and not isinstance(v, bool):
+            ok = 0 <= v <= cap
+        else:
+            ok = isinstance(v, str) and INTEGER_STRING_RE.match(v) is not None and 0 <= int(v) <= cap
+        if not ok:
+            _add(issues, "error", rule, f"{key} must be 0..{cap} (rejection, not clamp), got {v!r}.")
+
+
 def _validate_list(p: Dict, version: str, issues: List[ValidationIssue]) -> None:
+    _check_bps_caps(p, {"royalty_bps": 2500, "market_fee_bps": 2000, "listing_fee_share_bps": 10000},
+                    issues, "FEE-CAP", allow_int=True)
     lt = p.get("listing_type")
     if lt is not None and lt not in {"fixed_price", "auction"}:
         _add(issues, "error", "FORMAT", f"listing_type must be fixed_price or auction, got {lt!r}.")
@@ -362,6 +379,13 @@ def _validate_bid(p: Dict, issues: List[ValidationIssue]) -> None:
 
 
 def _validate_settle(p: Dict, version: str, issues: List[ValidationIssue]) -> None:
+    fees = p.get("fees")
+    if fees is not None:
+        if not isinstance(fees, dict):
+            _add(issues, "error", "FORMAT", "settle fees must be an object (spec.md §4.3).")
+        else:
+            _check_bps_caps(fees, {"royalty_bps": 2500, "market_bps": 2000, "listing_share_bps": 10000},
+                            issues, "FEE-CAP")
     pf = p.get("platform_fee")
     pfr = p.get("platform_fee_recipient")
     if pf is not None and pfr is None:
@@ -414,9 +438,9 @@ def _validate_collection(p: Dict, issues: List[ValidationIssue]) -> None:
     rbps = p.get("royalty_bps")
     if rbps is not None:
         if not (isinstance(rbps, str) and INTEGER_STRING_RE.match(rbps)
-                and 0 <= int(rbps) <= 1000):
+                and 0 <= int(rbps) <= 2500):
             _add(issues, "error", "MUST-054",
-                 f"royalty_bps must be an integer string in range 0..1000, got {rbps!r}.")
+                 f"royalty_bps must be an integer string in range 0..2500 (rejection, not clamp), got {rbps!r}.")
 
     if "sig" not in p:
         _add(issues, "warning", "MUST-051",
@@ -908,7 +932,7 @@ TEST_VECTORS: List[Dict[str, Any]] = [
             "slug": "test-collection",
             "creator_address": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
             "type": "fixed",
-            "royalty_bps": "1500",  # > 1000 (10%)
+            "royalty_bps": "2600",  # > 2500 (25%)
         },
     },
     {

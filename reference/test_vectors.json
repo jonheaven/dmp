@@ -366,7 +366,7 @@
     },
     {
       "id": "TV-116",
-      "desc": "MUST-054: royalty_bps out of range (> 1000)",
+      "desc": "MUST-054: royalty_bps out of range (> 2500)",
       "expect": "fail",
       "must_rules": ["MUST-054"],
       "payload": {
@@ -374,7 +374,7 @@
         "slug": "test-collection",
         "creator_address": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
         "type": "fixed",
-        "royalty_bps": "1500"
+        "royalty_bps": "2600"
       }
     },
     {

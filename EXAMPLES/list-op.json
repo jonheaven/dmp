@@ -14,7 +14,7 @@
 
   "royalty_address": "DNHLLgALJhMxWqkRDH7MjVtPrCrK",
   "royalty_bps": "500",
-  "_royalty_note": "500 bps = 5%. Max recommended 1000 bps (10%).",
+  "_royalty_note": "500 bps = 5%. Cap 2500 bps (25%); above that the listing is rejected.",
 
   "listing_fee_address": "D7Yp4YdEuiZB69CiM4G2QjPPKiLpxLJaGG",
   "market_fee_bps": "200",

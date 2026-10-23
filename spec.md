@@ -3,7 +3,7 @@
 
 Version: ÐMP 1.0 (pre-launch draft; `"v":"1.0"` ops and `"v":"2"` compact orders)
 Status: Pre-launch draft
-Last Updated: 2026-10-21
+Last Updated: 2026-10-23
 Chain: Dogecoin (and compatible Dogecoin-fork chains)
 **Canonical public spec:** [github.com/jonheaven/dmp-spec](https://github.com/jonheaven/dmp-spec)
 
@@ -102,8 +102,10 @@ Dogecoin already expresses “this UTXO moves if I get this output” as
 - **Do not compact-rename the remaining keys** (`lm` for `listing_marketplace`). Fewer fields first.
   A later optional compact body MAY use `"c"` (compression / tagged map). Parsers MUST ignore unknown
   top-level keys.
-- **Money, not labels.** `listing_fee_address` (with `market_fee_bps`) is how a listing venue is paid.
-  `listing_marketplace` is an optional human tag (domain/slug). Indexers MUST NOT treat the tag as a
+- **Money, not labels.** A listing venue is paid at an address, never by a name. In ÐMP 1.0 that is
+  the compact order's `fees.listing_to` with `fees.market_bps` ([compact-orders.md](compact-orders.md) §4).
+  In the draft (pre-1.0) `list` format it was `listing_fee_address` with `market_fee_bps`, and
+  `listing_marketplace` was an optional human tag (domain/slug). Indexers MUST NOT treat a tag as a
   payee.
 - **Keep every op.** `list`, `bid`, `auction`, `offer`, `counteroffer`, `accept`, `decline`, `cancel`,
   `settle`, `transfer`, `collection`, `collection-update`, `vote` remain. This reboot thins the
@@ -286,8 +288,8 @@ Every ÐMP Intent MUST include:
 
 A **PSDT** is a Partially Signed Dogecoin Transaction (BIP174 PSBT bytes on Dogecoin). For a fixed-price
 list the seller signs the dog with `SIGHASH_SINGLE | ANYONECANPAY` and locks the same-index output
-to themselves at `price` (or the residual seller amount when collaborative fees apply — see
-[collaborative-fees.md](collaborative-fees.md)). The portable shape is dog at input 1, payment at output 1.
+to themselves at `price` (or the seller's `net` when the order declares fees — see
+[compact-orders.md](compact-orders.md) §4.1 and [collaborative-fees.md](collaborative-fees.md)). The portable shape is dog at input 1, payment at output 1.
 
 **Portable Buy Now** (any venue, no listing-server): the `list` body SHOULD include `psdt`.
 
@@ -348,11 +350,19 @@ Optional (only when they change behavior): `v`, `ts`, `expiry`, `royalty_address
 `collection_id`, `psdt_hash`, `listing_type` / `auction_mode` / `min_bid_increment` for auctions,
 `co_sellers`, `nonce`.
 
+> **Draft fee fields.** The flat fee fields above (`royalty_address`, `royalty_bps`, `market_fee_bps`,
+> `listing_fee_address`, `listing_fee_share_bps`, `listing_marketplace`) belong to the draft (pre-1.0)
+> fixed-price `list` format. They are **not** the ÐMP 1.0 way to declare fees. A ÐMP 1.0 fixed-price
+> listing declares fees in the compact order's `fees` object (`royalty_bps`, `royalty_to`, `market_bps`,
+> `listing_to`, `listing_share_bps`; [compact-orders.md](compact-orders.md) §4), and compact-order fields
+> always win. The draft → 1.0 mapping, including the different caps, is
+> [collaborative-fees.md §9](collaborative-fees.md#9-draft-pre-10-fee-fields).
+
 #### Notes
 
 - When `psdt` is embedded, `inscription_id`, `price`, and `seller` MAY be omitted. The indexer reads the dog from the signed outpoint, and the price and seller from the locked output. If any of the three is present, it MUST match that lock. A hash-only list (`psdt_hash`, no `psdt`) MUST still include all three.
 - `listing_type` is optional (default `fixed_price`). Allowed values: `fixed_price`, `auction`.
-- `listing_marketplace` is a human tag. Pay the listing venue with `listing_fee_address` + `market_fee_bps`.
+- `listing_marketplace` is a human tag. In this draft format the listing venue was paid with `listing_fee_address` + `market_fee_bps` (1.0: `fees.listing_to` + `fees.market_bps`).
 - `auction_mode` is used when `listing_type` is `"auction"`.
 - Allowed `auction_mode` values: `time_based`, `seller_can_accept_early`, `no_early_accept`.
 - `seller_can_accept_early` allows seller to settle a valid bid before expiry.
@@ -464,10 +474,13 @@ seller. A `settle` that does not is ignored. It MUST NOT leave the auction pendi
   "seller": "<Dogecoin address>",
   "buyer": "<Dogecoin address>",
   "price": "<koinu>",
-  "royalty_paid": "<koinu>",
-  "royalty_address": "<Dogecoin address>",
-  "platform_fee": "<koinu>",
-  "platform_fee_recipient": "<Dogecoin address>",
+  "fees": {
+    "royalty_bps": "<0..2500>",
+    "royalty_to": "<Dogecoin address>",
+    "market_bps": "<0..2000>",
+    "listing_to": "<Dogecoin address>",
+    "listing_share_bps": "<0..10000>"
+  },
   "settlement_txid": "<txid>",
   "chain": "dogecoin",
   "ts": 1700000000
@@ -476,16 +489,38 @@ seller. A `settle` that does not is ignored. It MUST NOT leave the auction pendi
 
 #### Notes (v1.0 additions)
 
-- `platform_fee` and `platform_fee_recipient` are optional v1.0 fields. When present, indexers SHOULD
-  verify these outputs exist in `settlement_txid`.
+- **`fees`** (OPTIONAL) has the same keys, ranges and floor math as a compact order's `fees`
+  ([compact-orders.md](compact-orders.md) §4.1): `royalty = floor(price·royalty_bps/10⁴)` (only when
+  `royalty_to` is set), `market = floor(price·market_bps/10⁴)`, `listing = floor(market·listing_share_bps/10⁴)`
+  (only when `listing_to` is set; share default `"5000"`), `settlement = market − listing`, and
+  **seller net** `= price − royalty − market`. Caps are rejections, not clamps: `royalty_bps > 2500`,
+  `market_bps > 2000` or `listing_share_bps > 10000`, or a malformed `fees` object, makes the `settle`
+  invalid (ignored; the auction stays pending).
+- **Declared fees**: the settle's `fees` if present, else the fee fields of the referenced `auction` / `list`
+  (`royalty_bps`, `market_fee_bps`, …). Neither ⇒ **no fees** and seller net = `price`. A collection
+  manifest's `royalty_bps` is never inherited (MUST-107).
+- **Draft fields** `royalty_paid`, `royalty_address`, `platform_fee`, `platform_fee_recipient` are still
+  accepted ([MIGRATION-from-draft.md](MIGRATION-from-draft.md)). They are claims, not fee terms: they never
+  change seller net. `royalty_paid`/`royalty_address` are checked only when no fees are declared;
+  `platform_fee_recipient` names the settlement venue whose output is checked (MUST-037).
+- **Settlement venue**: a 1.0 `fees` object names no settlement-venue address. The venue is known only if
+  the draft `platform_fee_recipient` is present or `settlement_txid` carries the optional `dmp2` OP_RETURN
+  tag (compact-orders §8.3); otherwise `settlement_fee_ok` is `null`. Indexers MUST NOT guess the venue from
+  untagged outputs.
+- **Fee results are flags, never status.** `settlement_txid` settles the sale when it moves the dog to
+  `buyer` (MUST-031) and pays `seller` at least seller net (MUST-032). Royalty, listing-venue and
+  settlement-venue shortfalls set `royalty_ok` / `listing_fee_ok` / `settlement_fee_ok` (and `fee_split_ok`)
+  to `false`; they MUST NOT make the settle Failed or Interrupted, and MUST NOT leave the auction pending.
+  A flag is `null` when nothing is owed or the payee cannot be identified.
 - **Double-settle prevention**: Only the first valid `settle` op (by canonical ordering) for a given
   `list_id` or `auction_id` is accepted. Subsequent settle ops referencing the same already-settled
   listing are INVALID (idempotent rejection).
 - **Confirmation depth**: Indexers MUST NOT treat settlement as confirmed until `settlement_txid`
   has at least 6 confirmed blocks (Dogecoin ~1 min/block). UIs SHOULD display "pending" for
   sub-threshold settlements. Indexers MAY configure a different depth; 6 is the recommended minimum.
-- **Royalty verification**: `royalty_paid` MUST be >= `floor(price * royalty_bps / 10000)`. Indexers
-  MUST verify this against actual outputs in `settlement_txid`. Implementers MUST compute
+- **Royalty check**: indexers compare the royalty owed (`floor(price * royalty_bps / 10000)` under the declared
+  fees, else the draft `royalty_paid` claim) with the outputs to the royalty address in `settlement_txid` and
+  report the result as `royalty_ok` (MUST-033). Implementers MUST compute
   `floor(price * royalty_bps / 10000)` using **big integers** or a safe order of operations so
   `price * royalty_bps` does not overflow 64-bit intermediates before the floor.
 - **No self-sale (`settle`)**: `buyer` MUST NOT equal `seller` (exact string equality on addresses). Use
@@ -499,8 +534,8 @@ seller. A `settle` that does not is ignored. It MUST NOT leave the auction pendi
 - **`bid_id` and offers**: `bid_id` MAY reference a `bid`, an `offer`, an `accept`, or (when resolving
   negotiation) a `counteroffer` per MUST-099–MUST-101. (The patch draft called this `offer_id`; v1.0 wire uses
   **`bid_id`** for all of these.)
-- **Zero royalty (MUST-107)**: When **effective** royalty bps is zero (listing, auction, or collection basis
-  per MUST-107 in §13.4), `royalty_paid` MUST be absent or **`"0"`**.
+- **Royalty basis (MUST-107)**: only the sale's own declared fees create a royalty. A collection manifest's
+  `royalty_bps` is informational (UIs MAY show it); it is never owed on a sale whose terms omit it.
 
 #### Inline Example
 
@@ -515,8 +550,11 @@ seller. A `settle` that does not is ignored. It MUST NOT leave the auction pendi
   "seller": "D9p4Lk9xvbQ2Dyh4S8vCb9Ly8cY3h8pP1M",
   "buyer": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
   "price": "1250000000",
-  "royalty_paid": "62500000",
-  "royalty_address": "DNHLLgALJhMxWqnBxJYqkRDH7MjVtPrCrK",
+  "fees": {
+    "royalty_bps": "500",
+    "royalty_to": "DNHLLgALJhMxWqnBxJYqkRDH7MjVtPrCrK",
+    "market_bps": "200"
+  },
   "settlement_txid": "9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e",
   "chain": "dogecoin",
   "ts": 1700000900
@@ -1236,6 +1274,16 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
     "op": { "const": "settle" },
     "inscription_id": { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },
     "price": { "type": "string", "pattern": "^[1-9][0-9]*$" },
+    "fees": {
+      "type": "object",
+      "properties": {
+        "royalty_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,2}|1[0-9]{3}|2[0-4][0-9]{2}|2500)$" },
+        "royalty_to": { "type": "string", "minLength": 20 },
+        "market_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,2}|1[0-9]{3}|2000)$" },
+        "listing_to": { "type": "string", "minLength": 20 },
+        "listing_share_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,3}|10000)$" }
+      }
+    },
     "settlement_txid": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
   }
 }
@@ -1277,7 +1325,7 @@ These snippets define interoperable minimum validation shape. Interpret alongsid
     "slug": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-z0-9-]+$" },
     "type": { "enum": ["fixed", "dynamic"] },
     "creator_address": { "type": "string", "minLength": 20 },
-    "royalty_bps": { "type": "string", "pattern": "^([0-9]|[1-9][0-9]{1,2}|1000)$" },
+    "royalty_bps": { "type": "string", "pattern": "^([0-9]|[1-9][0-9]{1,2}|1[0-9]{3}|2[0-4][0-9]{2}|2500)$" },
     "parent_inscription_id": { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" }
   }
 }
@@ -1491,7 +1539,7 @@ PENDING states (provisional, not confirmed):
   pending_cancel  - cancel op in mempool
 ```
 
-Applying **MUST-112:** for a fixed-price list, the settlement is the transaction that spends the listed dog and pays the seller at least the locked amount (the residual, when collaborative fees are on the list). Indexers MUST enter `pending_settle` on that spend and `settled` once it has 6 confirmations. A `settle` inscription does not enter this path. A spend that does not pay the list (gift, self-move, cancel-by-spend) is `invalidated`. Auctions still name the winning fill with a `settle` inscription, and only after that fill is already on chain.
+Applying **MUST-112:** for a fixed-price list, the settlement is the transaction that spends the listed dog and pays the seller at least the locked amount (the seller's net, when the order declares fees). Indexers MUST enter `pending_settle` on that spend and `settled` once it has 6 confirmations. A `settle` inscription does not enter this path. A spend that does not pay the list (gift, self-move, cancel-by-spend) is `invalidated`. Auctions still name the winning fill with a `settle` inscription, and only after that fill is already on chain.
 
 ### State Transition Rules
 
@@ -1710,16 +1758,20 @@ Any op failing a MUST rule is invalid.
 - MUST-030: `settlement_txid` exists in confirmed chain state with >= 6 blocks of confirmation depth
   (indexers MAY configure higher; MUST NOT accept < 1 confirmation as final).
 - MUST-031: `inscription_id` transferred to `buyer` in `settlement_txid`.
-- MUST-032: `seller` receives at least `price` koinu in `settlement_txid`.
-- MUST-033: if `royalty_paid` is present, the actual royalty output in `settlement_txid` MUST be >=
-  `floor(price * royalty_bps / 10000)`. Zero tolerance — claimed amounts MUST be present in the tx.
+- MUST-032: `seller` receives at least **seller net** koinu in `settlement_txid`: `price` minus the declared
+  fees (royalty + market fee, compact-orders §4.1 floor math; §4.3 notes). No declared fees ⇒ net = `price`.
+- MUST-033: the royalty owed (declared fees, else a draft `royalty_paid` claim) is checked against the outputs
+  to the royalty address in `settlement_txid`, zero tolerance. The result is the `royalty_ok` flag; a
+  shortfall MUST NOT make the settle Failed or Interrupted.
 - MUST-034: if linked auction is `no_early_accept`, the **`ts` field on the settle inscription JSON**
   MUST be >= auction `expiry` (use inscription `ts`, not block time; MUST-103).
 - MUST-035: if linked auction is `seller_can_accept_early`, settle MAY occur before expiry.
 - MUST-036: **double-settle prevention**: the first valid settle by canonical ordering for a given
   `list_id` or `auction_id` wins. Subsequent settle ops for the same settled listing are INVALID.
-- MUST-037: if `platform_fee` is present, `platform_fee_recipient` MUST be present and the
-  corresponding output MUST exist in `settlement_txid`.
+- MUST-037: if `platform_fee` is present, `platform_fee_recipient` MUST be present (format rule). The output
+  to `platform_fee_recipient` in `settlement_txid` is checked and reported as `settlement_fee_ok`. Listing-venue
+  fees are reported as `listing_fee_ok`; any fee flag `false` ⇒ `fee_split_ok` false. None of these flags
+  changes settle status.
 - MUST-096: `buyer` MUST NOT equal `seller` on `settle`.
 - MUST-097: if `list_id` is present, the referenced `list` op’s `inscription_id` MUST equal the settle’s
   `inscription_id`; if `auction_id` is present, the referenced `auction` op’s `inscription_id` MUST equal the
@@ -1736,9 +1788,11 @@ Any op failing a MUST rule is invalid.
 - MUST-101: If `bid_id` resolves to an `offer`, settle `buyer` MUST equal that offer’s `buyer`. If `bid_id`
   resolves to an `accept`, settle `buyer` MUST equal the `buyer` on the **root `offer`** reached by following
   `target_id` from the accept through any `counteroffer` chain back to the originating `offer`.
-- MUST-107: If the effective royalty basis is zero — the referenced `list` or `auction` has `royalty_bps`
-  **`"0"`**, or the applicable **collection** manifest sets `royalty_bps` to **`"0"`** and no non-zero listing
-  override exists — then `royalty_paid` MUST be absent or **`"0"`**; any positive claim is INVALID.
+- MUST-107: Royalty is owed only under the sale's own declared fees (the compact order's `fees`, the settle's
+  `fees`, or the referenced draft `list` / `auction` `royalty_bps`). A **collection** manifest's `royalty_bps`
+  is never inherited: no `fees` on a compact order means no fees, and an unpaid collection royalty MUST NOT
+  set `royalty_ok` false or affect status. Indexers and UIs MAY show the collection royalty as informational
+  only.
 
 ### 13.5 cancel
 
@@ -1761,7 +1815,8 @@ Any op failing a MUST rule is invalid.
 - MUST-052: `explicit` mode requires valid `signed_list.sig` verifying to `creator_address`.
 - MUST-053: `fixed` + `explicit` supply MUST equal `criteria.inscription_ids` list count when
   `supply_locked = true`.
-- MUST-054: `royalty_bps` MUST be integer string in range `"0"` through `"1000"` (0%–10%).
+- MUST-054: `royalty_bps` MUST be integer string in range `"0"` through `"2500"` (0%–25%). Out of range is a
+  rejection (manifest INVALID), not a clamp. The value is informational only (MUST-107).
 - MUST-055: `default_auction_settings.auction_mode`, if present, MUST be a valid auction mode value.
 - MUST-056: `slug` MUST match `^[a-z0-9-]+$` with max 64 characters.
 - MUST-057: if `parent_inscription_id` is present, it MUST match the inscription_id pattern, MUST refer
@@ -1887,8 +1942,8 @@ This sequence prevents stale PSDTs from being executable after cancellation.
 - **Re-list with active bids**: new list supersedes old; prior bids against `list_id` are invalidated.
 - **Offer/bid expiry**: use **MUST-108** (MTP at settle confirmation vs offer `expiry`) and **MUST-103**
   (prefer inscription JSON `ts` for op-to-op comparisons, not miner block time).
-- **Royalty underpayment**: a settle that claims royalties but pays less than
-  `floor(price * royalty_bps / 10000)` is INVALID per MUST-033.
+- **Royalty underpayment**: a settlement that pays the royalty address less than the royalty owed still
+  settles (when MUST-031/MUST-032 hold); it is flagged `royalty_ok: false`, `fee_split_ok: false` (MUST-033).
 - **Zero-price settle**: a settle with `price = "0"` is a valid settlement only if the listing price was
   also `"0"`. Indexers MUST reject settles where `price` does not match verified on-chain payment amount.
 
@@ -1905,7 +1960,7 @@ This sequence prevents stale PSDTs from being executable after cancellation.
 
 **Example C**: allowed early settlement (seller_can_accept_early)
 - settle op block timestamp 1700007100, expiry 1700007200.
-- Valid if MUST-030–033, MUST-035 all pass.
+- Valid if MUST-030–MUST-032 and MUST-035 pass (MUST-033 sets a flag only).
 
 ### 15.2 Provenance Gap Edge Cases
 
@@ -1929,12 +1984,12 @@ This sequence prevents stale PSDTs from being executable after cancellation.
 - **Same-address buyer and seller**: INVALID (MUST-096); use `op: "transfer"` to document non-sale moves.
 - **Offer / accept path without `list_id`**: some private sales settle from an `offer` → `accept` chain without
   a concurrent `list`. MUST-097/MUST-098 do not apply when **both** `list_id` and `auction_id` are absent;
-  MUST-030–033 and MUST-031/MUST-032 remain authoritative for on-chain reality.
+  MUST-030–MUST-032 remain authoritative for on-chain reality (MUST-033 is a flag).
 - **Integer overflow in royalty math**: `price * royalty_bps` MUST NOT be computed in a type that wraps;
   use bigint or `checked_mul` (see §4.3 notes).
 - **`bid_id` → `offer` linkage**: MUST-099–MUST-101; optional offer fields `list_id` / `auction_id` enable
   MUST-100 cross-checks against settle.
-- **Zero listing royalty**: MUST-107 when `royalty_bps` is `"0"` on the referenced list/auction.
+- **Collection royalty**: informational only; never owed unless the sale's own fees declare it (MUST-107).
 
 ### 15.4 Cancel and timestamp edge cases
 

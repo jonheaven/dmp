@@ -15,6 +15,11 @@ is no ÐMP 2.
 | **Seller wallet** | Sign `0x83` on `in[1]`/`out[1]` of the canonical template and emit the JSON order. `psdt` is optional. Inscribe with the seller key, or add `asig`. | §4, §5, §7 |
 | **Buyer wallet / venue** | Build a fill: `in[1]` = `utxo` with the seller's scriptSig, `out[1]` = the signed output, any layout that puts the dog on the buyer's output. Pay declared fees. | §8.2, §8.4 |
 
+Fees are declared only in the order's `fees` object (§4, §4.1). The flat draft fields (`royalty_address`,
+`market_fee_bps`, …) are not 1.0; see the mapping in [collaborative-fees.md §9](collaborative-fees.md#9-draft-pre-10-fee-fields).
+Only the seller's net payout is enforced by the signature. Royalties and venue fees are verified and
+flagged, never enforced: [what is guaranteed vs verified](security.md#21-what-is-guaranteed-vs-verified).
+
 ## The five rules people get wrong
 
 1. **The location rule is ord FIFO** (§8.1). Each sat's absolute position is the sum of the
@@ -32,8 +37,8 @@ is no ÐMP 2.
    your own node. External owner lookups (another indexer's API) are advisory and are for display
    only. Your answer MUST be identical after a reindex or a reorg.
 4. **One OP_RETURN.** Standard relay allows one. The `dmp2` venue tag is optional. When a
-   dogesoft-style `{"ds":…}` OP_RETURN is present, it wins and `settlement_fee_ok` is `null`
-   (§8.3). Only the first OP_RETURN is read.
+   venue's own OP_RETURN is present instead (no brand tags are part of ÐMP), it wins and
+   `settlement_fee_ok` is `null` (§8.3). Only the first OP_RETURN is read.
 5. **Cover era 1.** Many dogs were inscribed before the Doginals era-2 floor. An index that starts
    later cannot place them, and will mark live orders `invalid`. Index from the era-1 floor, or
    report the dog as unknown instead of guessing.

@@ -187,7 +187,9 @@ Any of these can be added as new op types in future minor versions without break
 
 **2. Launchpad Platforms**
 - Pre-launch trait demand via targeted offers/bids.
-- Automatic royalty enforcement via collection manifests.
+- Royalty terms declared on every order, with automatic royalty *compliance reporting* by indexers
+  (`royalty_ok`). Royalties are verified, not enforced on chain; see
+  [security.md §2.1](security.md#21-what-is-guaranteed-vs-verified).
 - Post-launch analytics from ÐMP provenance chains.
 
 **3. DeFi Integrations**

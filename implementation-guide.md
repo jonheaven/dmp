@@ -258,16 +258,21 @@ function validate_settle(settle_op, settlement_tx):
   if not inscription_at_address(settle_op.inscription_id, settle_op.buyer, settlement_tx):
     return INVALID
 
-  # MUST-032: seller received at least price
-  if seller_received(settle_op.seller, settlement_tx) < parse_int(settle_op.price):
+  # Declared fees: settle `fees`, else the auction/list fee fields, else none (never the collection)
+  fees = declared_fees(settle_op, auction_or_list)        # over-cap / malformed => settle ignored
+  plan = fee_plan(parse_int(settle_op.price), fees)       # compact-orders §4.1 floor math
+
+  # MUST-032: seller received at least the seller net (price - royalty - market)
+  if seller_received(settle_op.seller, settlement_tx) < plan.seller_net:
     return INVALID
 
-  # MUST-033: royalty verification
-  if settle_op.royalty_paid is not None:
-    expected = floor(parse_int(settle_op.price) * royalty_bps / 10000)
-    actual = royalty_output_amount(settle_op.royalty_address, settlement_tx)
-    if actual < expected:
-      return INVALID
+  # MUST-033 / MUST-037: fee checks are flags, never status
+  flags.royalty_ok        = check(plan.royalty, plan.royalty_to, settlement_tx)       # None if nothing owed
+  flags.listing_fee_ok    = check(plan.listing, plan.listing_to, settlement_tx)
+  flags.settlement_fee_ok = check(plan.settlement or settle_op.platform_fee,
+                                  settle_op.platform_fee_recipient or dmp2_tag(settlement_tx),
+                                  settlement_tx)                                    # None if no venue named
+  flags.fee_split_ok      = no flag is False
 
   # MUST-034/035: auction mode timing
   if settle_op.auction_id is not None:
@@ -280,12 +285,7 @@ function validate_settle(settle_op, settlement_tx):
   if is_already_settled(settle_op.list_id or settle_op.auction_id):
     return INVALID
 
-  # MUST-037: platform_fee
-  if settle_op.platform_fee is not None:
-    if platform_fee_output(settle_op.platform_fee_recipient, settlement_tx) < parse_int(settle_op.platform_fee):
-      return INVALID
-
-  return VALID
+  return VALID, flags
 ```
 
 ---
@@ -559,11 +559,12 @@ Show **Provenance Broken** when ANY is true:
 
 - [ ] Settlement tx verified against Dogecoin node (not just inscription content).
 - [ ] Inscription transferred to buyer in settlement tx.
-- [ ] Seller payment >= price.
-- [ ] Royalty outputs match claimed royalty_paid (>= floor formula).
+- [ ] Seller payment >= seller net (price minus declared fees).
+- [ ] Royalty outputs checked against the royalty owed (>= floor formula) and reported as `royalty_ok` (flag, not status).
+- [ ] Collection royalty never applied to a sale that does not declare it (informational only).
 - [ ] Confirmation depth >= 6 before marking final.
 - [ ] Double-settle prevention: second settle for same list_id/auction_id is rejected.
-- [ ] `platform_fee` outputs verified when present.
+- [ ] `platform_fee` outputs checked when present and reported as `settlement_fee_ok` (flag, not status).
 
 ### cancel
 

@@ -13,9 +13,10 @@ the same seller PSDT byte for byte from its own node, and any wallet can fill th
 | | |
 | ---: | --- |
 | **Version** | ÐMP 1.0 = compact signed orders ([compact-orders.md](compact-orders.md), wire `"v":"2"`) + the ops in [spec.md](spec.md) (wire `"v":"1.0"`). There is no ÐMP 2; `"2"` is only the compact-order wire marker |
-| **Status** | Pre-launch draft, tested on regtest. The earlier `list` format with an embedded `psdt`/`psdt_hash` is a **draft (pre-1.0)** format: do not create it; indexers should ignore it |
+| **Status** | Pre-launch draft, tested on regtest. It stays pre-launch until a cross-venue trade between independent implementations is proven on mainnet. The earlier `list` format with an embedded `psdt`/`psdt_hash` is a **draft (pre-1.0)** format: do not create it; indexers should ignore it |
 | **Durable payload** | JSON in a Dogecoin inscription with `"p": "dmp"` |
 | **Fill** | One transaction, with the seller's signature on `in[1]`/`out[1]` and the dog on any buyer output. The fill is the settlement |
+| **Guarantees** | The seller's net payout is enforced by signature. Royalties and venue fees are declared on the order and **verified** by indexers, not enforced. See [what is guaranteed vs verified](security.md#21-what-is-guaranteed-vs-verified) |
 | **Chain** | Dogecoin |
 | **License** | [MIT](LICENSE) |
 
@@ -59,6 +60,8 @@ shapes identical, so every indexer sees one order book.
   the dog is cancel-by-move.
 - **Cancel.** `{"p":"dmp","v":"2","op":"cancel","list_id":"<list id>"}` is advisory. Moving the dog
   is authoritative.
+- **Fees.** `fees` is the only ÐMP 1.0 fee format. Royalty and venue-fee outputs are added by the buyer's
+  venue; indexers flag a sale that skips one (`fee_split_ok: false`) but never reject it.
 - **Settled** at 6 confirmations. Reorgs roll the state back.
 
 ```bash
@@ -101,10 +104,10 @@ python3 reference/dmp_v2_reconstruct.py v1      vectors/dmp_v1_psdt_vectors.json
 | [spec.md](spec.md) | ÐMP 1.0 protocol specification (all other ops) |
 | [dogetag-offers.md](dogetag-offers.md) | Lightweight OP_RETURN offer signaling extension |
 | [implementation-guide.md](implementation-guide.md) | How to build a compliant indexer |
-| [security.md](security.md) | Threat model and mitigations |
+| [security.md](security.md) | Threat model, mitigations, and [what is guaranteed vs verified](security.md#21-what-is-guaranteed-vs-verified) |
 | [adoption-roadmap.md](adoption-roadmap.md) | Phased adoption strategy |
 | [philosophy-and-design.md](philosophy-and-design.md) | Design principles and philosophy |
-| [collaborative-fees.md](collaborative-fees.md) | Multi-venue rake + royalty settlement physics |
+| [collaborative-fees.md](collaborative-fees.md) | Listing-venue / settlement-venue fee split and royalties, in 1.0 `fees` fields, with the draft → 1.0 field mapping |
 | [changelog.md](changelog.md) | Version history |
 | [contributing.md](contributing.md) | How to contribute |
 | [testing.md](testing.md) | Testing approach and scenarios |
