@@ -14,7 +14,7 @@
     "name":            { "type": "string" },
     "creator_address": { "type": "string", "minLength": 20 },
     "royalty_address": { "type": "string", "minLength": 20 },
-    "royalty_bps":     { "type": "string", "pattern": "^([0-9]|[1-9][0-9]{1,2}|1000)$" },
+    "royalty_bps":     { "type": "string", "pattern": "^([0-9]|[1-9][0-9]{1,2}|1[0-9]{3}|2[0-4][0-9]{2}|2500)$" },
     "type":            { "enum": ["fixed", "dynamic"] },
     "supply":          { "type": "string", "pattern": "^[1-9][0-9]*$" },
     "supply_locked":   { "type": "boolean" },
