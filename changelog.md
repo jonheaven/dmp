@@ -1,5 +1,29 @@
 # Launch Draft Summary
 
+## Fee caps, collection royalty, settle net (decisions approved 2026-10-23)
+
+Spec, schemas, reference and one vector change. Compact-order wire bytes and the v2 vectors are unchanged.
+
+- **Royalty cap 2500 bps (25%) everywhere**, as a rejection, not a clamp: collection manifests (MUST-054, was
+  `0..1000`), draft `list` (`schemas/list.json`, string and integer form), compact orders (unchanged),
+  `settle.fees`. `schemas/collection.json` and `schemas/list-v2.schema.json` patterns now encode the caps.
+- **Draft `market_fee_bps` ≤ 2000 in string form too** (`schemas/list.json` pattern; integer form already).
+- **No `fees` ⇒ no fees.** A collection manifest's `royalty_bps` is never inherited and is informational
+  only (MUST-107 rewritten, spec.md §4.3 notes, security.md §3.9, collaborative-fees.md §9.1).
+- **Settle**: MUST-032 is now seller ≥ **seller net** (`price` minus declared fees, compact-orders §4.1
+  math), not ≥ `price`. Royalty, listing and settlement fee mismatches are flags (`royalty_ok`,
+  `listing_fee_ok`, `settlement_fee_ok`, `fee_split_ok`) and never make a settle Failed or Interrupted
+  (MUST-033, MUST-037, §15, §15.1, implementation-guide.md). `settle` gains a 1.0 `fees` object (spec.md
+  §4.3 schema, inline example, §4.13.3, `schemas/settle.json`); `royalty_paid` / `platform_fee` are draft
+  claims. An over-cap or malformed settle `fees` makes the settle invalid.
+- **No brand tags.** Brand-specific OP_RETURN examples removed from compact-orders.md §8.3,
+  collaborative-fees.md, security.md §2.1, IMPLEMENTERS.md and MIGRATION-from-draft.md. A venue MAY use its
+  own OP_RETURN if it respects the one-OP_RETURN rule; `dmp2` stays optional. Tag-free settlement-venue
+  verification is recorded as an open question (§8.3).
+- Reference: `dmp_reference.py` MUST-054 cap 2500, fee-cap checks for draft `list` and `settle.fees`;
+  TV-115 (built-in) and TV-116 (`reference/test_vectors.json`) now use `"2600"` (was `"1500"`, which is
+  valid under the new cap).
+
 ## Canonical fees and honest guarantees (docs only)
 
 No wire bytes, vectors or reference code changed.
