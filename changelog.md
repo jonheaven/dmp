@@ -1,5 +1,23 @@
 # Launch Draft Summary
 
+## Canonical fees and honest guarantees (docs only)
+
+No wire bytes, vectors or reference code changed.
+
+- The compact order's `fees` object (`royalty_bps`, `royalty_to`, `market_bps`, `listing_to`,
+  `listing_share_bps`; caps 2500 / 2000 as rejections) is the only ÐMP 1.0 fee format.
+- [collaborative-fees.md](collaborative-fees.md) is rewritten in 1.0 fields, with the same 100 DOGE
+  example computed by compact-orders §4.1. The flat fields (`royalty_address`, `market_fee_bps`,
+  `listing_fee_address`, `listing_fee_share_bps`, `listing_marketplace`) are now marked draft (pre-1.0),
+  with a draft → 1.0 mapping table, precedence (compact-order fields win) and the cap differences.
+- security.md §3.9 no longer says PSDT settlement gives cryptographic royalty enforcement. The seller's
+  `0x83` signature commits only to `in[1]` and `out[1]`. New §2.1 "What is guaranteed vs verified",
+  linked from README and IMPLEMENTERS.
+- spec.md §1, §3.4 and §4.1 present the flat fee fields as draft only.
+- CONFORMANCE.md adds levels (indexer, wallet, marketplace, interop-tested) tied to an exact spec commit,
+  and a two-indexer interop agreement test.
+- adoption-roadmap.md: "automatic royalty enforcement" is now royalty compliance reporting.
+
 ## Naming: ÐMP 1.0 (no "v2")
 
 ÐMP has not launched, so the protocol's first release is **ÐMP 1.0**. "v1" and "v2" were working
@@ -115,6 +133,7 @@ collections). This is not a protocol shrink.
 - Implied fields MAY be omitted: `currency` = DOGE, `chain` = `dogecoin`, `v` = `1.0`, `listing_type` =
   `fixed_price` (MUST-109).
 - `listing_fee_address` + `market_fee_bps` are how a listing venue is paid. `listing_marketplace` is a tag.
+  *(Superseded: these are draft (pre-1.0) fields. ÐMP 1.0 uses the compact order's `fees.listing_to` + `fees.market_bps`.)*
 - `psdt` SHOULD be on-chain for portable Buy Now. `psdt_hash` is allowed when the parent tx is fat (MUST-110).
   Hash-only lists are not chain-alone fillable.
 - Do not compact-rename remaining keys (`lm`). Fat bytes are `nonWitnessUtxo` on Dogecoin P2PKH, not JSON labels.
@@ -124,6 +143,7 @@ collections). This is not a protocol shrink.
 
 - [collaborative-fees.md](collaborative-fees.md): multi-venue rake (listing + settlement) + royalty split physics.
 - list schema: `market_fee_bps`, `listing_fee_address`, `listing_fee_share_bps`, `listing_marketplace`.
+  *(Superseded: draft (pre-1.0) fields. ÐMP 1.0 fees are the compact order's `fees` object; see collaborative-fees.md §9.)*
 - Ecosystem: the operator collective plan (not in this repo).
 
 **Hardening status:** The full pre-launch hardening patch (MUST-099 through MUST-108, `bid_id` / `expiry` / `co_sellers` / `list_id`–`auction_id` alignment) is **live** in `spec.md`, `security.md`, examples, and `vectors/conformance.json` for this draft.
