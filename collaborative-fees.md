@@ -136,8 +136,8 @@ out[3…] royalty → royalty_to, listing → listing_to, settlement → settlem
 
 The settlement venue is not named on the order. A venue that wants `settlement_fee_ok` checked tags its
 fill with the optional `dmp2` OP_RETURN naming its own script (compact-orders.md §8.3). A fill that
-carries a different OP_RETURN instead (for example dogesoft's `{"ds":…}`) is still valid, and its
-settlement fee is reported as `null` (not checked).
+carries a different OP_RETURN instead (a venue's own JSON, for example) or none is still valid, and its
+settlement fee is reported as `null` (not checked). ÐMP defines no venue- or brand-specific tags.
 
 ---
 
@@ -153,6 +153,10 @@ a `settle` inscription or from a venue API. The flags are compact-orders.md §8.
 | `listing_fee_ok` | same for `listing_to` / `listing` |
 | `settlement_fee_ok` | `null` unless the fill has a `dmp2` tag and `settlement > 0`; then (paid to the tagged script) ≥ `settlement` |
 | `fee_split_ok` | `seller_paid_ok` and no flag is `false` |
+
+Auctions and other `settle`-inscription sales have no compact order. Their fee terms are the settle's
+`fees` object, else the referenced draft listing's fee fields, else none (spec.md §4.3). The seller must
+receive the net (MUST-032); the same flags are computed and the same rule applies.
 
 Flags **never** invalidate a sale or the ownership update. The reference indexer (dogex) records them as a
 `compliance` object on the fill (the `dmp.settle_pending` event and the listing record). A UI or
@@ -188,9 +192,9 @@ lists, such as the four test listings on mainnet.
 
 | Draft field (flat, on `list`) | ÐMP 1.0 field (in `fees`) | Differences |
 |---|---|---|
-| `royalty_address` | `fees.royalty_to` | Draft MAY inherit from the collection manifest. 1.0 has no inheritance: royalty is owed only if the order declares it |
-| `royalty_bps` (string or int, `0–1000` recommended) | `fees.royalty_bps` (string, `0..2500`) | Draft cap was a recommendation (and MUST-054's `0–1000` for collection manifests). 1.0 cap is 2500 and a value above it is a rejection |
-| `market_fee_bps` (string or int) | `fees.market_bps` (string, `0..2000`) | Draft schema bounded only the integer form at 2000. 1.0 rejects > 2000 in any form |
+| `royalty_address` | `fees.royalty_to` | No inheritance in either format: royalty is owed only if the listing / order declares it. A collection manifest's royalty is informational (spec.md MUST-107) |
+| `royalty_bps` (string or int, `0..2500`) | `fees.royalty_bps` (string, `0..2500`) | Same cap everywhere (draft list, compact order, collection manifest MUST-054). A value above 2500 is a rejection, not a clamp |
+| `market_fee_bps` (string or int, `0..2000`) | `fees.market_bps` (string, `0..2000`) | Draft schema now bounds the string form too (`schemas/list.json`). > 2000 in any form is a rejection |
 | `listing_fee_address` | `fees.listing_to` | Draft: absent with a market fee ⇒ list valid, flag `listing_fee_unspecified`, listing share left unpaid. 1.0: absent ⇒ `listing = 0` and the whole market fee goes to the settlement venue |
 | `listing_fee_share_bps` (default `5000`) | `fees.listing_share_bps` (string, default `"5000"`) | same meaning |
 | `listing_marketplace` (label, not a payee) | none | no 1.0 equivalent. Unknown fields are ignored |

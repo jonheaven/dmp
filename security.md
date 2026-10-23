@@ -78,7 +78,7 @@ docs, UIs and marketing.
 | Dog delivered to the buyer | Verified | The signature does not say where the dog goes. The buyer's own transaction decides, and the buyer's wallet MUST check §8.1 before signing. The indexer applies the §8.1 location rule | Sale if the dog lands with someone other than the order owner. Otherwise cancel-by-move (`cancel_kind:"moved"`), even though the seller was paid |
 | Creator royalty | Verified | Declared in `fees`. Paid only if the buyer's venue adds the output | `royalty_ok` (`null` if none owed) |
 | Listing venue fee | Verified | Declared in `fees` (`listing_to`) | `listing_fee_ok` |
-| Settlement venue fee | Verified, only when tagged | The settlement venue is named only by an optional `dmp2` OP_RETURN on the fill (§8.3) | `settlement_fee_ok`; `null` when the fill has no `dmp2` tag (e.g. a `ds` tag) |
+| Settlement venue fee | Verified, only when tagged | The settlement venue is named only by an optional `dmp2` OP_RETURN on the fill (§8.3) | `settlement_fee_ok`; `null` when the fill has no `dmp2` tag (untagged, or a venue's own OP_RETURN) |
 | Fee-noncompliant sale | Verified | A fill that skips a declared fee is still a fill and still a sale | Valid sale: `settle_pending` → `settled` at 6 confirmations, with `fee_split_ok: false` and the failing flag `false`. The reference indexer (dogex) stores these in a `compliance` object on the fill. There is no separate "noncompliant" status |
 | Cancel by moving the dog | Enforced | Spending `utxo` destroys the outpoint the signature commits to. The order can never be filled | `cancelled`, `cancel_kind:"moved"` |
 | Cancel inscription | Venue policy / indexer | Advisory (§9). The signature stays valid until the dog moves | `cancelled`, `cancel_kind:"inscription"`. A later fill is still recorded, flagged `after_cancel` |
@@ -105,8 +105,9 @@ informative and not implemented.
 **ÐMP mitigation**:
 - MUST-030: `settlement_txid` must exist in confirmed chain state.
 - MUST-031: Inscription must have transferred to `buyer` in that tx.
-- MUST-032: `seller` must have received at least `price` in that tx.
-- MUST-033: Royalty outputs must match claimed `royalty_paid`.
+- MUST-032: `seller` must have received at least the seller net (`price` minus the declared fees) in that tx.
+- MUST-033: Royalty outputs are checked against the royalty owed and reported as `royalty_ok`. A shortfall
+  is a flag, not a failed settle.
 - The inscriber identity is irrelevant — only on-chain tx reality matters.
 
 **Residual risk**: An indexer that does NOT fully verify MUST-030–037 against the actual
@@ -238,14 +239,17 @@ have off-chain backup for critical data beyond the savepoint depth.
 `royalty_paid` matches the declared `royalty_bps`.
 
 **ÐMP mitigation**:
-- MUST-033: indexers MUST verify actual royalty outputs in `settlement_txid` against claimed
-  `royalty_paid`. The verification formula: `actual_royalty_output >= floor(price * royalty_bps / 10000)`.
-- A settle claiming royalties that don't match on-chain reality is INVALID.
+- MUST-033: indexers compute the royalty owed from the declared fees (compact order `fees`, settle `fees`,
+  or the draft listing's `royalty_bps`) and compare it with the actual outputs to the royalty address in
+  `settlement_txid`: `actual_royalty_output >= floor(price * royalty_bps / 10000)`. A `royalty_paid` claim
+  never substitutes for the outputs.
+- A shortfall sets `royalty_ok: false` and `fee_split_ok: false`. The sale still settles (MUST-031/MUST-032);
+  the flag makes the skipped royalty auditable.
 
-**Residual risk**: If `royalty_paid = "0"` and `royalty_bps` is not in the settle op (optional),
-indexers may not detect royalty skipping without looking up the collection record. Implementations
-SHOULD look up collection-level royalty settings when verifying settle ops that don't explicitly
-state royalties.
+**Residual risk**: A sale whose own terms declare no royalty owes none. A collection manifest's
+`royalty_bps` is informational only (MUST-107): indexers MUST NOT look it up to create a royalty
+obligation, and UIs MAY display it next to the sale. A seller can therefore list without a royalty; that
+is visible on the order itself.
 
 **Important**: ÐMP cannot force royalty payment. It can only make non-payment auditable. PSDT-based
 settlement does **not** change this: the compact-order seller signature (`SIGHASH_SINGLE|ANYONECANPAY`,

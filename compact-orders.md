@@ -474,7 +474,7 @@ boundary, the last sat, a zero-value output skipped) and `genesis` (single part,
   report them. The seller signs `net`; buyer-side venues add the fee outputs.
 
 Vectors: `fill_layout` (canonical `out[2]` with and without fees, diggydoge `out[0]` at offset
-1,000,000 with a `ds` tag and with fees unpaid, dog back to the seller, altered `out[1]` (a transfer,
+1,000,000 with a venue's own JSON OP_RETURN and with fees unpaid, dog back to the seller, altered `out[1]` (a transfer,
 not a fill), dog lost to fee, dog on `in[2]`).
 
 ### 8.3 OP_RETURN and the venue tag
@@ -483,14 +483,20 @@ Dogecoin Core relays at most **one** OP_RETURN output per transaction, up to 80 
 
 - The `dmp2` venue tag `OP_RETURN PUSH("dmp2") PUSH(<settlement venue scriptPubKey>)` (value 0) is
   **OPTIONAL**. It only drives `settlement_fee_ok`.
-- A venue that already writes its own OP_RETURN, such as dogesoft's JSON `{"ds":{…}}`, keeps it and
-  omits the `dmp2` tag. The fill stays valid and `settlement_fee_ok` is `null`. Venues MUST NOT
-  add a second OP_RETURN.
+- ÐMP defines no venue- or brand-specific tags. A venue MAY write its own OP_RETURN (for example a JSON
+  object) instead of the `dmp2` tag, as long as it does not conflict with the one-OP_RETURN rule: the
+  fill stays valid and `settlement_fee_ok` is `null`. Venues MUST NOT add a second OP_RETURN.
 - Indexers read **only the first** OP_RETURN output. They MUST NOT reject a fill for having an
   OP_RETURN of any kind, or several of them (a non-standard but mined transaction is still a fill).
 - Informative: indexers MAY record `op_return_kind` on the fill. It is `"dmp2"` for a venue tag, and
   `"json:<k>"` when the data parses as a JSON object, with `<k>` its lexicographically smallest key
-  (e.g. `"json:ds"`). It is `"other"` for anything else and absent/`null` when there is no OP_RETURN.
+  (e.g. `"json:mkt"` for `{"mkt":…}`). It is `"other"` for anything else and absent/`null` when there is no OP_RETURN.
+
+- **Open question (tag-free venue check).** Without a `dmp2` tag an indexer cannot tell which output, if
+  any, is the settlement-venue fee: the order names no venue address, and any extra output may be buyer
+  change. ÐMP 1.0 therefore reports `settlement_fee_ok: null` for untagged fills and MUST NOT guess.
+  Checking untagged fills would need either a venue address field on the order (a format change) or an
+  aggregate "unattributed outputs" figure; neither is part of 1.0.
 
 ### 8.4 Dust and fees (guidance)
 
