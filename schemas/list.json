@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ÐMP list Operation Schema",
-  "description": "JSON Schema for ÐMP list operations (v1.0)",
+  "description": "JSON Schema for the draft (pre-1.0) ÐMP list format (embedded psdt / psdt_hash, flat fee fields). Do not create new draft lists. ÐMP 1.0 fixed-price listings are compact orders: see list-v2.schema.json and compact-orders.md §4",
   "type": "object",
   "properties": {
     "p": {
@@ -62,27 +62,27 @@
     },
     "royalty_address": {
       "type": "string",
-      "description": "Creator royalty pay-to address"
+      "description": "Draft (pre-1.0) fee field. ÐMP 1.0: fees.royalty_to on a compact order. Creator royalty pay-to address"
     },
     "royalty_bps": {
-      "description": "Royalty basis points of sale price (0-1000 recommended)",
+      "description": "Draft (pre-1.0) fee field. ÐMP 1.0: fees.royalty_bps (0..2500, rejection). Royalty basis points of sale price (0-1000 recommended)",
       "oneOf": [{ "type": "string", "pattern": "^[0-9]+$" }, { "type": "integer", "minimum": 0, "maximum": 10000 }]
     },
     "market_fee_bps": {
-      "description": "Total marketplace fee bps of sale price (listing + settlement venues combined)",
+      "description": "Draft (pre-1.0) fee field. ÐMP 1.0: fees.market_bps (0..2000, rejection). Total marketplace fee bps of sale price (listing + settlement venues combined)",
       "oneOf": [{ "type": "string", "pattern": "^[0-9]+$" }, { "type": "integer", "minimum": 0, "maximum": 2000 }]
     },
     "listing_fee_address": {
       "type": "string",
-      "description": "Listing venue fee address (collaborative multi-marketplace rake)"
+      "description": "Draft (pre-1.0) fee field. ÐMP 1.0: fees.listing_to. Listing venue fee address (collaborative multi-marketplace rake)"
     },
     "listing_fee_share_bps": {
-      "description": "Share of market_fee to listing venue (default 5000 = 50%)",
+      "description": "Draft (pre-1.0) fee field. ÐMP 1.0: fees.listing_share_bps. Share of market_fee to listing venue (default 5000 = 50%)",
       "oneOf": [{ "type": "string", "pattern": "^[0-9]+$" }, { "type": "integer", "minimum": 0, "maximum": 10000 }]
     },
     "listing_marketplace": {
       "type": "string",
-      "description": "Optional listing venue label/domain — not a payee"
+      "description": "Draft (pre-1.0) field with no ÐMP 1.0 equivalent. Optional listing venue label/domain — not a payee"
     }
   },
   "required": ["p", "op", "inscription_id", "price", "seller"],

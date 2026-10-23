@@ -3,7 +3,7 @@
 
 Version: ÐMP 1.0 (pre-launch draft; `"v":"1.0"` ops and `"v":"2"` compact orders)
 Status: Pre-launch draft
-Last Updated: 2026-10-21
+Last Updated: 2026-10-23
 Chain: Dogecoin (and compatible Dogecoin-fork chains)
 **Canonical public spec:** [github.com/jonheaven/dmp-spec](https://github.com/jonheaven/dmp-spec)
 
@@ -102,8 +102,10 @@ Dogecoin already expresses “this UTXO moves if I get this output” as
 - **Do not compact-rename the remaining keys** (`lm` for `listing_marketplace`). Fewer fields first.
   A later optional compact body MAY use `"c"` (compression / tagged map). Parsers MUST ignore unknown
   top-level keys.
-- **Money, not labels.** `listing_fee_address` (with `market_fee_bps`) is how a listing venue is paid.
-  `listing_marketplace` is an optional human tag (domain/slug). Indexers MUST NOT treat the tag as a
+- **Money, not labels.** A listing venue is paid at an address, never by a name. In ÐMP 1.0 that is
+  the compact order's `fees.listing_to` with `fees.market_bps` ([compact-orders.md](compact-orders.md) §4).
+  In the draft (pre-1.0) `list` format it was `listing_fee_address` with `market_fee_bps`, and
+  `listing_marketplace` was an optional human tag (domain/slug). Indexers MUST NOT treat a tag as a
   payee.
 - **Keep every op.** `list`, `bid`, `auction`, `offer`, `counteroffer`, `accept`, `decline`, `cancel`,
   `settle`, `transfer`, `collection`, `collection-update`, `vote` remain. This reboot thins the
@@ -286,8 +288,8 @@ Every ÐMP Intent MUST include:
 
 A **PSDT** is a Partially Signed Dogecoin Transaction (BIP174 PSBT bytes on Dogecoin). For a fixed-price
 list the seller signs the dog with `SIGHASH_SINGLE | ANYONECANPAY` and locks the same-index output
-to themselves at `price` (or the residual seller amount when collaborative fees apply — see
-[collaborative-fees.md](collaborative-fees.md)). The portable shape is dog at input 1, payment at output 1.
+to themselves at `price` (or the seller's `net` when the order declares fees — see
+[compact-orders.md](compact-orders.md) §4.1 and [collaborative-fees.md](collaborative-fees.md)). The portable shape is dog at input 1, payment at output 1.
 
 **Portable Buy Now** (any venue, no listing-server): the `list` body SHOULD include `psdt`.
 
@@ -348,11 +350,19 @@ Optional (only when they change behavior): `v`, `ts`, `expiry`, `royalty_address
 `collection_id`, `psdt_hash`, `listing_type` / `auction_mode` / `min_bid_increment` for auctions,
 `co_sellers`, `nonce`.
 
+> **Draft fee fields.** The flat fee fields above (`royalty_address`, `royalty_bps`, `market_fee_bps`,
+> `listing_fee_address`, `listing_fee_share_bps`, `listing_marketplace`) belong to the draft (pre-1.0)
+> fixed-price `list` format. They are **not** the ÐMP 1.0 way to declare fees. A ÐMP 1.0 fixed-price
+> listing declares fees in the compact order's `fees` object (`royalty_bps`, `royalty_to`, `market_bps`,
+> `listing_to`, `listing_share_bps`; [compact-orders.md](compact-orders.md) §4), and compact-order fields
+> always win. The draft → 1.0 mapping, including the different caps, is
+> [collaborative-fees.md §9](collaborative-fees.md#9-draft-pre-10-fee-fields).
+
 #### Notes
 
 - When `psdt` is embedded, `inscription_id`, `price`, and `seller` MAY be omitted. The indexer reads the dog from the signed outpoint, and the price and seller from the locked output. If any of the three is present, it MUST match that lock. A hash-only list (`psdt_hash`, no `psdt`) MUST still include all three.
 - `listing_type` is optional (default `fixed_price`). Allowed values: `fixed_price`, `auction`.
-- `listing_marketplace` is a human tag. Pay the listing venue with `listing_fee_address` + `market_fee_bps`.
+- `listing_marketplace` is a human tag. In this draft format the listing venue was paid with `listing_fee_address` + `market_fee_bps` (1.0: `fees.listing_to` + `fees.market_bps`).
 - `auction_mode` is used when `listing_type` is `"auction"`.
 - Allowed `auction_mode` values: `time_based`, `seller_can_accept_early`, `no_early_accept`.
 - `seller_can_accept_early` allows seller to settle a valid bid before expiry.
@@ -1491,7 +1501,7 @@ PENDING states (provisional, not confirmed):
   pending_cancel  - cancel op in mempool
 ```
 
-Applying **MUST-112:** for a fixed-price list, the settlement is the transaction that spends the listed dog and pays the seller at least the locked amount (the residual, when collaborative fees are on the list). Indexers MUST enter `pending_settle` on that spend and `settled` once it has 6 confirmations. A `settle` inscription does not enter this path. A spend that does not pay the list (gift, self-move, cancel-by-spend) is `invalidated`. Auctions still name the winning fill with a `settle` inscription, and only after that fill is already on chain.
+Applying **MUST-112:** for a fixed-price list, the settlement is the transaction that spends the listed dog and pays the seller at least the locked amount (the seller's net, when the order declares fees). Indexers MUST enter `pending_settle` on that spend and `settled` once it has 6 confirmations. A `settle` inscription does not enter this path. A spend that does not pay the list (gift, self-move, cancel-by-spend) is `invalidated`. Auctions still name the winning fill with a `settle` inscription, and only after that fill is already on chain.
 
 ### State Transition Rules
 
