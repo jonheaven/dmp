@@ -1,5 +1,5 @@
 {
-  "spec": "dmp-spec spec-v2.md",
+  "spec": "dmp-spec compact-orders.md",
   "network": "dogecoin-regtest",
   "generated_by": "dmp-v2/js/gen_vectors.mjs (dojak dmp-compact-order.ts)",
   "keys": {

@@ -113,11 +113,13 @@ Dogecoin already expresses “this UTXO moves if I get this output” as
 
 ### Size Guidelines
 
-Bodies SHOULD stay under **4 KB** (soft spam cap). The dominant bytes in a `list` are almost never
+Bodies SHOULD stay under **4 KB** (soft spam cap). A v2 batch `list` is the exception: a conforming
+indexer MUST accept one up to 32768 B and MUST NOT apply this 4 KB rule to it
+([compact-orders.md](compact-orders.md) §16.11). The dominant bytes in a single `list` are almost never
 the metadata keys: Dogecoin listing PSDTs embed `nonWitnessUtxo` (the **full previous transaction**
 of the dog UTXO). A reveal-sized parent makes a multi-KB `psdt` even when JSON keys are short.
 
-- Implementations SHOULD reject ÐMP inscriptions larger than 4 KB.
+- Implementations SHOULD reject ÐMP inscriptions larger than 4 KB, except a v2 batch `list` of at most 32768 B.
 - Sellers SHOULD move the dog to a **skinny child UTXO** (simple self-transfer) before listing if they
   intend to embed `psdt` on-chain.
 - Future versions MAY add an optional compact `"c"` body. Parsers MUST fall back to raw JSON.

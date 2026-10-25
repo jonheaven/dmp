@@ -1,0 +1,18 @@
+{
+  "shared": {
+    "body_bytes": 1368,
+    "canonical_bytes": 1270,
+    "message_bytes": 1282,
+    "digest": "07aa4b53f28e15bc9a1d828e9f6d3dafe40565aa83a84a84473e7706962795b9",
+    "canonical": "{\"chain\":\"dogecoin\",\"expiry\":1792718860,\"fees\":{\"listing_to\":\"DEXAMPLEMARKETADDRESSXXXXXXXXXXXXX\",\"market_bps\":\"200\"},\"items\":[{\"inscription_id\":\"1111111111111111111111111111111111111111111111111111111111111111i0\",\"sig\":\"30e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e183\",\"utxo\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:0\"},{\"inscription_id\":\"2222222222222222222222222222222222222222222222222222222222222222i0\",\"sig\":\"30e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e283\",\"utxo\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:0\"},{\"inscription_id\":\"3333333333333333333333333333333333333333333333333333333333333333i0\",\"sig\":\"30e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e383\",\"utxo\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc:1\"}],\"op\":\"list\",\"p\":\"dmp\",\"pay_to\":\"DEXAMPLEPAYADDRESSXXXXXXXXXXXXXXXX\",\"price\":\"1000000000\",\"pubkey\":\"02abababababababababababababababababababababababababababababababab\",\"ts\":1792632460,\"v\":\"2\"}",
+    "body_file": "EXAMPLES/batch-list-shared-price.json"
+  },
+  "per_item": {
+    "body_bytes": 1483,
+    "canonical_bytes": 1385,
+    "message_bytes": 1397,
+    "digest": "cd55017f3c11c578171446f2532b331fbd01a50c379eec0d6f2342bbd0d164c5",
+    "canonical": "{\"chain\":\"dogecoin\",\"fees\":{\"listing_to\":\"DEXAMPLEMARKETADDRESSXXXXXXXXXXXXX\",\"market_bps\":\"200\"},\"items\":[{\"inscription_id\":\"1111111111111111111111111111111111111111111111111111111111111111i0\",\"price\":\"1000000000\",\"sig\":\"30e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e183\",\"utxo\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:0\"},{\"inscription_id\":\"2222222222222222222222222222222222222222222222222222222222222222i0\",\"pay_to\":\"DEXAMPLEPAYADDRESSNUMBER2XXXXXXXXX\",\"price\":\"2500000000\",\"sig\":\"30e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e283\",\"utxo\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:0\"},{\"inscription_id\":\"3333333333333333333333333333333333333333333333333333333333333333i0\",\"pay_to\":\"DEXAMPLEPAYADDRESSNUMBER3XXXXXXXXX\",\"price\":\"10000000000\",\"sig\":\"30e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e383\",\"utxo\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc:1\"}],\"op\":\"list\",\"p\":\"dmp\",\"pay_to\":\"DEXAMPLEPAYADDRESSXXXXXXXXXXXXXXXX\",\"pubkey\":\"02abababababababababababababababababababababababababababababababab\",\"ts\":1792632460,\"v\":\"2\"}",
+    "body_file": "EXAMPLES/batch-list-per-item-price.json"
+  }
+}

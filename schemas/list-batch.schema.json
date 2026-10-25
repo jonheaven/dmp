@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jonheaven/dmp-spec/schemas/list-batch.schema.json",
+  "title": "ÐMP v2 batch list (compact-orders §16)",
+  "type": "object",
+  "required": ["p", "v", "op", "chain", "ts", "items"],
+  "properties": {
+    "p": { "const": "dmp" },
+    "v": { "const": "2" },
+    "op": { "const": "list" },
+    "chain": { "enum": ["dogecoin", "dogecoin-testnet", "dogecoin-regtest"] },
+    "pubkey": { "type": "string", "pattern": "^0[23][0-9a-f]{64}$" },
+    "redeem_script": {
+      "type": "string",
+      "pattern": "^(21[0-9a-f]{66}ac|5[1-9a-f](21[0-9a-f]{66}){1,15}5[1-9a-f]ae)$",
+      "description": "compact-orders §5.4 / §16.4. One owner for every item."
+    },
+    "pay_to": { "type": "string", "pattern": "^[1-9A-HJ-NP-Za-km-z]{26,35}$" },
+    "price": { "type": "string", "pattern": "^[1-9][0-9]{0,19}$" },
+    "fees": { "$ref": "#/$defs/fees" },
+    "ts": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "expiry": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "asig": { "type": "string", "pattern": "^[A-Za-z0-9+/]{87}=$" },
+    "asigs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 15,
+      "items": { "type": "string", "pattern": "^[A-Za-z0-9+/]{87}=$" }
+    },
+    "items": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/item" }
+    }
+  },
+  "allOf": [
+    { "not": { "required": ["inscription_id"] } },
+    { "not": { "required": ["utxo"] } },
+    { "not": { "required": ["sig"] } },
+    { "not": { "required": ["sigs"] } },
+    { "not": { "required": ["psdt"] } },
+    { "not": { "required": ["psdt_hash"] } },
+    {
+      "if": { "required": ["pubkey"] },
+      "then": {
+        "required": ["asig"],
+        "not": { "anyOf": [{ "required": ["redeem_script"] }, { "required": ["asigs"] }] },
+        "properties": {
+          "items": { "items": { "required": ["sig"], "not": { "required": ["sigs"] } } }
+        }
+      },
+      "else": { "required": ["redeem_script"] }
+    },
+    {
+      "if": { "properties": { "redeem_script": { "pattern": "^21[0-9a-f]{66}ac$" } }, "required": ["redeem_script"] },
+      "then": {
+        "required": ["asig"],
+        "not": { "required": ["asigs"] },
+        "properties": {
+          "items": { "items": { "required": ["sig"], "not": { "required": ["sigs"] } } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "redeem_script": { "pattern": "^5[1-9a-f]" } }, "required": ["redeem_script"] },
+      "then": {
+        "required": ["asigs"],
+        "not": { "anyOf": [{ "required": ["asig"] }, { "required": ["pubkey"] }] },
+        "properties": {
+          "items": { "items": { "required": ["sigs"], "not": { "required": ["sig"] } } }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "fees": {
+      "type": "object",
+      "properties": {
+        "royalty_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,3})$" },
+        "royalty_to": { "type": "string" },
+        "market_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,3})$" },
+        "listing_to": { "type": "string" },
+        "listing_share_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,4})$" }
+      },
+      "additionalProperties": false
+    },
+    "item": {
+      "type": "object",
+      "required": ["inscription_id", "utxo"],
+      "properties": {
+        "inscription_id": { "type": "string", "pattern": "^[0-9a-f]{64}i(0|[1-9][0-9]*)$" },
+        "utxo": { "type": "string", "pattern": "^[0-9a-f]{64}:(0|[1-9][0-9]*)$" },
+        "sig": { "type": "string", "pattern": "^30[0-9a-f]{12,140}83$" },
+        "sigs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 15,
+          "items": { "type": "string", "pattern": "^30[0-9a-f]{12,140}83$" }
+        },
+        "price": { "type": "string", "pattern": "^[1-9][0-9]{0,19}$" },
+        "pay_to": { "type": "string", "pattern": "^[1-9A-HJ-NP-Za-km-z]{26,35}$" },
+        "fees": { "$ref": "#/$defs/fees" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$comment": "A batch of one is invalid (minItems 2). Caps, net ≥ 100000, MAX_BATCH_BYTES 32768, signatures, duplicate keys (§4.2) and the per-item checks I1–I7 are compact-orders §16.6, not this schema. A body that also has top-level inscription_id is a single order (list-v2.schema.json); items is then an ignored unknown key."
+}

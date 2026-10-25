@@ -68,7 +68,8 @@ compliance (§8), and verifies `asig` (§7.2) with its own canonicalizer and its
 It needs `pip install ecdsa`.
 
 ```bash
-python3 reference/dmp_v2_reconstruct.py vectors vectors/dmp_v2_vectors.json      # every vector, expect "ALL MATCH"
+python3 reference/dmp_v2_reconstruct.py vectors vectors/dmp_v2_vectors.json      # every single-order vector, expect "ALL MATCH"
+python3 reference/dmp_v2_batch.py check vectors/dmp_v2_batch_vectors.json       # §16 batch vectors, expect "ALL MATCH"
 python3 reference/dmp_v2_reconstruct.py order order.json --parent-hex <raw parent tx hex>
 python3 reference/dmp_v2_reconstruct.py order order.json --rpc http://127.0.0.1:18332 --rpc-auth user:pass   # regtest node
 ```

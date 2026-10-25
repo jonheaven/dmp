@@ -96,15 +96,20 @@ Future changes after public launch should be tracked here with clear versioning 
 
 ## Draft updates (pre-launch)
 
+### 2026-10-25 — batch list orders
+
+- **Batch `list`** ([compact-orders.md §16](compact-orders.md)). One inscription carries 2 to 50 orders for one owner key. After fan-out each item is an ordinary single order with id `<batch id>:<n>`. One shared `expiry`. Authorization is `asig` / `asigs` only (no reveal-authorship fallback). A bad item rejects only itself; a duplicate `utxo` or `inscription_id` rejects every copy. Advisory cancel gains optional `items`. Batch bodies are accepted up to 32768 B; the 4 KB soft cap does not apply to them.
+- Schema: `schemas/list-batch.schema.json`. Vectors: `vectors/dmp_v2_batch_vectors.json` (`reference/dmp_v2_batch.py`).
+
 ### 2026-10-21 — v2 ordering and duplicate keys
 
-- **Newer `ts` wins** ([spec-v2.md §6.1](spec-v2.md)). A v2 `list` for an outpoint that already has an indexed v2 order (listed, cancelled or expired) is valid only with a strictly larger `ts`. On equal `ts`, the op first in chain order (height, tx index, inscription index) stays. A third party re-inscribing an older or identical `asig` order is rejected, and a cancelled order cannot be revived. Cancels stay bound to `list_id`.
-- **Duplicate JSON keys** ([§4.2](spec-v2.md)) at any depth make a v2 op INVALID. v1 parsing is unchanged.
+- **Newer `ts` wins** ([compact-orders.md §6.1](compact-orders.md)). A v2 `list` for an outpoint that already has an indexed v2 order (listed, cancelled or expired) is valid only with a strictly larger `ts`. On equal `ts`, the op first in chain order (height, tx index, inscription index) stays. A third party re-inscribing an older or identical `asig` order is rejected, and a cancelled order cannot be revived. Cancels stay bound to `list_id`.
+- **Duplicate JSON keys** ([§4.2](compact-orders.md)) at any depth make a v2 op INVALID. v1 parsing is unchanged.
 - Vectors: `ordering[]` (5 cases) and the `duplicate-key` invalid case with a raw `order_json`.
 
 ### 2026-10-21 — v2 compact signed orders (draft, regtest-tested)
 
-New `"v":"2"` `list`/`cancel` ([spec-v2.md](spec-v2.md)). No venue hosts the PSDT any more.
+New `"v":"2"` `list`/`cancel` ([compact-orders.md](compact-orders.md)). No venue hosts the PSDT any more.
 
 - The order carries the seller's SIGHASH_SINGLE|ANYONECANPAY signature, pubkey, outpoint, price, `pay_to` and fee terms. Every indexer rebuilds the same canonical PSDT from its own node.
 - Authorization: either the reveal is signed by the order key, or the op carries `asig`, a Dogecoin signed-message signature over the canonical op (fee terms, `listing_to`, `expiry` included). With `asig`, any inscriber may publish the order.

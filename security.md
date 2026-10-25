@@ -57,7 +57,7 @@ Be explicit about this. Anyone building on ÐMP must understand these limitation
 | Stale listing after off-protocol transfer | Intent is separate from UTXO | UTXO-spend auto-invalidation on indexer |
 | Double-list across venues | Inscription UTXO not locked | Single-active-list rule (MUST-013); first settle wins (MUST-036) |
 | Fake settle inscription | Anyone can inscribe anything | Indexers verify settlement_txid against confirmed chain data |
-| Griefing / spam listings | No cost to inscribe intent | offer_fee anti-spam; 4 KB soft limit; indexer filtering |
+| Griefing / spam listings | No cost to inscribe intent | offer_fee anti-spam; 4 KB soft limit (v2 batch lists: 32768 B, compact-orders §16.11); indexer filtering |
 | Reorg-based front-running | Chain reorganizations are real | 6-block confirmation depth requirement; provisional state handling |
 
 ### 2.1 What is guaranteed vs verified
@@ -173,7 +173,7 @@ seller attention.
 - `offer_fee` REQUIRED and > 0. Recommended minimum: 1 DOGE (100000000 koinu).
 - Indexers/wallets SHOULD deprioritize sub-threshold offers.
 - Collections MAY publish preferred minimums via `default_auction_settings.min_offer_fee`.
-- 4 KB soft size limit prevents oversized payloads.
+- 4 KB soft size limit prevents oversized payloads. A v2 batch `list` is capped at 32768 B instead (compact-orders §16.11).
 
 **Residual risk**: 1 DOGE fee is low. High-volume spam is still economically viable if DOGE
 is cheap. Indexers and wallets SHOULD expose configurable fee thresholds.
@@ -326,7 +326,7 @@ which are valid inscriptions that consume block space.
 **Mitigations**:
 - Indexers SHOULD apply per-address rate limits in their UI/API layer.
 - Indexers SHOULD enforce minimum `offer_fee` thresholds before surfacing offers.
-- The 4 KB soft size limit bounds the cost per inscription to a minimum.
+- The 4 KB soft size limit bounds the cost per inscription to a minimum. A v2 batch `list` may be up to 32768 B (compact-orders §16.11); cost still scales with bytes.
 - Wallets SHOULD show fee-policy filtering metadata so users can understand hidden offers.
 
 ### 4.2 State Inflation
