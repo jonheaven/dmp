@@ -45,8 +45,8 @@ differs from a vector, you are wrong or the vector is, and either way please ope
 
 ## Conformance levels
 
-A claim names a level and the **exact dmp-spec commit** (full 40-hex SHA) it was tested against, for
-example `ÐMP 1.0 indexer-conformant @ dmp-spec 0123abc…` (full SHA). "ÐMP compatible" with no level and no
+A claim names a level and the **exact dmp commit** (full 40-hex SHA) it was tested against, for
+example `ÐMP 1.0 indexer-conformant @ dmp 0123abc…` (full SHA). "ÐMP compatible" with no level and no
 commit is not a conformance claim. A claim stays tied to that commit; re-test when you move to a newer one.
 
 | Level | Requires |

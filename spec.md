@@ -5,7 +5,7 @@ Version: ÐMP 1.0 (pre-launch draft; `"v":"1.0"` ops and `"v":"2"` compact order
 Status: Pre-launch draft
 Last Updated: 2026-10-23
 Chain: Dogecoin (and compatible Dogecoin-fork chains)
-**Canonical public spec:** [github.com/jonheaven/dmp-spec](https://github.com/jonheaven/dmp-spec)
+**Canonical public spec:** [github.com/jonheaven/dmp](https://github.com/jonheaven/dmp)
 
 ÐMP is an open Doginals marketplace protocol. Implementations SHOULD treat it as a precise target for
 independent testing until battle-tested on mainnet.
@@ -13,7 +13,7 @@ independent testing until battle-tested on mainnet.
 ### Naming (informative)
 
 - **Display name (user-facing):** **ÐMP** (Doginals Marketplace Protocol).
-- **Path:** `spec/protocols/dmp/` (studio copy). Public canonical: **[jonheaven/dmp-spec](https://github.com/jonheaven/dmp-spec)**.
+- **Path:** `spec/protocols/dmp/` (studio copy). Public canonical: **[jonheaven/dmp](https://github.com/jonheaven/dmp)**.
 - **On-chain marker:** `p: "dmp"`.
 - **Carrier:** Doginals push-only `ord` envelope (same as community Doginals). The experimental `dog` marker is **not** required for ÐMP (reserved for the GDR / eternal.dog lab).
 - **Stable assets:** Schema filenames and `$id` URLs remain unchanged for compatibility.

@@ -61,7 +61,7 @@ Bad issue title: `"improve spec"`
 ### Step 3 — Fork and branch
 
 ```bash
-git clone https://github.com/jonheaven/dmp-spec.git
+git clone https://github.com/jonheaven/dmp.git
 git checkout -b proposal/bundle-op
 ```
 
@@ -91,7 +91,7 @@ For implementation-affecting changes, you SHOULD update:
 
 ### Step 6 — Submit the PR
 
-Open a pull request against [jonheaven/dmp-spec](https://github.com/jonheaven/dmp-spec). The description should cover:
+Open a pull request against [jonheaven/dmp](https://github.com/jonheaven/dmp). The description should cover:
 
 - What sections are affected
 - Whether this is a breaking change
