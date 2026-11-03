@@ -14,7 +14,7 @@
     "target_id":      { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },
     "seller":         { "type": "string", "minLength": 20 },
     "decline_reason": { "type": "string" },
-    "chain":          { "const": "dogecoin" },
+    "chain":          { "enum": ["dogecoin", "dogecoin-testnet", "dogecoin-regtest"] },
     "ts":             { "type": "integer" }
   }
 }

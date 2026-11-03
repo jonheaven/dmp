@@ -45,7 +45,7 @@
     "requires_vote": { "type": "boolean" },
     "sig":     { "type": "string" },
     "sig_msg": { "type": "string" },
-    "chain":   { "const": "dogecoin" },
+    "chain":   { "enum": ["dogecoin", "dogecoin-testnet", "dogecoin-regtest"] },
     "ts":      { "type": "integer" }
   }
 }

@@ -17,7 +17,8 @@ It is intentionally small and readable so teams can compare behavior quickly bef
 ## What It Validates
 
 - `p` must equal `dmp`
-- `v` must be `1.1` or `1.2`
+- `v` must be `1.0` when present (omitted means `1.0`). `"1.1"` and `"1.2"` are not versions. Compact orders (`"v":"2"`) are checked by `dmp_v2_reconstruct.py`, not this parser.
+- `chain`, when present, must be `dogecoin`, `dogecoin-testnet`, or `dogecoin-regtest`
 - `op` must be recognized
 - required fields per operation must be present (including v1.0 additions like `canceller`, `transfer_type`)
 - conditional target requirements for `offer`

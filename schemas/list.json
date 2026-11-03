@@ -53,8 +53,8 @@
       "description": "Optional; default fixed_price"
     },
     "chain": {
-      "const": "dogecoin",
-      "description": "Chain identifier (optional, defaults to dogecoin)"
+      "enum": ["dogecoin", "dogecoin-testnet", "dogecoin-regtest"],
+      "description": "Optional. Omitted means dogecoin. Present value must name the network this op is inscribed on (spec.md §3.2)."
     },
     "nonce": {
       "type": "string",

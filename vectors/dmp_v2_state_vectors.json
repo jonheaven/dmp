@@ -904,6 +904,126 @@
    ]
   },
   {
+   "name": "relist-cannot-raise",
+   "note": "cancel and expiry do not retire a signature. A newer higher price stays invalid. An equal or lower price replaces the stored signature.",
+   "steps": [
+    {
+     "connect": {
+      "height": 100,
+      "time": 1790000000,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o1",
+        "ts": 1790000000,
+        "utxo": "u1",
+        "price": 10,
+        "expiry": 1790000100
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 101,
+      "time": 1790000100,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o2",
+        "ts": 1790000100,
+        "utxo": "u1",
+        "price": 11
+       }
+      ]
+     },
+     "expect": {
+      "status": "expired",
+      "current": "o1"
+     }
+    },
+    {
+     "connect": {
+      "height": 102,
+      "time": 1790000160,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o3",
+        "ts": 1790000160,
+        "utxo": "u1",
+        "price": 10
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o3"
+     }
+    },
+    {
+     "connect": {
+      "height": 103,
+      "time": 1790000220,
+      "ops": [
+       {
+        "op": "cancel",
+        "list_id": "o3"
+       }
+      ]
+     },
+     "expect": {
+      "status": "cancelled",
+      "cancel_kind": "inscription",
+      "current": "o3"
+     }
+    },
+    {
+     "connect": {
+      "height": 104,
+      "time": 1790000280,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o4",
+        "ts": 1790000280,
+        "utxo": "u1",
+        "price": 12
+       }
+      ]
+     },
+     "expect": {
+      "status": "cancelled",
+      "cancel_kind": "inscription",
+      "current": "o3"
+     }
+    },
+    {
+     "connect": {
+      "height": 105,
+      "time": 1790000340,
+      "ops": [
+       {
+        "op": "list",
+        "id": "o5",
+        "ts": 1790000340,
+        "utxo": "u1",
+        "price": 9
+       }
+      ]
+     },
+     "expect": {
+      "status": "listed",
+      "current": "o5"
+     }
+    }
+   ]
+  },
+  {
    "name": "same-block-order",
    "note": "two lists in one block with the same ts: the first in chain order stays",
    "steps": [

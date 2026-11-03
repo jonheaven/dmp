@@ -20,8 +20,8 @@
     "offer_fee":         { "type": "string", "pattern": "^[1-9][0-9]*$" },
     "fee_recipient":     { "type": "string", "minLength": 20 },
     "expiry":            { "type": "integer" },
-    "psdt":              { "type": "string" },
-    "chain":             { "const": "dogecoin" },
+    "psdt":              { "type": "string", "description": "Optional. When present, base64 of the §3.5 offer PSDT. Forbidden on a collection offer." },
+    "chain":             { "enum": ["dogecoin", "dogecoin-testnet", "dogecoin-regtest"] },
     "nonce":             { "type": "string" },
     "ts":                { "type": "integer" }
   },

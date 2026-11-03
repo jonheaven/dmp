@@ -1,5 +1,18 @@
 # Launch Draft Summary
 
+## One version: ÐMP 1.0 (2026-11-03)
+
+Wire versions are `"1.0"` and compact-order `"2"`. `"1.1"` and `"1.2"` are not versions.
+`chain` on every op is `dogecoin`, `dogecoin-testnet`, or `dogecoin-regtest`.
+Listing signatures are hashtype `0x83` only; a later list cannot raise the locked output
+while an older signature for that outpoint is still fillable. `listing_share_bps` defaults
+to `5000` when `fees` omits it. `bid` / `offer` / `counteroffer` `psdt` has a pinned
+unsigned-transaction template (spec.md §3.6). `range` and `rule_based` collection
+membership stay open: indexers store the collection and do not invent members.
+Compact batch cancels carry `items` (compact-orders §16.10).
+
+
+
 ## Fee caps, collection royalty, settle net (decisions approved 2026-10-23)
 
 Spec, schemas, reference and one vector change. Compact-order wire bytes and the v2 vectors are unchanged.

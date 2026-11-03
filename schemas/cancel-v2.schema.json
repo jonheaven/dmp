@@ -38,6 +38,12 @@
         "pattern": "^[A-Za-z0-9+/]{87}=$"
       },
       "description": "multisig orders: exactly m asig by distinct script keys in key order"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "integer", "minimum": 0 },
+      "description": "compact-orders §16.10 batch cancel only. Strictly ascending distinct indexes, each less than the batch length. Absent means every item. A single-order cancel MUST omit items."
     }
   },
   "not": {
@@ -46,5 +52,5 @@
       "asigs"
     ]
   },
-  "$comment": "No ts: cancels are bound to list_id, not ordered by §6.1. Without asig/asigs the reveal must be signed by the order key (§7.1). Authorization, 'current list', and m are checked by compact-orders §7/§9, not by this schema. A cancel is advisory; only moving the dog is authoritative."
+  "$comment": "No ts: cancels are bound to list_id, not ordered by §6.1. Without asig/asigs the reveal must be signed by the order key (§7.1). Authorization, 'current list', m, and the strictly-ascending items rule are checked by compact-orders §7/§9/§16.10, not by this schema. items is only legal when list_id is a batch inscription id. A cancel is advisory; only moving the dog is authoritative."
 }

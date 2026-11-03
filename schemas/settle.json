@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "dmp/v1.0/settle",
   "title": "ÐMP settle operation",
-  "description": "Records a completed on-chain settlement. Anyone may inscribe. Validity depends entirely on settlement_txid verification.",
+  "description": "Auction record only. A fixed-price sale is the fill transaction; indexers ignore op settle on a fixed-price list (spec.md MUST-112). Anyone may inscribe. It counts only when settlement_txid already paid.",
   "type": "object",
   "required": ["p", "v", "op", "inscription_id", "seller", "buyer", "price", "settlement_txid"],
   "additionalProperties": true,
@@ -25,7 +25,7 @@
         "royalty_to":        { "type": "string", "minLength": 20 },
         "market_bps":        { "type": "string", "pattern": "^(0|[1-9][0-9]{0,2}|1[0-9]{3}|2000)$" },
         "listing_to":        { "type": "string", "minLength": 20 },
-        "listing_share_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,3}|10000)$" }
+        "listing_share_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,3}|10000)$", "default": "5000", "description": "Omitted means 5000. Applied only when listing_to is set (compact-orders §4.1)." }
       }
     },
     "royalty_paid":           { "type": "string", "pattern": "^[0-9]+$", "description": "Draft claim; checked only when no fees are declared. Never changes seller net." },
@@ -33,7 +33,7 @@
     "platform_fee":           { "type": "string", "pattern": "^[1-9][0-9]*$" },
     "platform_fee_recipient": { "type": "string", "minLength": 20, "description": "Draft field naming the settlement venue. REQUIRED with platform_fee (MUST-037); an underpaid output is a settlement_fee_ok=false flag, not a status change." },
     "settlement_txid":        { "type": "string", "pattern": "^[0-9a-f]{64}$" },
-    "chain":                  { "const": "dogecoin" },
+    "chain":                  { "enum": ["dogecoin", "dogecoin-testnet", "dogecoin-regtest"] },
     "ts":                     { "type": "integer" }
   },
   "if": {

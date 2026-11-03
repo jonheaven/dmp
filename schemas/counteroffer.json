@@ -15,8 +15,8 @@
     "counter_price": { "type": "string", "pattern": "^[1-9][0-9]*$" },
     "currency":      { "type": "string" },
     "expiry":        { "type": "integer" },
-    "psdt":          { "type": "string" },
-    "chain":         { "const": "dogecoin" },
+    "psdt":          { "type": "string", "description": "Optional. When present, base64 of the §3.5 counteroffer PSDT (seller signs the dog at input 1 with hashtype 0x83)." },
+    "chain":         { "enum": ["dogecoin", "dogecoin-testnet", "dogecoin-regtest"] },
     "ts":            { "type": "integer" }
   }
 }

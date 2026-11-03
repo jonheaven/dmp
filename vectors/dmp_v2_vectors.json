@@ -1504,6 +1504,66 @@
         "asig": "H/3CDdst8qyG4K7vPkmpV0wkyqEjb6UhMWrHv0RWzxbOSONYjKX8TccBPCVUTULb+cWGkoxRykhtCb2soqHEFlI="
       },
       "supersedes": true
+    },
+    {
+      "name": "newer-ts-higher-lock",
+      "why": "a newer ts cannot raise the locked seller output while the cheaper signature is still fillable",
+      "current": {
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "ts": 1790000000,
+        "price": "500000000",
+        "fees": {
+          "royalty_bps": "300",
+          "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+          "market_bps": "150",
+          "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3",
+          "listing_share_bps": "6000"
+        }
+      },
+      "new": {
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "ts": 1790000060,
+        "price": "600000000",
+        "fees": {
+          "royalty_bps": "300",
+          "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je",
+          "market_bps": "150",
+          "listing_to": "n2L9BR12KWYoQbvWTwraa7JwpT1GyyaGf3",
+          "listing_share_bps": "6000"
+        }
+      },
+      "supersedes": false
+    },
+    {
+      "name": "newer-ts-equal-lock",
+      "why": "equal locked output with a newer ts replaces; the indexer drops the previous signature",
+      "current": {
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "ts": 1790000000,
+        "price": "500000000",
+        "fees": {"royalty_bps": "300", "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je", "market_bps": "150"}
+      },
+      "new": {
+        "utxo": "90506f24a8141549e3ed99dccde1f21f744d8a9f7739b76b708c4bc9a2310e91:0",
+        "ts": 1790000060,
+        "price": "500000000",
+        "fees": {"royalty_bps": "300", "royalty_to": "mtyoXYWfP8rdsX4QQabyqGK49Hy3m9R3Je", "market_bps": "150"}
+      },
+      "supersedes": true
+    },
+    {
+      "name": "unsigned-relist",
+      "why": "a later list with no signature is invalid while a cheaper signature is still fillable",
+      "current": {"utxo": "aa", "ts": 10, "price": 100},
+      "new": {"utxo": "aa", "ts": 11, "price": 90, "signed": false},
+      "supersedes": false
+    },
+    {
+      "name": "new-outpoint-may-raise",
+      "why": "raising the locked output is allowed only on a new dog outpoint",
+      "current": {"utxo": "aa:0", "ts": 10, "price": "100000000"},
+      "new": {"utxo": "bb:0", "ts": 1, "price": "900000000"},
+      "supersedes": true
     }
   ]
 }

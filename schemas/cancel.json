@@ -15,7 +15,7 @@
     "canceller":   { "type": "string", "minLength": 20 },
     "reason":      { "enum": ["seller_request", "expired", "buyer_breach", "admin_emergency", "other"] },
     "sig":         { "type": "string" },
-    "chain":       { "const": "dogecoin" },
+    "chain":       { "enum": ["dogecoin", "dogecoin-testnet", "dogecoin-regtest"] },
     "ts":          { "type": "integer" }
   }
 }

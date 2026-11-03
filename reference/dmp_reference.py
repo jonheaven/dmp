@@ -31,6 +31,7 @@ import ecdsa
 # ---------------------------------------------------------------------------
 
 SUPPORTED_VERSIONS = {"1.0"}
+CHAIN_VALUES = {"dogecoin", "dogecoin-testnet", "dogecoin-regtest"}
 MAX_SOFT_SIZE_BYTES = 4096
 INSCRIPTION_ID_RE = re.compile(r"^[0-9a-f]{64}i[0-9]+$")
 TXID_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -228,9 +229,9 @@ def validate_envelope(
              f"v {v!r} not recognized. Supported: {sorted(SUPPORTED_VERSIONS)}.")
 
     chain = payload.get("chain")
-    if chain is not None and chain != "dogecoin":
+    if chain is not None and chain not in CHAIN_VALUES:
         _add(issues, "error", "MUST-006",
-             f'chain must equal "dogecoin" when present, got {chain!r}.')
+             f"chain must be dogecoin, dogecoin-testnet, or dogecoin-regtest, got {chain!r}.")
 
     op = payload.get("op")
     if op not in OP_RULES:
@@ -290,11 +291,6 @@ def validate_op_rules(
 ) -> None:
     """Validate op-specific required fields and semantic rules."""
     rules = OP_RULES.get(op, {})
-
-    # launch draft-only ops
-    if rules.get("v12_only") and version not in {"1.2"}:
-        _add(issues, "error", "MUST-002",
-             f'op "{op}" requires v: "1.2".')
 
     # Required fields
     for f in rules.get("required", []):
@@ -408,10 +404,6 @@ def _validate_cancel(p: Dict, version: str, issues: List[ValidationIssue]) -> No
     elif reason not in VALID_CANCEL_REASONS:
         _add(issues, "error", "MUST-106",
              f"cancel reason must be one of {sorted(VALID_CANCEL_REASONS)}, got {reason!r}.")
-
-    if version == "1.2" and "canceller" not in p:
-        _add(issues, "error", "MUST-044",
-             'canceller field required for v: "1.2" cancel ops.')
 
     if "canceller" not in p:
         _add(issues, "warning", "MUST-041",
@@ -960,7 +952,102 @@ TEST_VECTORS: List[Dict[str, Any]] = [
         "expect": "royalty_fail",
         "royalty": {"price": 1000000000, "bps": 500, "paid": 49999999},
     },
+    {
+        "id": "TV-119",
+        "desc": "MUST-006: dogecoin-regtest is a recognized chain",
+        "expect": "pass",
+        "payload": {
+            "p": "dmp", "v": "1.0", "op": "transfer",
+            "inscription_id": "aaaa" * 16 + "i0",
+            "from_address": "mtBFemSyGPv3WPe4dHybvJYkkyfaLUvT5c",
+            "to_address": "mzvqhxkRraqm53KzpNfB7akbVkayurJSM6",
+            "transfer_type": "gift",
+            "transfer_txid": "a1b2" * 16,
+            "chain": "dogecoin-regtest",
+        },
+    },
+    {
+        "id": "TV-120",
+        "desc": "MUST-006: unknown chain",
+        "expect": "fail",
+        "payload": {
+            "p": "dmp", "v": "1.0", "op": "transfer",
+            "inscription_id": "aaaa" * 16 + "i0",
+            "from_address": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
+            "to_address": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
+            "transfer_type": "gift",
+            "transfer_txid": "a1b2" * 16,
+            "chain": "bitcoin",
+        },
+    },
+    {
+        "id": "TV-121",
+        "desc": "MUST-002: v 1.2 is not a DMP version",
+        "expect": "fail",
+        "payload": {
+            "p": "dmp", "v": "1.2", "op": "transfer",
+            "inscription_id": "aaaa" * 16 + "i0",
+            "from_address": "D8mZsgKwmSQWYRPEMCcm8KzNFj1JVF5UpA",
+            "to_address": "DRPLkFEt5GNQR2xt1GtVBSsTUr63W3mBnq",
+            "transfer_type": "gift",
+            "transfer_txid": "a1b2" * 16,
+        },
+    },
 ]
+
+
+def _varint(n: int) -> bytes:
+    if n < 0xFD:
+        return bytes([n])
+    if n <= 0xFFFF:
+        return b"\xfd" + n.to_bytes(2, "little")
+    return b"\xfe" + n.to_bytes(4, "little")
+
+
+def _varbytes(data: bytes) -> bytes:
+    return _varint(len(data)) + data
+
+
+def negotiation_unsigned_tx(
+    txid_hex: str,
+    vout: int,
+    locked_koinu: int,
+    placeholder_script: bytes,
+    payee_script: bytes,
+) -> bytes:
+    """spec.md §3.6 unsigned transaction. `txid_hex` is display order."""
+    if len(txid_hex) != 64:
+        raise ValueError("txid must be 64 hex characters")
+    raw = (2).to_bytes(4, "little", signed=True)
+    raw += bytes([2])
+    raw += b"\x00" * 32 + (0).to_bytes(4, "little") + bytes([0]) + (0xFFFFFFFE).to_bytes(4, "little")
+    raw += bytes.fromhex(txid_hex)[::-1] + vout.to_bytes(4, "little") + bytes([0]) + (0xFFFFFFFF).to_bytes(4, "little")
+    raw += bytes([2])
+    raw += (100_000).to_bytes(8, "little") + _varbytes(placeholder_script)
+    raw += locked_koinu.to_bytes(8, "little") + _varbytes(payee_script)
+    raw += (0).to_bytes(4, "little")
+    return raw
+
+
+def check_negotiation_vectors() -> int:
+    """Byte-check spec.md §3.6 against vectors/dmp_negotiation_psdt.json."""
+    path = Path(__file__).resolve().parent.parent / "vectors" / "dmp_negotiation_psdt.json"
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    failed = 0
+    for case in doc["cases"]:
+        got = negotiation_unsigned_tx(
+            case["txid"],
+            case["vout"],
+            case["locked_koinu"],
+            bytes.fromhex(case["placeholder_script"]),
+            bytes.fromhex(case["payee_script"]),
+        ).hex()
+        ok = got == case["unsigned_tx_hex"]
+        print(f"  {'PASS' if ok else 'FAIL'}  NEG {case['name']}")
+        if not ok:
+            print(f"        got {got}")
+            failed += 1
+    return failed
 
 
 def run_test_vectors() -> int:
@@ -1006,7 +1093,8 @@ def run_test_vectors() -> int:
                 print(f"        {issue}")
             failed += 1
 
-    print(f"\nResults: {passed} passed, {failed} failed out of {len(TEST_VECTORS)} vectors.")
+    failed += check_negotiation_vectors()
+    print(f"\nResults: {passed} passed, {failed} failed out of {len(TEST_VECTORS)} vectors plus negotiation templates.")
     return 0 if failed == 0 else 1
 
 

@@ -932,7 +932,10 @@ def item_error(op, items, i, locations, current, parents):
     elif loc.get("owner") == "other":
         return "I5-wrong-owner"
     cur = (current or {}).get(item.get("inscription_id"))
-    if cur is not None and not supersedes({"utxo": item["utxo"], "ts": op["ts"]}, cur):
+    challenger = {"utxo": item["utxo"], "ts": op["ts"], "price": resolved.get("price"), "fees": resolved.get("fees")}
+    if cur is not None and not supersedes(challenger, cur):
+        if cur.get("utxo") == item.get("utxo") and int(op["ts"]) > int(cur["ts"]):
+            return "relist-above-fillable"
         return "I7-not-newer"
     return None
 

@@ -147,6 +147,11 @@ settlement = market − listing
 net        = price − royalty − market          (the amount the seller signs)
 ```
 
+When `fees` is present and `listing_share_bps` is omitted, parsers MUST use `5000`. When `fees` is
+absent there is no market fee, so the share is unused and `listing` is 0. The default is not written
+onto the order: emitters MAY omit `5000`, and the canonical `asig` bytes follow whatever keys were
+actually inscribed.
+
 `net` MUST be ≥ 100000 koinu (hard dust); otherwise the order is INVALID. Same math as
 `collaborative-fees.md` §4.
 
@@ -169,7 +174,8 @@ This is exactly dojak `buildListingPSDT`'s layout with `out[1] = net`.
 `sig` signs the **legacy** (pre-segwit) signature hash of `in[1]` with hashtype `0x83`
 (`SIGHASH_SINGLE|SIGHASH_ANYONECANPAY`) and `scriptCode = OP_DUP OP_HASH160 <hash160(pubkey)>
 OP_EQUALVERIFY OP_CHECKSIG` (P2PKH dog) or `scriptCode = redeem_script` (P2SH dog, §5.4; every
-signature in `sigs` signs this same digest). Concretely, the digest is `SHA256d` of: version ‖ 1 input
+signature in `sigs` signs this same digest). Any other hashtype, including `SIGHASH_NONE` (`0x02`)
+and `SIGHASH_NONE|ANYONECANPAY` (`0x82`), makes the list INVALID (spec.md §3.5). Concretely, the digest is `SHA256d` of: version ‖ 1 input
 (`in[1]` with scriptCode) ‖ 2 outputs (`out[0]` blanked to value `0xffffffffffffffff` and empty
 script, then `out[1]`) ‖ locktime ‖ `0x83000000`.
 
@@ -262,7 +268,7 @@ change) on the first failure:
 6. `|ts − nTime(B)| ≤ 7200`.
 7. `expiry`, if present, `> nTime(B)`.
 8. If `psdt` is present it equals the §5.3 rebuild byte-for-byte.
-9. **Newer `ts` wins** (§6.1).
+9. **Newer `ts` wins, and the locked output is not raised** (§6.1, spec.md §3.5).
 
 (§4.2 duplicate keys are checked before step 1.) A list that passes every step supersedes any earlier
 listing record for that inscription.
@@ -277,9 +283,23 @@ its status (`listed`, `cancelled`, `expired`). A batch item uses the batch's one
 A new valid compact `list` `new` replaces `cur` only if
 
 - `new.utxo ≠ cur.utxo` (the dog has moved since `cur`; `cur`'s outpoint is gone), or
-- `new.ts > cur.ts` (strictly).
+- `new.ts > cur.ts` (strictly) and the listing-safety rule below accepts `new`.
 
-Otherwise `new` is INVALID: `ts not newer than the indexed order for this outpoint`.
+Otherwise `new` is INVALID. The `ts` failure is `ts not newer than the indexed order for this outpoint`.
+A same-outpoint list that fails listing safety is `relist price is above a still-fillable cheaper signature`
+or `listing omits a signature while a cheaper one is still fillable`.
+
+**Listing safety** (spec.md §3.5, normative here for compact orders):
+
+- Every `sig` / `sigs[i]` hashtype is `0x83`. `0x02` and `0x82` are INVALID, as is any other byte.
+- An older signature remains fillable until its dog outpoint is spent. Cancel (§9) and expiry do not
+  retire it, whatever status the indexer shows.
+- On the same outpoint, `new` is INVALID when it carries no signature, or when its locked seller output
+  (`net`, §4.1) is greater than the locked output of any still-fillable older signature for that outpoint.
+- When `new` is valid, the indexer replaces the stored signature and MUST NOT retain the previous one
+  as the current order. The new `net` is then the floor for any later list on that outpoint.
+- Raising `net` requires spending the dog to a new outpoint and signing that outpoint. A different
+  outpoint is not compared with the old floor.
 
 - **Same outpoint ⇒ same signer.** The owner of `utxo` is fixed, so `cur` and `new` were both signed by
   that key (or, for P2SH, satisfy that script). The rule only decides which of the seller's own orders is current.
@@ -287,11 +307,14 @@ Otherwise `new` is INVALID: `ts not newer than the indexed order for this outpoi
   then inscription index in the transaction. With equal `ts` the one applied first stays. Re-inscribing
   an identical order is therefore always a no-op rejection.
 - **Why.** An `asig` order (§7.2) can be inscribed by anyone. Without ordering, a third party could
-  re-inscribe an older order the seller has replaced (e.g. a lower price) and revert it, or revive a
-  cancelled order by re-inscribing it. With this rule the seller's latest order stays current, and a
-  cancel (§9) is final for every order with `ts ≤` the cancelled one.
+  re-inscribe an older order the seller has replaced and revert it. The `ts` rule stops that. It does
+  not let the seller raise `net` on the same outpoint: the older cheaper signature would still be
+  fillable, so the higher list is INVALID. A cancel (§9) is final for every order with `ts ≤` the
+  cancelled one. A later list with a newer `ts` may replace it only when listing safety accepts the
+  new locked output.
 - **Re-pricing on the same outpoint.** Sellers MUST use a strictly larger `ts` than their previous
-  order. `ts` is bounded by §6 step 6 (`±7200 s` of `nTime`), so a re-price normally uses the current time.
+  order, and the new `net` MUST be less than or equal to every still-fillable signature on that
+  outpoint. `ts` is bounded by §6 step 6 (`±7200 s` of `nTime`), so a re-price normally uses the current time.
 - Draft-list records (no compact order) are not compared; a valid compact list replaces them as before.
 
 **Time base.** Compact orders use block header `nTime` for `ts` and `expiry` (not MTP). Every indexer has it
@@ -531,7 +554,8 @@ These are Dogecoin Core relay defaults, not ÐMP validity rules. A mined fill is
   Cancels carry no `ts` and are not ordered by §6.1. They are bound to `list_id` instead: a cancel
   naming a superseded `list_id` is INVALID, and a cancel of an already-cancelled order changes nothing.
   Re-inscribing the cancelled order (or any older one for the same `utxo`) is INVALID by §6.1, so a
-  cancel cannot be undone by a third party. The seller re-lists with a newer `ts`.
+  cancel cannot be undone by a third party. The seller re-lists with a newer `ts` whose `net` is less
+  than or equal to every still-fillable signature on that outpoint. Cancel does not retire the signature.
   A batch list is cancelled with this same op (§16.10).
   The order becomes `cancelled` (`cancel_kind:"inscription"`). Venues MUST NOT serve or build fills
   for it. The signature remains valid on-chain until the dog moves, so a later fill is still
@@ -914,7 +938,9 @@ who signed both copies gets neither, so the mistake is visible.
   each item's record carries the value and expires like a single order, so a fill or cancel of one item does not
   change the others. A batch whose `expiry` is not after `nTime(B)` is INVALID (B6). A seller who wants
   different lifetimes inscribes separate batches (one per lifetime, each with 2 or more items) or single orders.
-- **Re-pricing.** To change one price, inscribe a single order or a new batch with a newer `ts`.
+- **Re-pricing.** To lower or keep one locked output, inscribe a single order or a new batch with a
+  newer `ts`. Raising it requires a new dog outpoint (spec.md §3.5). A higher `net` on the same outpoint
+  is INVALID even when the batch `ts` is newer.
 
 ### 16.9 Fill and settlement
 

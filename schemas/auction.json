@@ -20,7 +20,7 @@
     "start_ts":          { "type": "integer" },
     "expiry":            { "type": "integer" },
     "collection_id":     { "type": "string", "pattern": "^[0-9a-f]{64}i[0-9]+$" },
-    "chain":             { "const": "dogecoin" },
+    "chain":             { "enum": ["dogecoin", "dogecoin-testnet", "dogecoin-regtest"] },
     "nonce":             { "type": "string" },
     "ts":                { "type": "integer" }
   }

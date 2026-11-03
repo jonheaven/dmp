@@ -124,7 +124,8 @@ def parse_order(o, chain):
         if not isinstance(h, str): raise ValueError("sig must be a hex string")
         sig = bytes.fromhex(h)
         if sig.hex() != h: raise ValueError("sig hex")
-        if sig[-1] != SIGHASH: raise ValueError("sig hashtype must be 0x83")
+        if sig[-1] & 0x1F == 0x02: raise ValueError("sig hashtype is SIGHASH_NONE")
+        if sig[-1] != SIGHASH: raise ValueError("sig hashtype must be 0x83 (SINGLE|ANYONECANPAY)")
         strict_der(sig[:-1]); sigs.append(sig)
     f = o.get("fees", {})
     if not isinstance(f, dict): raise ValueError("fees")
@@ -356,12 +357,55 @@ def loads_v2(text):
     """Strict v2 parse: a duplicate object key at any depth makes the op INVALID."""
     return json.loads(text, object_pairs_hook=_no_dup_hook)
 
+def locked_output(order):
+    """Seller-locked koinu. Abstract state vectors store that number in `price`.
+    A compact order's lock is `net` (price − royalty − market), not the gross price.
+    `listing_share_bps` defaults to 5000 and does not change `net`.
+    """
+    if "price" not in order:
+        return None
+    price = order["price"]
+    if isinstance(price, bool):
+        return None
+    if isinstance(price, int):
+        return price
+    if not isinstance(price, str) or not price.isdigit() or (len(price) > 1 and price[0] == "0"):
+        return None
+    price_i = int(price)
+    fees = order.get("fees") or {}
+    if not isinstance(fees, dict):
+        return price_i
+
+    def bps(key, default=0):
+        v = fees.get(key, default if key == "listing_share_bps" else None)
+        if v is None:
+            return default
+        return int(v)
+
+    royalty_bps = bps("royalty_bps")
+    market_bps = bps("market_bps")
+    royalty = price_i * royalty_bps // 10000 if royalty_bps and fees.get("royalty_to") else 0
+    market = price_i * market_bps // 10000
+    return price_i - royalty - market
+
 def supersedes(new, cur):
-    """new may replace the indexed order cur only on a different outpoint or a strictly newer ts."""
-    return new["utxo"] != cur["utxo"] or int(new["ts"]) > int(cur["ts"])
+    """Replace `cur` on a different outpoint, or on a strictly newer ts whose locked
+    output does not rise above a still-fillable signature (spec.md §3.5, compact-orders §6.1).
+    """
+    if new.get("utxo") != cur.get("utxo"):
+        return True
+    if int(new["ts"]) <= int(cur["ts"]):
+        return False
+    if new.get("signed") is False:
+        return False
+    new_lock = locked_output(new)
+    cur_lock = locked_output(cur)
+    if new_lock is None or cur_lock is None:
+        return True
+    return new_lock <= cur_lock
 
 def check_vectors(path):
-    v = json.load(open(path)); chain = v.get("network", "dogecoin-regtest"); bad = 0
+    v = json.load(open(path, encoding="utf-8")); chain = v.get("network", "dogecoin-regtest"); bad = 0
     for case in v["valid"]:
         d = parse_order(case["order"], chain)
         psbt, digest = rebuild(d, bytes.fromhex(case["parent_tx_hex"]))
@@ -490,8 +534,8 @@ def run_state(steps, window=7200, depth=6):
             for op in b["ops"]:
                 if op["op"] == "list":
                     if abs(op["ts"] - t) > window or ("expiry" in op and op["expiry"] <= t) or op["utxo"] != utxo: continue
-                    if rec and rec["status"] in ("listed", "cancelled", "expired") and not (op["utxo"] != rec["o"]["utxo"] or op["ts"] > rec["o"]["ts"]): continue
                     if rec and rec["status"] in ("settle_pending", "settled"): continue
+                    if rec and rec["status"] in ("listed", "cancelled", "expired") and not supersedes(op, rec["o"]): continue
                     rec = dict(o=op, status="listed"); seen[op["id"]] = op
                 elif op["op"] == "cancel":
                     if rec and rec["o"]["id"] == op["list_id"] and rec["status"] == "listed": rec.update(status="cancelled", cancel_kind="inscription")
@@ -520,7 +564,7 @@ def run_state(steps, window=7200, depth=6):
     return got
 
 def check_state_vectors(path):
-    v = json.load(open(path)); chain = v.get("network", "dogecoin-regtest"); bad = 0
+    v = json.load(open(path, encoding="utf-8")); chain = v.get("network", "dogecoin-regtest"); bad = 0
     def report(ok, kind, name, info):
         nonlocal bad; bad += not ok
         print(f"{'OK  ' if ok else 'FAIL'} {kind:<7} {name:<34} {info}")
@@ -591,7 +635,7 @@ def v1_psdt_check(psdt_b64):
 
 def check_v1_vectors(path):
     bad = 0
-    for c in json.load(open(path))["v1_lists"]:
+    for c in json.load(open(path, encoding="utf-8"))["v1_lists"]:
         got, why = v1_psdt_check(c["psdt"])
         ok = got == c["expect"]; bad += not ok
         print(("ok   " if ok else "FAIL ") + c["name"], got, "-", why)
@@ -603,7 +647,7 @@ def main(a):
     if a[:1] == ["v1"]: sys.exit(1 if check_v1_vectors(a[1]) else 0)
     if a[:1] == ["state"]: sys.exit(1 if check_state_vectors(a[1]) else 0)
     if a[:1] == ["order"]:
-        o = loads_v2(open(a[1]).read() if a[1] != "-" else sys.stdin.read())
+        o = loads_v2(open(a[1], encoding="utf-8").read() if a[1] != "-" else sys.stdin.read())
         chain = o.get("chain")
         if "--parent-hex" in a: parent = bytes.fromhex(a[a.index("--parent-hex") + 1])
         else:

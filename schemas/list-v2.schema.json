@@ -24,7 +24,7 @@
         "royalty_to": { "type": "string" },
         "market_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,2}|1[0-9]{3}|2000)$" },
         "listing_to": { "type": "string" },
-        "listing_share_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,3}|10000)$" }
+        "listing_share_bps": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,3}|10000)$", "default": "5000", "description": "Omitted means 5000. Applied only when listing_to is set (compact-orders §4.1)." }
       },
       "dependentRequired": { "royalty_bps": ["royalty_to"] }
     },

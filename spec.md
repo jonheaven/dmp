@@ -255,16 +255,17 @@ Every ÐMP Intent MUST include:
   (MUST-008).
 - Timestamps are Unix epoch seconds (integer).
 - **Defaults (MUST-109):** If omitted: `v` = `"1.0"`; `currency` = `"DOGE"`; `chain` = `"dogecoin"`;
-  `listing_type` on `op:"list"` = `"fixed_price"`. If any of these is present, it MUST equal the default
-  (except `listing_type`, which MAY be `"auction"`).
+  `listing_type` on `op:"list"` = `"fixed_price"`. A present `currency` MUST equal `"DOGE"`. A present
+  `listing_type` MUST be `"fixed_price"` or `"auction"`. A present `chain` MUST be one of the three
+  network names below, and it MUST name the network the indexer is reading.
 - `psdt`, when present, MUST be standard base64 (no whitespace) encoding of PSDT bytes.
 - `psdt_hash`, when present, MUST be 64-char lowercase hex SHA-256 of the **raw PSDT bytes** (not the
   base64 string). If both `psdt` and `psdt_hash` are present, the hash MUST match (MUST-110).
 - Unknown fields MUST be ignored by indexers.
 - JSON payload MUST be valid UTF-8.
-- The `chain` field, when present, MUST equal `"dogecoin"` for mainnet Dogenals (compact orders also define
-  `"dogecoin-testnet"` and `"dogecoin-regtest"`, compact-orders §3). Indexers SHOULD reject ops
-  with `chain` set to any other value when operating on Dogecoin mainnet.
+- The `chain` field, when present, MUST be `"dogecoin"`, `"dogecoin-testnet"`, or `"dogecoin-regtest"`
+  (compact-orders §3 uses the same three names). Omitted means `"dogecoin"`. An indexer MUST reject an op
+  whose `chain` names a different network from the one it is reading, and MUST reject any other string.
 - The `nonce` field (optional, any string) MAY be included on any op to aid deduplication in tooling. It has
   no semantic effect on validation.
 - The `sig_msg` field (optional), when present, is the hex-encoded UTF-8 bytes of the canonical JSON that was
@@ -320,7 +321,59 @@ than the postage, the inscribed sat lands in the seller's payment and the seller
 Indexers and wallets MUST NOT fill that shape. The portable list signs the **dog at input 1** and locks
 **output 1** to the seller. The buyer replaces input 0 with a coin that covers output 0 plus output 1,
 so the dog sat starts on the buyer's output. Fee inputs come **after** the dog. A `settle` inscription
-is not part of this fill.
+is not part of this fill. A fixed-price sale **is** that fill transaction. `op:"settle"` is only the
+auction record (MUST-112, §4.3).
+
+### 3.5 Listing safety
+
+These rules apply to every seller listing signature, compact order or embedded listing PSDT.
+
+- A seller listing signature MUST use hashtype `0x83` (`SIGHASH_SINGLE|ANYONECANPAY`). Any other
+  hashtype, including `SIGHASH_NONE` (`0x02`) and `SIGHASH_NONE|ANYONECANPAY` (`0x82`), makes the list
+  INVALID.
+- An older signature remains fillable until the dog outpoint it commits to is spent. Cancel and expiry
+  do not retire it.
+- A later list for that same outpoint is INVALID when it carries no signature, or when its locked seller
+  output is greater than the locked output of any still-fillable older signature for that outpoint.
+  The locked output is template output 1: compact-order `net` (compact-orders §4.1), or the signed
+  output value of an embedded listing PSDT.
+- When a later list is valid, indexers replace the stored signature and MUST NOT retain the previous one.
+- To raise the locked output, the seller MUST spend the dog to a new outpoint and sign that outpoint.
+
+### 3.6 Negotiation PSDT (bid, offer, counteroffer)
+
+`psdt` on `bid`, `offer`, and `counteroffer` is optional. Absent, the op is a JSON intent and locks
+nothing. Present, it MUST be standard base64 of a BIP174 PSBT whose unsigned transaction is exactly
+the template below (version 2, locktime 0, no other inputs or outputs). Any other shape is INVALID.
+
+```
+in[0]   prevout 00…00 : 0     scriptSig empty    sequence 0xfffffffe
+in[1]   the signed outpoint   scriptSig empty    sequence 0xffffffff
+out[0]  100000 koinu → placeholder script
+out[1]  locked koinu → payee script
+```
+
+The txid inside input 1 is serialized in internal byte order (display hex reversed). Input 1 is signed
+with legacy hashtype `0x83` and `scriptCode` equal to the P2PKH script of that prevout. The PSBT
+carries that parent transaction as `non_witness_utxo`, the partial signature, and sighash type
+`0x83000000`, and nothing else on that input. Any other hashtype, including `0x02` and `0x82`, makes
+the op INVALID. The signed prevout MUST be P2PKH. A P2SH funding coin or dog has no negotiation
+template in ÐMP 1.0: `psdt` on it is INVALID.
+
+| op | who signs input 1 | placeholder script (out[0]) | payee script (out[1]) | locked koinu |
+|---|---|---|---|---|
+| `bid` | bidder's funding coin | bidder | current owner of `inscription_id` | `price` |
+| `offer` | buyer's funding coin | buyer | `target_seller` if set, else the current owner of `inscription_id` | `price` |
+| `counteroffer` | the dog's current outpoint | seller | seller | `counter_price` |
+
+A `bid` or `offer` whose target is a collection MUST omit `psdt` (there is no single dog and no single
+payee). `offer_fee` is not an output of this template. It is paid when the offer is taken, and it is
+not committed by the `0x83` signature.
+
+The digest is the same legacy `SIGHASH_SINGLE|ANYONECANPAY` digest as compact-orders §5.2: one input
+(input 1 with scriptCode), output 0 blanked to value `0xffffffffffffffff` and an empty script, then
+output 1, then locktime and `0x83000000`. Because output 1 exists, the Dogecoin `SIGHASH_SINGLE`
+out-of-range bug (digest = 1) cannot apply.
 
 ---
 
@@ -1627,10 +1680,16 @@ Allowed `criteria.mode` values:
 - `parent` — members are inscriptions whose **native parent** (envelope tag 3 and/or DRC-721 `parent`)
   is **this collection inscription**. Indexers MUST document whether membership requires a **verified**
   parent UTXO spend or accepts **claimed** tags. Tag-only children MUST NOT be labeled spec-verified DRC-721.
-- `range` — members fall in an indexer-documented inscription id / number range.
+- `creator_signed` — members are the creator-signed inscription id list on a dynamic collection.
+- `range` — **open**. ÐMP 1.0 defines no range encoding (no start, end, or number field). Indexers
+  MUST store the collection and MUST NOT invent a member set from inscription ids or numbers.
+- `rule_based` — **open**. ÐMP 1.0 defines no rule language. Indexers MUST store the collection and
+  MUST NOT evaluate an ad-hoc rule as membership.
 
-This is distinct from optional root `parent_inscription_id` (a parent *collection*). Builder map:
-the DRC-721 / ÐMP comparison note (published separately).
+`explicit`, `creator_signed`, and `parent` are the modes an indexer can expand. `range` and
+`rule_based` are known collections with an unresolved member set.
+
+This is distinct from optional root `parent_inscription_id` (a parent *collection*).
 
 Slug format MUST match `^[a-z0-9-]+$` with max 64 characters. Slugs are unique per chain; earliest
 confirmed inscription by canonical ordering wins.
@@ -1717,21 +1776,23 @@ Any op failing a MUST rule is invalid.
 ### 13.1 Universal
 
 - MUST-001: `p` MUST be `"dmp"`. Indexers MUST NOT treat any other marker as ÐMP.
-- MUST-002: `v`, when present, is a recognized version. Indexers accept `"1.0"`. When `v` is absent, treat as `"1.0"`.
+- MUST-002: `v`, when present, MUST be `"1.0"` or `"2"`. `"2"` is the compact-order wire marker and is still ÐMP 1.0 (Versioning). When `v` is absent, treat as `"1.0"`. `"1.1"` and `"1.2"` are not versions.
 - MUST-003: `op` is recognized.
 - MUST-004: valid UTF-8 JSON.
 - MUST-005: unknown fields ignored (not errors).
-- MUST-006: `chain` field, if present, MUST equal `"dogecoin"` on Dogecoin mainnet.
+- MUST-006: `chain`, if present, MUST be `"dogecoin"`, `"dogecoin-testnet"`, or `"dogecoin-regtest"`, and it MUST name the network being indexed (Section 3.2).
 - MUST-007: canonical ordering tie-breaker: `block_height ASC`, `tx_index_in_block ASC`, `output_index ASC`.
 - MUST-008: every koinu amount field where a **positive** integer is required MUST match `^[1-9][0-9]*$` and
   MUST parse to an integer **≤ 2^64 − 1**. Indexers MUST reject oversize strings, leading zeros, or non-digit
   characters as INVALID.
 - MUST-102: `ts` sanity vs MTP (or documented `nTime` fallback) — Section 3.3.
 - MUST-103: use each op’s own JSON `ts` for relative comparisons unless this spec names MTP(block) — Section 3.3.
-- MUST-109: omitted `currency` / `chain` / list `listing_type` default to `"DOGE"` / `"dogecoin"` / `"fixed_price"` (Section 3.2). Present values MUST match those defaults except `listing_type` MAY be `"auction"`.
+- MUST-109: omitted `currency` / `chain` / list `listing_type` default to `"DOGE"` / `"dogecoin"` / `"fixed_price"` (Section 3.2). A present `currency` MUST be `"DOGE"`. A present `chain` MUST be one of the three network names and MUST match the indexed network. A present `listing_type` MUST be `"fixed_price"` or `"auction"`.
 - MUST-110: if both `psdt` and `psdt_hash` are present, `psdt_hash` MUST be SHA-256 of the decoded PSDT bytes (Section 3.4).
 - MUST-111: a complete ÐMP market MUST NOT require an inscription for every bid/offer/decline/cancel/page view (Write budget).
-- MUST-112: fixed-price sale truth is the fill tx. A `settle` inscription MUST NOT change that list. Auction `settle` is a pointer and only counts when the named tx already paid (Write budget, Chain is the story).
+- MUST-112: fixed-price sale truth is the fill tx. A `settle` inscription MUST NOT change that list. Auction `settle` is a pointer and only counts when the named tx already paid (Write budget, §4.3).
+- MUST-114: seller listing signatures are hashtype `0x83` only. A later list on the same outpoint MUST NOT raise the locked output or drop the signature while an older signature is still fillable. Cancel and expiry do not retire it (Section 3.5).
+- MUST-115: a `psdt` on `bid`, `offer`, or `counteroffer` MUST be the Section 3.6 template. A collection bid or offer MUST omit it.
 - SHOULD-113: prefer DogeTag / off-band PSDT / DOTC / `psdt_hash` per the Write budget table; envelopes for durable collection + list/auction + optional per-sale receipt.
 
 ### 13.2 list
