@@ -167,7 +167,7 @@ out[0]    100000 koinu → scriptPubKey(pay_to)                                 
 out[1]    net koinu    → scriptPubKey(pay_to)                                         (signed)
 ```
 
-This is exactly dojak `buildListingPSDT`'s layout with `out[1] = net`.
+This is exactly dig `buildListingPSDT`'s layout with `out[1] = net`.
 
 ### 5.2 Signature
 
@@ -352,7 +352,7 @@ doginals reveal is signed by one key.
 
 The reveal transaction has an input whose scriptSig ends `<sig> <redeem>` where `sig`'s last byte is
 `0x01` (`SIGHASH_ALL`) and `redeem` begins `<33-byte pubkey> OP_CHECKSIGVERIFY` with that pubkey equal
-to the order's `pubkey`. This is the doginals P2SH lock used by dojak's inscriber. Consensus has already
+to the order's `pubkey`. This is the doginals P2SH lock used by dig's inscriber. Consensus has already
 checked that signature, so the indexer only pattern-matches.
 
 ### 7.2 `asig` (signed canonical op)
@@ -652,7 +652,7 @@ fill txid, `fee_split_ok`; for `asig` cases also `asig_canonical`, `asig_message
 if it reproduces every `psdt_hex`, `sighash`, `fill_txid`, `dog_script_sig_hex`, `asig_canonical` and `asig_digest`, accepts
 every valid case, rejects every invalid case and matches every `supersedes`.
 The `asig-*` invalid cases all carry a valid `sig`; only §7.2 rejects them. `reference/dmp_v2_reconstruct.py`
-is an independent (non-dogex, non-dojak) implementation that checks every vector, including its own
+is an independent (non-dogex, non-dig) implementation that checks every vector, including its own
 pubkey recovery for `asig`.
 
 Batch lists (§16.16) are `vectors/dmp_v2_batch_vectors.json`, checked by `reference/dmp_v2_batch.py`

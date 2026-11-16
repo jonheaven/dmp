@@ -1,7 +1,7 @@
 {
   "spec": "dmp-spec compact-orders.md",
   "network": "dogecoin-regtest",
-  "generated_by": "dmp-v2/js/gen_vectors.mjs (dojak dmp-compact-order.ts)",
+  "generated_by": "dmp-v2/js/gen_vectors.mjs (dig dmp-compact-order.ts)",
   "keys": {
     "seller": "03df0b8e21cc2c164fe586bd831ab460f260d7e6940b45e0ca8b0fea7efc4318b1",
     "buyer": "024d3fffdb4bf150fdf4cade6e1b0c506ff0d038e636927a5e61b12aabc04a74e5",
@@ -552,7 +552,7 @@
     },
     {
       "name": "hijack-non-owner-key",
-      "why": "sig is valid for the attacker key but the dog prevout is P2PKH(seller); dojak builder: dog output is not P2PKH of the signer key",
+      "why": "sig is valid for the attacker key but the dog prevout is P2PKH(seller); dig builder: dog output is not P2PKH of the signer key",
       "order": {
         "p": "dmp",
         "v": "2",
@@ -699,7 +699,7 @@
     },
     {
       "name": "duplicate-key",
-      "why": "pay_to appears twice; last-wins parsers see a valid order (dojak: duplicate JSON key \"pay_to\" at 294)",
+      "why": "pay_to appears twice; last-wins parsers see a valid order (dig: duplicate JSON key \"pay_to\" at 294)",
       "order": {
         "p": "dmp",
         "v": "2",

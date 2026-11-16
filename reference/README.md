@@ -63,7 +63,7 @@ Production implementations will need real chain ingestion, signature verificatio
 ## ÐMP 1.0 compact orders: `dmp_v2_reconstruct.py`
 
 An independent reconstructor for [compact-orders.md](../compact-orders.md) (formerly `spec-v2.md`; the
-file name keeps `v2` because compact orders carry the wire marker `"v":"2"`). It shares no code with dogex or dojak: it parses a
+file name keeps `v2` because compact orders carry the wire marker `"v":"2"`). It shares no code with dogex or dig: it parses a
 compact order, rebuilds the canonical template and PSDT bytes (§5), verifies the SINGLE|ACP signature, checks fill
 compliance (§8), and verifies `asig` (§7.2) with its own canonicalizer and its own pubkey recovery.
 It needs `pip install ecdsa`.

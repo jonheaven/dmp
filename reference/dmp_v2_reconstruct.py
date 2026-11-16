@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Independent ÐMP v2 compact-order reconstructor (compact-orders.md §3–§8, incl. §5.4 P2SH, §7.2 asig).
 
-Written from the spec only: no dogex, dojak or bitcoinjs code. Uses hashlib and the
+Written from the spec only: no dogex, dig or bitcoinjs code. Uses hashlib and the
 `ecdsa` package for signature verification; tx/PSBT serialization, base58 and the
 legacy SIGHASH_SINGLE|ANYONECANPAY digest are implemented here.
 
