@@ -1,0 +1,16 @@
+{
+  "p": "dmp",
+  "v": "1.0",
+  "op": "collection-update",
+  "chain": "dogecoin",
+  "collection_id": "1111111111111111111111111111111111111111111111111111111111111111i0",
+  "update_of": "1111111111111111111111111111111111111111111111111111111111111111i0",
+  "supersedes": "1111111111111111111111111111111111111111111111111111111111111111i0",
+  "patch": {},
+  "handover": {
+    "to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+    "sig": "IBEh5Cbpp3uh0xxaXmtcrWaON1tPWmV/P83azH5+IWH4BNbOfEFFCc93MpnVrWQq60KotQxPkVJ6p9yMDIb8VzA="
+  },
+  "ts": 1795000200,
+  "sig": "H9K83Wy71GDeusi75t+1qwnPEBnNBvOw4L87+t+mCBPEOLbIpk7ny98cwA4Io4lBHBe2HdobU+a2TBX/BEUlIvI="
+}

@@ -53,6 +53,7 @@ flagged, never enforced: [what is guaranteed vs verified](security.md#21-what-is
 | `vectors/dmp_v1_psdt_vectors.json` | Draft-list (pre-1.0) embedded-PSDT hardening, using the real mainnet lists. `… v1 <file>` |
 | `schemas/list-v2.schema.json`, `schemas/cancel-v2.schema.json` | JSON shape only. Signatures and state are not checked. |
 | `EXAMPLES/v2/` | Valid orders and cancels taken from the vectors. |
+| `reference/collection_registry.py` + `vectors/collection_registry_vectors.json` | Collection registry: root, chunks, resolution, tiers, precedence, updates ([collection-registry.md](collection-registry.md)). `… check <file>` |
 
 ```bash
 python3 -m pip install ecdsa

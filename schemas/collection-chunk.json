@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dmp/v1.0/collection-chunk",
+  "title": "ÐMP collection chunk (JSON form)",
+  "description": "Part of a committed member list (collection-registry.md §3). The text form (one canonical id per line, LF only) is not JSON and has no schema. Max body 32,768 bytes.",
+  "type": "object",
+  "required": [
+    "p",
+    "op",
+    "ids"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "p": {
+      "const": "dmp"
+    },
+    "v": {
+      "const": "1.0"
+    },
+    "op": {
+      "const": "collection-chunk"
+    },
+    "ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}i(0|[1-9][0-9]*)$"
+      }
+    }
+  }
+}

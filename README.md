@@ -12,6 +12,7 @@ the same seller PSDT byte for byte from its own node, and any wallet can fill th
 
 | | |
 | ---: | --- |
+| **Spec revision** | 1.1 (2026-11-20): adds the on-chain [collection registry](collection-registry.md). Wire `v` is unchanged |
 | **Version** | ÐMP 1.0 = compact signed orders ([compact-orders.md](compact-orders.md), wire `"v":"2"`) + the ops in [spec.md](spec.md) (wire `"v":"1.0"`). There is no ÐMP 2; `"2"` is only the compact-order wire marker |
 | **Status** | Pre-launch draft, tested on regtest. It stays pre-launch until a cross-venue trade between independent implementations is proven on mainnet. The earlier `list` format with an embedded `psdt`/`psdt_hash` is a **draft (pre-1.0)** format: do not create it; indexers should ignore it |
 | **Durable payload** | JSON in a Dogecoin inscription with `"p": "dmp"` |
@@ -88,7 +89,7 @@ python3 reference/dmp_v2_reconstruct.py v1      vectors/dmp_v1_psdt_vectors.json
 | `decline` | Declines an offer or counteroffer |
 | `transfer` | Explicit non-sale ownership transfer (gifts, airdrops) |
 | `collection` | Creator-signed collection manifest |
-| `collection-update` | Append-only metadata update for a collection |
+| `collection-update` | Append-only update: metadata, member list, retire, signer handover |
 | `vote` | DAO governance signal |
 
 ---
@@ -102,6 +103,7 @@ python3 reference/dmp_v2_reconstruct.py v1      vectors/dmp_v1_psdt_vectors.json
 | [MIGRATION-from-draft.md](MIGRATION-from-draft.md) | What a draft (pre-1.0) implementation must change (formerly `MIGRATION-v1-to-v2.md`) |
 | [CONFORMANCE.md](CONFORMANCE.md) | Conformance checklist |
 | [spec.md](spec.md) | ÐMP 1.0 protocol specification (all other ops) |
+| [collection-registry.md](collection-registry.md) | On-chain collection registry: committed member lists, verified vs community tiers, precedence, handover (spec revision 1.1) |
 | [dogetag-offers.md](dogetag-offers.md) | Lightweight OP_RETURN offer signaling extension |
 | [implementation-guide.md](implementation-guide.md) | How to build a compliant indexer |
 | [security.md](security.md) | Threat model, mitigations, and [what is guaranteed vs verified](security.md#21-what-is-guaranteed-vs-verified) |
@@ -123,6 +125,7 @@ python3 reference/dmp_v2_reconstruct.py v1      vectors/dmp_v1_psdt_vectors.json
 ```bash
 python reference/dmp_reference.py validate EXAMPLES/list-op.json
 python reference/dmp_reference.py test-vectors
+python3 reference/collection_registry.py check vectors/collection_registry_vectors.json
 ```
 
 ---

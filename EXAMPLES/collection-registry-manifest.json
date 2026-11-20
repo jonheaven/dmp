@@ -1,0 +1,30 @@
+{
+  "p": "dmp",
+  "v": "1.0",
+  "op": "collection",
+  "chain": "dogecoin",
+  "slug": "registry-test-dogs",
+  "name": "Registry Test Dögs",
+  "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+  "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+  "royalty_bps": "500",
+  "type": "fixed",
+  "supply": "150",
+  "supply_locked": true,
+  "criteria": {
+    "mode": "explicit",
+    "members_root": "b25815db2b0adaad934b091e98b61ef72f60296682567265dce27123777d9a42",
+    "members_count": "150",
+    "members_chunks": [
+      "03be8e8f894ab7c69503555c972e87c8f8428a583a7fa175d00555ee2820d129i0",
+      "06a2505336574470d2451600b3615d2a6e7f1c13b99808bead0e4155b735425bi0",
+      "a3fb9de91a894fbf207237be180066dcaa75f85c3418e878a477018fcde8ab11i0"
+    ]
+  },
+  "description": "Test vector. Not a real collection.",
+  "links": {
+    "website": "https://doginals.lol"
+  },
+  "ts": 1795000000,
+  "sig": "II0XzoSqB3wJwAHEQP6Wl94Y1QGAWCAoI30WqrKw1WvgeuTJGv5WFZT/iVWysp4jIThKxMEXzuX7Zlhn3tksfyc="
+}

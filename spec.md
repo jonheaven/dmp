@@ -1,9 +1,9 @@
 <!-- markdownlint-disable MD024 -->
 # ÐMP — Doginals Marketplace Protocol Specification
 
-Version: ÐMP 1.0 (pre-launch draft; `"v":"1.0"` ops and `"v":"2"` compact orders)
+Version: ÐMP 1.0, spec revision 1.1 (pre-launch draft; `"v":"1.0"` ops and `"v":"2"` compact orders)
 Status: Pre-launch draft
-Last Updated: 2026-10-23
+Last Updated: 2026-11-20
 Chain: Dogecoin (and compatible Dogecoin-fork chains)
 **Canonical public spec:** [github.com/jonheaven/dmp](https://github.com/jonheaven/dmp)
 
@@ -204,6 +204,10 @@ for unique pieces. Do not answer L1-scale critiques by pretending Runes-style ed
 - `v`, when present, MUST be `"1.0"` or `"2"`. When absent, indexers MUST treat the op as `"1.0"`.
   Both values are ÐMP 1.0: `"2"` is the wire marker of the compact-order format, kept byte-for-byte.
 - After public launch, breaking wire changes MUST be a new `v`.
+- **Spec revisions** add backward-compatible fields and rules without changing `v`. Revision **1.1**
+  (2026-11-20) adds the on-chain collection registry ([collection-registry.md](collection-registry.md)):
+  committed member lists, verification tiers, slug and member precedence, signer handover. `"1.1"` is a
+  document revision, never a wire value.
 - **Compact signed orders (`"v":"2"`)**, see [compact-orders.md](compact-orders.md). A compact `list` carries
   the seller's `SIGHASH_SINGLE|ANYONECANPAY` signature instead of a PSDT; every indexer rebuilds the canonical
   PSDT from its own node. Compact orders define `list` and `cancel` only, and they are the ÐMP 1.0
@@ -779,6 +783,25 @@ the same job. See the DRC-721 / ÐMP comparison note (published separately). In 
 `parent_inscription_id` in this schema block is optional. When present, it **MUST** follow the
 [parent_inscription_id (optional, v1.0)](#parent_inscription_id-optional) rules above.
 
+#### Committed member lists (spec revision 1.1)
+
+A `fixed` + `explicit` manifest MAY commit to its member list instead of carrying it inline:
+`criteria.members_root` (SHA-256 of the sorted, LF-joined ids), `criteria.members_count` and
+`criteria.members_chunks` (the inscriptions holding the list, up to 256 × 32,768 bytes, 100,000 members).
+`criteria.inscription_ids` and `signed_list` are then absent; the manifest `sig` covers the root. The
+manifest is `pending` until every chunk is confirmed (window: 1,440 blocks), then `valid` or `invalid`.
+Every valid manifest is also tiered `verified` or `community` from chain data. Full rules:
+[collection-registry.md](collection-registry.md).
+
+```json
+"criteria": {
+  "mode": "explicit",
+  "members_root": "<64 hex>",
+  "members_count": "10000",
+  "members_chunks": ["<chunk inscription_id>", "…"]
+}
+```
+
 #### default_auction_settings
 
 - Optional collection-level defaults used by wallets/marketplaces as policy hints, not binding overrides.
@@ -831,6 +854,12 @@ the same job. See the DRC-721 / ÐMP comparison note (published separately). In 
 Append-only patch update for collection state. The `patch` object **MUST NOT** add, remove, or change
 `parent_inscription_id` (or any not-yet-manifested `collection` top-level key reserved for the root
 operation). Parent provenance is fixed on the [root `collection` op](#45-collection) only.
+
+Spec revision 1.1: `sig` verifies to the collection's current **signer** (the root `creator_address`
+until a handover). An update MAY replace a committed member list (`patch.criteria`), retire the
+collection for good (`patch.retired: true`), and rotate the signer with a top-level
+`"handover": {"to": "<address>", "sig": "<sig by to>"}` that both keys sign. See
+[collection-registry.md §7](collection-registry.md#7-updates-to-registry-manifests).
 
 #### Schema
 
@@ -1691,8 +1720,9 @@ Allowed `criteria.mode` values:
 
 This is distinct from optional root `parent_inscription_id` (a parent *collection*).
 
-Slug format MUST match `^[a-z0-9-]+$` with max 64 characters. Slugs are unique per chain; earliest
-confirmed inscription by canonical ordering wins.
+Slug format MUST match `^[a-z0-9-]+$` with max 64 characters. Slugs are unique per chain. Among valid,
+unretired manifests, a `verified` manifest beats a `community` one, and within a tier the earliest by
+canonical ordering wins ([collection-registry.md §6](collection-registry.md#6-conflicts-slugs-and-members)).
 
 ---
 
@@ -1716,6 +1746,8 @@ confirmed inscription by canonical ordering wins.
 
 - `description`, `name`, `default_auction_settings`, `royalty_address`, `royalty_bps`
   (subject to vote if `requires_vote = true`)
+- `image`, `links`, a committed member list (`criteria`), and `retired` (spec revision 1.1)
+- the signer, only through a dual-signed `handover`; `creator_address` itself is never patched
 
 ---
 
@@ -1776,7 +1808,7 @@ Any op failing a MUST rule is invalid.
 ### 13.1 Universal
 
 - MUST-001: `p` MUST be `"dmp"`. Indexers MUST NOT treat any other marker as ÐMP.
-- MUST-002: `v`, when present, MUST be `"1.0"` or `"2"`. `"2"` is the compact-order wire marker and is still ÐMP 1.0 (Versioning). When `v` is absent, treat as `"1.0"`. `"1.1"` and `"1.2"` are not versions.
+- MUST-002: `v`, when present, MUST be `"1.0"` or `"2"`. `"2"` is the compact-order wire marker and is still ÐMP 1.0 (Versioning). When `v` is absent, treat as `"1.0"`. `"1.1"` and `"1.2"` are not wire versions (spec revision 1.1 is a document revision).
 - MUST-003: `op` is recognized.
 - MUST-004: valid UTF-8 JSON.
 - MUST-005: unknown fields ignored (not errors).
@@ -1873,9 +1905,12 @@ Any op failing a MUST rule is invalid.
 
 ### 13.6 collection
 
-- MUST-050: `slug` unique per chain; earliest by canonical ordering wins slug registration.
+- MUST-050: `slug` unique per chain. Among valid, unretired manifests, `verified` beats `community`, then
+  the earliest by canonical ordering wins (collection-registry.md §6).
 - MUST-051: manifest `sig` MUST verify to `creator_address`.
-- MUST-052: `explicit` mode requires valid `signed_list.sig` verifying to `creator_address`.
+- MUST-052: `explicit` mode requires valid `signed_list.sig` verifying to `creator_address`, unless the
+  manifest commits its list with `criteria.members_root` (then `signed_list` MUST be absent and `sig`
+  covers the root).
 - MUST-053: `fixed` + `explicit` supply MUST equal `criteria.inscription_ids` list count when
   `supply_locked = true`.
 - MUST-054: `royalty_bps` MUST be integer string in range `"0"` through `"2500"` (0%–25%). Out of range is a
@@ -1889,17 +1924,25 @@ Any op failing a MUST rule is invalid.
   flagged, per policy).
 - MUST-058: `parent_inscription_id` MUST be omitted from `collection-update` `patch` and from any
   non-root `collection` use; only the root [§4.5 `collection`](#45-collection) op may carry the field.
+- MUST-059: a committed manifest follows collection-registry.md §3–§4: canonical ids only, chunk bodies
+  ≤ 32,768 bytes, ≤ 256 chunks, ≤ 100,000 members, every chunk confirmed by H + 1,440, and the rebuilt
+  list matches `members_count` and `members_root`. Until then it is `pending`; a failure is `invalid`.
+- MUST-066: every valid manifest is tiered from chain data at H−1 only (`parent_holder`,
+  `parent_inscriber`, `member_inscriber` majority, else `community`), collection-registry.md §5.
 
 ### 13.7 collection-update
 
 - MUST-060: `collection_id` exists in indexer state.
 - MUST-061: `supersedes` MUST equal the current head inscription_id of the collection update chain.
   Competing updates to the same head are resolved by canonical ordering.
-- MUST-062: `sig` MUST verify to the `creator_address` of the root collection.
+- MUST-062: `sig` MUST verify to the collection's current signer: the `creator_address` of the root
+  collection, or the `to` of the last accepted `handover` (collection-registry.md §7.3).
 - MUST-063: immutable fields (`slug`, `chain`, `type`, and `parent_inscription_id` on the root when set) MUST
   NOT be changed in `patch`.
 - MUST-064: if `requires_vote = true` on collection, `vote_proof` MUST be present and valid.
 - MUST-065: `patch` MUST NOT contain `parent_inscription_id` (see [§4.6](#46-collection-update)).
+- MUST-067: `patch` MUST NOT contain `slug`, `chain`, `type` or `creator_address`; a `handover` MUST
+  carry a `sig` by `to` over the same canonical message; `retired: true` is final.
 
 ### 13.8 vote
 
@@ -1953,7 +1996,7 @@ When multiple MUST rules fail, implementations SHOULD report the first failing r
 4. Negotiation lifecycle rules (MUST-084–088, MUST-100)
 5. Settlement integrity rules (MUST-030–037, MUST-096–099, MUST-101, MUST-107, MUST-108)
 6. Cancel rules (MUST-040–044, MUST-104–106)
-7. Collection governance and immutability rules (MUST-051–058, MUST-061–065)
+7. Collection governance and immutability rules (MUST-051–059, MUST-061–067)
 
 ---
 
@@ -2083,6 +2126,7 @@ See EXAMPLES directory for canonical operation payloads, including:
 - Marketplace intents for `list`, `bid`, `auction`, `offer`, seller responses, `settle`, `cancel`, and `transfer`.
 - Collection manifests and `collection-update` rules.
 - Optional root `collection.parent_inscription_id`, aligned with DRC-721 native `parent` / UTXO validation.
+- Spec revision 1.1: the on-chain collection registry ([collection-registry.md](collection-registry.md)).
 - Creator signatures, canonical ordering, provenance gap handling, and settlement verification.
 - **Write budget (MUST-111 / MUST-112 / SHOULD-113):** one collection inscription for royalty, one list
   for the PSDT or its hash, DogeTag for bids, the fill tx as the settle. No `settle` inscription on a

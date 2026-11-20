@@ -1,5 +1,28 @@
 # Launch Draft Summary
 
+## Spec revision 1.1: on-chain collection registry (2026-11-20)
+
+Backward compatible. Wire `v` stays `"1.0"`; every op that was valid before keeps its outcome, and the
+existing vectors are unchanged. New document: [collection-registry.md](collection-registry.md). New
+vectors: `vectors/collection_registry_vectors.json`, checked by `reference/collection_registry.py`.
+
+- **Committed member lists.** A `fixed` + `explicit` manifest may carry `criteria.members_root`,
+  `members_count` and `members_chunks` instead of an inline list. Root = SHA-256 of the canonical ids
+  sorted by byte value and joined with LF, no trailing LF. Chunks are text (one id per LF line) or JSON
+  (`{"p":"dmp","op":"collection-chunk","ids":[…]}`), ≤ 32,768 bytes each, ≤ 256 chunks, ≤ 100,000
+  members. `pending` until every chunk is confirmed, `invalid` after 1,440 blocks or on any mismatch.
+- **Verification tiers** from chain data at H−1: `parent_holder`, `parent_inscriber`, or a strict
+  majority of members inscribed by the creator (`member_inscriber`). Everything else is `community`.
+  "First member's inscriber" is deliberately not a rule.
+- **Precedence** (MUST-050 refined): verified beats community; within a tier the earliest wins, for the
+  slug and for each member's primary collection. Pending, invalid and retired manifests take no part.
+- **collection-update:** signed by the current signer (MUST-062), list replacement (`patch.criteria`),
+  `patch.retired: true` (final), dual-signed `handover` for signer rotation, `creator_address` and the
+  other immutable keys rejected (MUST-067).
+- New rules MUST-059, MUST-066, MUST-067. Schemas: `collection.json` and `collection-update.json` gain
+  the new fields; new `collection-chunk.json`. Examples: `EXAMPLES/collection-registry-manifest.json`,
+  `EXAMPLES/collection-registry-handover.json`.
+
 ## Hardening additions (2026-11-20)
 
 No activation height. Every order, fill and cancel that was valid before keeps its outcome; the existing

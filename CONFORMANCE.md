@@ -54,6 +54,17 @@ differs from a vector, you are wrong or the vector is, and either way please ope
 - [ ] It does not serve or build a fill within 7200 s of `expiry` (§9.1).
 - [ ] It does not serve `cancelled`, `expired` or `postage_unsafe` orders.
 
+## Collection registry (spec revision 1.1)
+
+- [ ] Indexer: all of `vectors/collection_registry_vectors.json` matches (`reference/collection_registry.py
+      check`): canonical root, chunk forms and limits, `pending` / `valid` / `invalid` resolution,
+      tiers, slug and member precedence, `collection-update` acceptance and handover.
+- [ ] Indexer: tiers use only your own chain data at H−1 and immutable inscriber facts.
+- [ ] Wallet: chunks are canonical ids, sorted, one per LF line, each body ≤ 32,768 bytes; the manifest
+      root is computed from the same list; the signer signs the canonical JSON as a Dogecoin message.
+- [ ] Venue: shows `verified` / `community` and `verified_by`, and never presents a community manifest's
+      royalty as the creator's.
+
 ## Conformance levels
 
 A claim names a level and the **exact dmp commit** (full 40-hex SHA) it was tested against, for

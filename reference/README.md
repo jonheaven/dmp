@@ -86,3 +86,18 @@ deterministically from the public test scalars `0x01…01` and `0x02…02`.
 ```bash
 python3 reference/dmp_hardening.py check vectors/dmp_hardening_vectors.json   # expect "ALL MATCH"
 ```
+
+## Collection registry: `collection_registry.py`
+
+Checks [vectors/collection_registry_vectors.json](../vectors/collection_registry_vectors.json) for
+[collection-registry.md](../collection-registry.md): the canonical root, text and JSON chunks, manifest
+shape and signature, `pending` / `valid` / `invalid` resolution, verification tiers, slug and member
+precedence, `collection-update` acceptance (stale heads, immutable keys, retire, dual-signed handover)
+and the informative cost estimate. Needs `pip install ecdsa`. `gen` rebuilds the file from the public
+test scalars `0x01…01`, `0x02…02` and `0x03…03`.
+
+```bash
+python3 reference/collection_registry.py check vectors/collection_registry_vectors.json   # "45/45 vector groups ok"
+python3 reference/collection_registry.py root ids.txt            # root and count of a list, one id per line
+python3 reference/collection_registry.py chunk ids.txt chunks/   # write the text chunks for that list
+```
