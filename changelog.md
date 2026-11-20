@@ -1,5 +1,27 @@
 # Launch Draft Summary
 
+## Hardening additions (2026-11-20)
+
+No activation height. Every order, fill and cancel that was valid before keeps its outcome; the existing
+vectors are unchanged. New vectors: `vectors/dmp_hardening_vectors.json`, checked by
+`reference/dmp_hardening.py`.
+
+- **§4.1 exact arithmetic.** Fee products are computed exactly in at least 128 bits; never wrapped,
+  saturated or truncated. An unrepresentable value makes the order INVALID. Vectors at `price` = 2^64−1.
+- **§8.5 Dogetags.** Every OP_RETURN with non-empty pushed data is a Dogetag (the dogex archive rule),
+  whatever else the transaction does. ÐMP classification never changes that. DogeTag Offers §3.1a: the
+  `Ð:𝕏`/`Ð:X` marker only identifies the offer layer.
+- **§9.1 near-expiry buffer.** The time base stays block `nTime`. Venues stop serving 7200 s before
+  `expiry`; wallets warn.
+- **§17 directed orders** (`mode:"directed"`, `buyer`, `postage`): the §12 buyer-bound construction made
+  normative. `0x81` over every output; royalty and listing fee enforced by consensus.
+  `schemas/list-directed.schema.json`.
+- **§18 `0xD2` compact carrier.** New ÐMP OP_RETURN data uses protocol code byte `0xD2` (after `0xD0`
+  Ðunes and `0xD1` Ðalkanes) plus a version byte, with strict byte-exact framing. No kinds defined yet.
+  No new text markers; existing marker-based protocols are unchanged.
+- **§19 order-book digest.** One SHA-256 per block over the open book, for cross-indexer comparison.
+- **§20 acknowledgements.** Credit to UsaRandom/nowon's PepeNet `namespace-protocol`.
+
 ## One version: ÐMP 1.0 (2026-11-03)
 
 Wire versions are `"1.0"` and compact-order `"2"`. `"1.1"` and `"1.2"` are not versions.

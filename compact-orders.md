@@ -61,6 +61,13 @@ the same reason.
   Without this, any party can inscribe a junk-signature PSDT naming someone else's dog. (The first
   version of this check required P2PKH and rejected every P2SH-held dog; that was a regression.)
 
+- **Hardening additions (2026-11-20).** §4.1 exact arithmetic, §8.5 Dogetags, §9.1 near-expiry buffer,
+  §17 directed orders, §18 the `0xD2` compact carrier and §19 the order-book digest. They are part of
+  ÐMP 1.0 and need no activation height. Every order, fill and cancel that was valid before stays valid
+  with the same outcome: §17 applies only to orders whose `mode` is exactly `"directed"`, §18 only to
+  OP_RETURN outputs that start with the new `0xD2` code, and §4.1, §8.5, §9.1 and §19 do not change any
+  validity outcome.
+
 ## 3. Chain values
 
 `chain` is REQUIRED in compact orders and MUST match the indexer's network.
@@ -109,6 +116,9 @@ Regtest and testnet share address prefixes; `chain` is what tells them apart. Ad
 | `psdt` | string | OPTIONAL base64 of the canonical PSDT (§5.3). If present it MUST equal the rebuild byte-for-byte |
 | `asig` | string | OPTIONAL signed-message authorship (§7.2): base64 of 65 bytes. Lets any inscriber publish the order. Single-key orders only |
 | `asigs` | array | multisig orders only (REQUIRED there, §7): exactly `m` `asig` strings by distinct script keys, in key order |
+| `mode` | string | OPTIONAL. Exactly `"directed"` makes this a directed (buyer-bound) order, §17. Any other value is an ignored unknown field |
+| `buyer` | string | directed orders only (REQUIRED there): the one buyer address (§3), §17 |
+| `postage` | string | directed orders only (REQUIRED there): koinu of the pinned dog output to the buyer, ≥ 100000, §17 |
 
 Exactly one owner shape is valid:
 
@@ -123,7 +133,8 @@ single-key order, `asig` on a multisig order, a wrong count) is INVALID.
 
 - Caps are **rejections**, not clamps: `royalty_bps > 2500` or `market_bps > 2000` ⇒ INVALID.
 - Emitters SHOULD use the key order shown and omit zero/default fee keys; parsers MUST accept any order.
-- Unknown fields are ignored (spec.md §3.2).
+- Unknown fields are ignored (spec.md §3.2). `buyer` and `postage` on an order without `mode:"directed"`
+  are unknown fields.
 - A `list` with top-level `items` and no top-level `inscription_id` is a batch (§16). A body with both is a single order, and `items` is an ignored unknown key.
 - JSON Schema: `schemas/list-v2.schema.json`. Batch lists: `schemas/list-batch.schema.json`.
 
@@ -154,6 +165,17 @@ actually inscribed.
 
 `net` MUST be ≥ 100000 koinu (hard dust); otherwise the order is INVALID. Same math as
 `collaborative-fees.md` §4.
+
+**Exact arithmetic (normative).** `price` is at most 2^64−1 and a bps value at most 10000, so
+`price · bps` needs up to 78 bits and overflows a 64-bit integer. Implementations MUST compute every
+product and quotient above exactly, with at least 128-bit unsigned integers (or arbitrary precision),
+then floor. They MUST NOT wrap, saturate, clamp or use floating point. A value that cannot be
+represented exactly (a `price` above 2^64−1, a negative or over-range result) makes the order INVALID;
+it is never truncated into range. With the caps in §4 no valid order can reach such a value: at
+`price` = 2^64−1, `royalty_bps` 2500 and `market_bps` 2000 the results are royalty 4611686018427387903,
+market 3689348814741910323 and net 10145709240540253389. Vectors: `fee_math[]` in
+[vectors/dmp_hardening_vectors.json](vectors/dmp_hardening_vectors.json). dogex computes the split in
+`u128` and has done so since 1.0; its outcomes are unchanged.
 
 ## 5. Canonical template
 
@@ -256,7 +278,8 @@ An indexer processing a compact `list` revealed in block `B` MUST check, in orde
 change) on the first failure:
 
 1. Static: §4 types, caps, `chain` = network, `psdt_hash` absent, `net ≥ 100000`, strict DER, low-S,
-   hashtype `0x83`, pubkey on curve.
+   hashtype `0x83` (`0x81` for a directed order, §17), pubkey on curve, and the §17.1 checks for a
+   directed order.
 2. The indexer's own state places `inscription_id` at `utxo` (current outpoint).
 3. The dog's current owner hash equals `hash160(pubkey)` (P2PKH) or `hash160(redeem_script)` (P2SH),
    and the parent tx output `utxo.vout` is exactly P2PKH(`hash160(pubkey)`) or
@@ -291,7 +314,8 @@ or `listing omits a signature while a cheaper one is still fillable`.
 
 **Listing safety** (spec.md §3.5, normative here for compact orders):
 
-- Every `sig` / `sigs[i]` hashtype is `0x83`. `0x02` and `0x82` are INVALID, as is any other byte.
+- Every `sig` / `sigs[i]` hashtype is `0x83` (`0x81` on a directed order, §17). `0x02` and `0x82` are
+  INVALID, as is any other byte.
 - An older signature remains fillable until its dog outpoint is spent. Cancel (§9) and expiry do not
   retire it, whatever status the indexer shows.
 - On the same outpoint, `new` is INVALID when it carries no signature, or when its locked seller output
@@ -518,7 +542,8 @@ Dogecoin Core relays at most **one** OP_RETURN output per transaction, up to 80 
   OP_RETURN of any kind, or several of them (a non-standard but mined transaction is still a fill).
 - Informative: indexers MAY record `op_return_kind` on the fill. It is `"dmp2"` for a venue tag, and
   `"json:<k>"` when the data parses as a JSON object, with `<k>` its lexicographically smallest key
-  (e.g. `"json:mkt"` for `{"mkt":…}`). It is `"other"` for anything else and absent/`null` when there is no OP_RETURN.
+  (e.g. `"json:mkt"` for `{"mkt":…}`), and `"dmp-d2"` for a well-formed version-1 `0xD2` carrier (§18).
+  It is `"other"` for anything else and absent/`null` when there is no OP_RETURN.
 
 - **Open question (tag-free venue check).** Without a `dmp2` tag an indexer cannot tell which output, if
   any, is the settlement-venue fee: the order names no venue address, and any extra output may be buyer
@@ -539,6 +564,29 @@ These are Dogecoin Core relay defaults, not ÐMP validity rules. A mined fill is
 - Sellers SHOULD list with `net ≥ 1 DOGE`.
 - Postage: dogs SHOULD keep 100000 koinu (0.001 DOGE) postage; the canonical template's `out[0]`
   placeholder uses that value.
+
+### 8.5 Dogetags (normative)
+
+A **Dogetag** is any OP_RETURN output whose data pushes, concatenated, are non-empty. This is the
+dogex Dogetag archive rule (`dogetag.rs`, every OP_RETURN from genesis): take every data push after
+`OP_RETURN` in order and join them; small-number opcodes (`OP_1`…`OP_16`) add nothing. The only
+OP_RETURN that is not a Dogetag is one whose pushed data is empty (`OP_RETURN` alone, or with only
+`OP_0` or small-number opcodes).
+
+- An output is a Dogetag whatever else the transaction does: a plain DOGE send with a note, a ÐMP fill,
+  an inscription reveal, a Ðunes or other protocol transaction, any wallet's encoding (one push or
+  several, any push opcode).
+- Nothing in ÐMP decides Dogetag status. `op_return_kind` (§8.3), the `dmp2` tag, DogeTag Offers
+  ([dogetag-offers.md](dogetag-offers.md)), the strict `0xD2` carrier rules (§18) and any future ÐMP rule
+  classify an OP_RETURN for ÐMP only. A `dmp2` tag, a DogeTag Offer, a well-formed `0xD2` carrier and a
+  void `0xD2` candidate are all still Dogetags.
+- A fill whose one OP_RETURN is a personal note is a valid fill (`op_return_kind:"other"`, §8.3) and a
+  Dogetag. A directed fill (§17) has no OP_RETURN, because every output is pinned.
+
+Vectors: `dogetag[]` in [vectors/dmp_hardening_vectors.json](vectors/dmp_hardening_vectors.json): a plain
+send with a note, a multi-push note, a note inside a fill, the `dmp2` tag, a note alongside an
+inscription reveal, a DogeTag Offer marker with an unknown kind, a void `0xD2` candidate, an empty
+OP_RETURN and `OP_RETURN OP_1`. dogex checks them against its unchanged Dogetag extractor.
 
 ## 9. Cancel and expiry
 
@@ -562,6 +610,23 @@ These are Dogecoin Core relay defaults, not ÐMP validity rules. A mined fill is
   recorded, flagged `after_cancel`. Sellers who need certainty MUST cancel by moving.
 - **Expiry.** At the start of the first block with `nTime ≥ expiry`, an open order becomes
   `expired`. Venues MUST NOT serve it. A later fill is recorded, flagged `after_expiry`.
+
+### 9.1 Time base and near-expiry buffer
+
+Compact orders keep block-header `nTime` as their time base (§6.1). Changing a live order's time base to
+MTP would change which fills are flagged `after_expiry` on a reindex, so it is not done. Instead:
+
+- `EXPIRY_BUFFER` = 7200 s, the node rule for how far a block's `nTime` may run ahead of network-adjusted time.
+- Venues MUST NOT serve an order, or build a fill for it, when `expiry ≤ now + EXPIRY_BUFFER` by
+  wall-clock time. A fill built later than that can confirm in a block whose `nTime` already reaches
+  `expiry`.
+- Seller wallets SHOULD warn when the chosen `expiry` is less than `2 · EXPIRY_BUFFER` away, and SHOULD
+  say that expiry is advisory: the signature stays fillable until the dog moves (§9).
+- Buyer wallets SHOULD warn before signing a fill within `EXPIRY_BUFFER` of `expiry` that it may be
+  recorded with `after_expiry`.
+
+This is a serving rule. It changes no indexer state. dogex's `POST /api/dmp/buy/prepare` returns 409 for
+an order inside the buffer.
 
 ## 10. Reorgs
 
@@ -594,8 +659,10 @@ Tested on regtest:
   Tradeoffs: the order names one buyer and the exact lead-coin value (interactive, RFQ-style; not a
   public listing). The buyer must fund the pinned outputs exactly, because there is no change output,
   which needs a prep tx. The order is larger (~780 B JSON with pinned outputs). Fee terms are bound
-  by consensus, so §7 authorship is not needed for them. A ÐMP 1.0 indexer would treat it as a separate
-  `mode:"enforced"`. This is not implemented in dogex.
+  by consensus, so §7 authorship is not needed for them. This variant is now normative as
+  `mode:"directed"` (§17). The sketch here named it `mode:"enforced"`; that name was never on the
+  wire. §17 folds the settlement fee into the listing fee, so the pinned set has no separate
+  settlement output.
 - **P2SH dogs in a future enforced mode.** §5.4 is written so it carries over unchanged: the templates,
   the hash check, the `OP_CHECKMULTISIG` signature walk, the canonical scriptSig (which takes each
   signature with whatever hashtype byte it carries) and PSDT key `0x04`. Only the hashtype (`0x81`)
@@ -667,6 +734,11 @@ and `reorg` steps that disconnect blocks; the expected listing record after each
 pure fold over the connected chain, so a reorg is replayed by disconnecting and reconnecting blocks.
 An implementation conforms if it reproduces every expectation. Check them with
 `python3 reference/dmp_v2_reconstruct.py state vectors/dmp_v2_state_vectors.json`.
+
+`vectors/dmp_hardening_vectors.json` covers §4.1 exact fee math (`fee_math[]`), §8.5 Dogetags
+(`dogetag[]`), §17 directed orders (`directed_valid[]` with template, sighash and PSDT bytes,
+`directed_invalid[]`, `directed_fill[]`), §18 carriers (`carrier[]`) and §19 digests (`book_digest[]`).
+Check them with `python3 reference/dmp_hardening.py check vectors/dmp_hardening_vectors.json`.
 
 ## 15. Draft lists already on mainnet
 
@@ -1162,3 +1234,171 @@ a subset of the outpoints (those items replaced, others untouched); moved dog (I
 
 *Fill and cancel:* fill of item 1 leaves 0 and 2 listed; cancel all; cancel `[1]`; cancel with index out of range
 (INVALID); cancel with `:n` suffix (INVALID); consolidation spend of all outpoints cancels all; reorg of the batch block removes all its items.
+
+## 17. Directed (buyer-bound) orders
+
+A directed order is sold to one named buyer, with every fee enforced by consensus. The seller signs
+the dog input `SIGHASH_ALL|ANYONECANPAY` (`0x81`) over the full output set, so the buyer can add inputs
+but cannot add, drop or change any output. It is the §12 buyer-bound construction, made normative. It is
+an RFQ or private-sale tool, not a public listing.
+
+### 17.1 Fields and static checks
+
+A `list` with `mode` exactly `"directed"` is a directed order. Everything in §4–§7 applies, with these
+changes:
+
+- `sig` / `sigs[i]` carry hashtype `0x81`. `0x83` on a directed order is INVALID, as are `0x02`, `0x82`
+  and any other byte. Strict DER and low-S as in §4.
+- `buyer` is REQUIRED: a P2PKH or P2SH address on the order's chain (§3).
+- `postage` is REQUIRED: a koinu string (§4 `price` format), ≥ 100000. Wallets SHOULD set it to the
+  dog output's value. It is not checked against the chain.
+- If `market_bps > 0`, `fees.listing_to` is REQUIRED and `fees.listing_share_bps` MUST be `"10000"`: the
+  whole market fee is one pinned output to `listing_to`. A directed fill has no settlement venue.
+- Each fee output that is present (royalty > 0, listing > 0) MUST be ≥ 100000 koinu. `net ≥ 100000` as in §4.1.
+- A batch list (§16) is never directed. `mode`, `buyer` and `postage` are not resolved into items.
+- JSON Schema: `schemas/list-directed.schema.json`.
+
+Example (regtest, from the vectors):
+
+```json
+{"p":"dmp","v":"2","op":"list","mode":"directed","chain":"dogecoin-regtest",
+ "inscription_id":"<txid>i0","utxo":"<txid>:0","price":"1000000000",
+ "pay_to":"<seller address>","buyer":"<buyer address>","postage":"100000",
+ "pubkey":"<66 hex>","sig":"<DER hex>81",
+ "fees":{"royalty_bps":"500","royalty_to":"<address>","market_bps":"200","listing_to":"<address>","listing_share_bps":"10000"},
+ "ts":1790000000}
+```
+
+### 17.2 Pinned template
+
+```
+version   2 (int32 LE)            locktime 0
+in[0]     prevout 00…00 : 0       scriptSig empty   sequence 0xfffffffe   (buyer lead coin, placeholder)
+in[1]     prevout utxo            scriptSig empty   sequence 0xffffffff   (dog)
+out[0]    100000 koinu → scriptPubKey(buyer)                              (lead returned to the buyer)
+out[1]    postage      → scriptPubKey(buyer)                              (the dog)
+out[2]    net          → scriptPubKey(pay_to)
+out[3]    royalty      → scriptPubKey(royalty_to)       only if royalty > 0
+out[3|4]  listing      → scriptPubKey(listing_to)       only if listing > 0 (after royalty when both)
+```
+
+`net`, `royalty` and `listing` are §4.1 with `listing_share_bps` 10000 (so `settlement` is 0).
+
+### 17.3 Signature and PSDT
+
+The digest is the legacy signature hash of `in[1]` with hashtype `0x81` and the §5.2 scriptCode:
+`SHA256d` of version ‖ 1 input (`in[1]` with scriptCode) ‖ every output of §17.2 ‖ locktime ‖
+`0x81000000`. It commits to the dog outpoint and sequence and to every output. It does not commit to any
+other input, or to the dog's input index.
+
+The canonical PSDT is §5.3 with the §17.2 transaction, `{0x03: 0x81000000}`, the partial signature(s)
+ending in `0x81`, and one empty output map per output. The canonical dog scriptSig is §5.4 rule 4 with
+each signature ending in `81`.
+
+### 17.4 Fill
+
+- A transaction is a fill of a directed order iff one of its inputs spends `utxo` and its outputs are
+  exactly the §17.2 outputs (same count, order, values and scripts). Any other spend of `utxo` is a
+  cancel-by-move (§9). A spend with other outputs cannot carry a valid `0x81` signature anyway.
+- The sale is decided as in §8.2: by where the dog lands (§8.1), and the new owner must differ from the
+  order key. With a 100000-koinu lead coin at `in[0]` and the dog at `in[1]`, the dog lands at offset 0
+  of `out[1]`, the buyer's. The order cannot force that input layout, so a buyer who funds `in[0]`
+  differently moves the dog elsewhere, and §8.2 records whatever happened.
+- Compliance: a directed fill has `seller_paid_ok`, `royalty_ok` and `listing_fee_ok` true (consensus
+  enforced them), `settlement_fee_ok` null, and `fee_split_ok` true.
+- The buyer funds the pinned outputs exactly. There is no change output, so the buyer prepares coins
+  first (a lead coin of exactly 100000 koinu and funding coins summing to price + postage + the miner
+  fee, less the dog's own value).
+
+### 17.5 Ordering, cancel, expiry, serving
+
+- §6.1 newer-`ts`-wins and listing safety apply unchanged. A directed order and a public order on the
+  same outpoint are compared by `net` like any two orders.
+- Cancel and expiry are §9. Cancel-by-move is the only certain cancel.
+- §7 authorization is still REQUIRED. The `0x81` signature binds the fee outputs, but supersession and
+  cancels are not covered by it.
+- Venues MUST NOT offer a directed order to anyone but `buyer`. Public buy builders that add change or
+  venue outputs cannot fill it. dogex `POST /api/dmp/buy/prepare` returns 409 for directed orders, and
+  `GET /api/dmp/psdt/{id}` reports `mode` and `buyer`.
+
+### 17.6 Compatibility
+
+Before §17, `mode` was an ignored unknown field and a `0x81` signature was INVALID. So no order that
+was valid before changes outcome, with one theoretical exception: an order inscribed with
+`"mode":"directed"` and a `0x83` signature was valid and is now INVALID. ÐMP has not launched and no such
+order is known. An indexer operator can check by searching stored orders for `"mode":"directed"` before
+upgrading.
+
+## 18. Compact OP_RETURN carrier (`0xD2`)
+
+New compact ÐMP data carried in an OP_RETURN uses one binary protocol code byte, not a text marker.
+`0xD2` is allocated to ÐMP in the dogenals protocol-code table (`0xD0` Ðunes, `0xD1` Ðalkanes,
+`0xD2` ÐMP). This section defines the framing. It defines no kinds yet: each future kind is added by
+amending this section, with its own vectors.
+
+### 18.1 Framing (strict)
+
+The scriptPubKey bytes are exactly:
+
+```
+6a  01 d2  01 <version>  <n> <payload: n bytes>        1 ≤ n ≤ 75, nothing after
+```
+
+`OP_RETURN`, a direct push of the code byte, a direct push of the version byte, and one direct push of
+the payload. `payload[0]` is the kind; the rest is the kind's fixed binary layout. The whole script is
+at most 81 bytes, inside Dogecoin Core's standard OP_RETURN limit (83-byte script, 80 data bytes).
+
+- **Candidate.** An output is a `0xD2` candidate iff its scriptPubKey starts with `6a 01 d2`. Every other
+  output, including `dmp2` tags, JSON OP_RETURNs, DogeTag Offers, Ðunes (`0xD0`) and Ðalkanes (`0xD1`),
+  is untouched by this section.
+- **Void.** A candidate that does not match the framing byte for byte is void for ÐMP: the version as
+  `OP_1` instead of `01 01`, a `PUSHDATA` payload, a payload of 0 or more than 75 bytes, anything after the
+  payload, or a truncated push. A void candidate never makes a transaction invalid. It is still a Dogetag
+  (§8.5).
+- **Version.** Version `0x01` is defined. A well-formed candidate with another version is ignored.
+  Unknown kinds are ignored.
+- **One per transaction.** Only the first OP_RETURN output of a transaction is read (§8.3).
+- **Amounts** inside any kind are unsigned little-endian integers. Sums and products are computed exactly
+  (§4.1); a result out of range makes that carrier void.
+
+dogex: `dmp_v2::parse_carrier` and `op_return_kind` `"dmp-d2"` (informative).
+
+### 18.2 Scope
+
+These strict rules apply only to `0xD2` carriers. They do not apply to, and do not change, any existing
+marker-based protocol (`dmp2`, DogeTag Offers `Ð:𝕏`/`Ð:X`, Ðialog, Ðignal, ÐSig, ÐPulse and the
+others listed in the dogenals protocol-code table), whose migration, if any, is a separate decision.
+No new text (`Ð:`) markers are added by ÐMP.
+
+Vectors: `carrier[]`.
+
+## 19. Order-book state digest
+
+Two indexers can compare their open order books with one hash per block.
+
+After block `B` (height `h`, hash `H`, lowercase hex as displayed) is applied, including expiries, take
+every compact-order listing record with status `listed`. For each, form one line:
+
+```
+<listed_inscription_id> TAB <list_inscription_id> TAB <utxo> TAB <price> TAB <net> TAB <mode> LF
+```
+
+`price` and `net` are decimal koinu; `mode` is `public` or `directed`; `list_inscription_id` is the
+inscription that created the order (a batch item uses `<batch id>:<n>`). Sort the lines by their UTF-8
+bytes. Then
+
+```
+book_digest = SHA256( "dmp-book-v1" LF  h LF  H LF  <line count> LF  <sorted lines> )
+```
+
+with `h` and the count in decimal. Two indexers at the same block with the same digest hold the same
+open book. The digest is informative: it is not a validity rule, and an indexer that does not publish it
+is still conformant. Indexers MAY publish it next to the federation fingerprint. Vectors: `book_digest[]`.
+
+## 20. Acknowledgements
+
+The §4.1 exact-arithmetic wording, the §18 strict carrier framing, the §9.1 time-buffer approach,
+§19's cross-implementation digest and the move from §12's sketch to the normative §17 directed order were
+prompted by UsaRandom/nowon's PepeNet `namespace-protocol` specification (strict single-push
+OP_RETURN parsing, 128-bit amount math, MTP with a reorg buffer, an ECMH state digest checked across
+implementations, and SELL_TO / PAY directed sales). Thank you.

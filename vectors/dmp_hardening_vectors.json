@@ -1,0 +1,748 @@
+{
+  "spec": "dmp-spec compact-orders.md §4.1, §8.5, §17, §18, §19",
+  "network": "dogecoin-regtest",
+  "generated_by": "reference/dmp_hardening.py gen",
+  "keys": {
+    "seller": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+    "other": "024d4b6cd1361032ca9bd2aeb9d900aa4d45d9ead80ac9423374c451a7254d0766",
+    "seller_secret": "0101…01 (public TEST scalar)",
+    "other_secret": "0202…02 (public TEST scalar)"
+  },
+  "fee_math": [
+    {
+      "name": "u64-max-price-max-fees",
+      "note": "price·bps needs 77 bits; exact math, no wrap",
+      "price": "18446744073709551615",
+      "royalty_bps": 2500,
+      "market_bps": 2000,
+      "listing_share_bps": 5000,
+      "expect": {
+        "royalty": "4611686018427387903",
+        "market": "3689348814741910323",
+        "listing": "1844674407370955161",
+        "settlement": "1844674407370955162",
+        "net": "10145709240540253389"
+      }
+    },
+    {
+      "name": "u64-max-price-no-fees",
+      "price": "18446744073709551615",
+      "royalty_bps": 0,
+      "market_bps": 0,
+      "listing_share_bps": 5000,
+      "expect": {
+        "royalty": "0",
+        "market": "0",
+        "listing": "0",
+        "settlement": "0",
+        "net": "18446744073709551615"
+      }
+    },
+    {
+      "name": "odd-price-floor",
+      "price": "1000000007",
+      "royalty_bps": 333,
+      "market_bps": 199,
+      "listing_share_bps": 3333,
+      "expect": {
+        "royalty": "33300000",
+        "market": "19900000",
+        "listing": "6632670",
+        "settlement": "13267330",
+        "net": "946800007"
+      }
+    },
+    {
+      "name": "price-above-u64",
+      "note": "not representable: INVALID, never truncated",
+      "price": "18446744073709551616",
+      "royalty_bps": 0,
+      "market_bps": 0,
+      "listing_share_bps": 5000,
+      "expect": {
+        "error": "price out of range"
+      }
+    }
+  ],
+  "dogetag": [
+    {
+      "name": "plain-send-with-tag",
+      "note": "a friend sends DOGE and writes a note: Dogetag",
+      "context": "payment + change + OP_RETURN",
+      "outputs_spk_hex": [
+        "76a914090909090909090909090909090909090909090988ac",
+        "6a17676d206672656e2c20656e6a6f792074686520646f6765",
+        "76a914070707070707070707070707070707070707070788ac"
+      ],
+      "expect": {
+        "dogetag_payload_hex": [
+          null,
+          "676d206672656e2c20656e6a6f792074686520646f6765",
+          null
+        ],
+        "dmp_role": [
+          null,
+          "none",
+          null
+        ]
+      }
+    },
+    {
+      "name": "multi-push-tag",
+      "note": "pushes are concatenated",
+      "outputs_spk_hex": [
+        "6a05737563682003776f77"
+      ],
+      "expect": {
+        "dogetag_payload_hex": [
+          "7375636820776f77"
+        ],
+        "dmp_role": [
+          "none"
+        ]
+      }
+    },
+    {
+      "name": "tag-inside-dmp-fill",
+      "note": "a §8.2 fill whose one OP_RETURN is a note: still a fill (op_return_kind other) and a Dogetag",
+      "outputs_spk_hex": [
+        "76a914090909090909090909090909090909090909090988ac",
+        "76a914070707070707070707070707070707070707070788ac",
+        "6a127468616e6b7320666f722074686520646f67",
+        "76a914090909090909090909090909090909090909090988ac"
+      ],
+      "expect": {
+        "dogetag_payload_hex": [
+          null,
+          null,
+          "7468616e6b7320666f722074686520646f67",
+          null
+        ],
+        "dmp_role": [
+          null,
+          null,
+          "op_return_kind:other",
+          null
+        ]
+      }
+    },
+    {
+      "name": "dmp2-venue-tag-is-also-a-dogetag",
+      "outputs_spk_hex": [
+        "6a04646d70321976a914050505050505050505050505050505050505050588ac"
+      ],
+      "expect": {
+        "dogetag_payload_hex": [
+          "646d703276a914050505050505050505050505050505050505050588ac"
+        ],
+        "dmp_role": [
+          "op_return_kind:dmp2"
+        ]
+      }
+    },
+    {
+      "name": "tag-alongside-inscription-reveal",
+      "note": "the reveal's envelope is in the scriptSig; its OP_RETURN output is a Dogetag",
+      "context": "reveal tx: out[0] inscription, out[1] OP_RETURN",
+      "outputs_spk_hex": [
+        "76a914090909090909090909090909090909090909090988ac",
+        "6a106d696e7465642077697468206c6f7665"
+      ],
+      "expect": {
+        "dogetag_payload_hex": [
+          null,
+          "6d696e7465642077697468206c6f7665"
+        ],
+        "dmp_role": [
+          null,
+          "none"
+        ]
+      }
+    },
+    {
+      "name": "dogetag-offer-unknown-kind",
+      "note": "Ð:X marker + v1 + kind 0x7f (not defined): not an offer, still a Dogetag",
+      "outputs_spk_hex": [
+        "6a10c3903a58017f00000000000000000000"
+      ],
+      "expect": {
+        "dogetag_payload_hex": [
+          "c3903a58017f00000000000000000000"
+        ],
+        "dmp_role": [
+          "dogetag-offer:ignored"
+        ]
+      }
+    },
+    {
+      "name": "void-d2-carrier",
+      "note": "breaks §18 framing: void for ÐMP, still a Dogetag",
+      "outputs_spk_hex": [
+        "6a01d201010201ff00"
+      ],
+      "expect": {
+        "dogetag_payload_hex": [
+          "d20101ff"
+        ],
+        "dmp_role": [
+          "carrier:void"
+        ]
+      }
+    },
+    {
+      "name": "empty-op-return",
+      "note": "the only OP_RETURN that is not a Dogetag",
+      "outputs_spk_hex": [
+        "6a"
+      ],
+      "expect": {
+        "dogetag_payload_hex": [
+          null
+        ],
+        "dmp_role": [
+          "none"
+        ]
+      }
+    },
+    {
+      "name": "op-return-small-number-only",
+      "note": "OP_RETURN OP_1 pushes no data bytes: empty payload, not a Dogetag",
+      "outputs_spk_hex": [
+        "6a51"
+      ],
+      "expect": {
+        "dogetag_payload_hex": [
+          null
+        ],
+        "dmp_role": [
+          "none"
+        ]
+      }
+    }
+  ],
+  "carrier": [
+    {
+      "name": "d2-v1-minimal",
+      "spk_hex": "6a01d2010102ff00",
+      "expect": {
+        "result": "ok",
+        "kind": 255,
+        "body_hex": "00",
+        "is_dogetag": true
+      }
+    },
+    {
+      "name": "d2-v1-max-payload",
+      "spk_hex": "6a01d201014b10abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
+      "expect": {
+        "result": "ok",
+        "kind": 16,
+        "body_hex": "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
+        "is_dogetag": true
+      }
+    },
+    {
+      "name": "d2-version-as-op1",
+      "note": "OP_1 instead of the direct push 01 01: void",
+      "spk_hex": "6a01d25102ff00",
+      "expect": {
+        "result": "void",
+        "is_dogetag": true
+      }
+    },
+    {
+      "name": "d2-code-pushdata1",
+      "note": "code pushed with OP_PUSHDATA1: not a candidate (prefix differs), plain Dogetag",
+      "spk_hex": "6a4c01d2010102ff00",
+      "expect": {
+        "result": "not-candidate",
+        "is_dogetag": true
+      }
+    },
+    {
+      "name": "d2-payload-pushdata1",
+      "note": "non-minimal payload push: void",
+      "spk_hex": "6a01d201014c02ff00",
+      "expect": {
+        "result": "void",
+        "is_dogetag": true
+      }
+    },
+    {
+      "name": "d2-trailing-push",
+      "note": "extra push after the payload: void",
+      "spk_hex": "6a01d2010102ff0001aa",
+      "expect": {
+        "result": "void",
+        "is_dogetag": true
+      }
+    },
+    {
+      "name": "d2-unknown-version",
+      "note": "version 0x02 is not defined: ignored",
+      "spk_hex": "6a01d2010202ff00",
+      "expect": {
+        "result": "unknown-version",
+        "is_dogetag": true
+      }
+    },
+    {
+      "name": "d0-dune-untouched",
+      "note": "other protocol codes are not ÐMP candidates",
+      "spk_hex": "6a01d0010205aabbccddee",
+      "expect": {
+        "result": "not-candidate",
+        "is_dogetag": true
+      }
+    }
+  ],
+  "directed_valid": [
+    {
+      "name": "directed-no-fees",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgLjCZefJ6DZGQ4LX25Wz6hrpBsFHXVnWS",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "30450221009b2194e6a16b68cb80fa0f917c49c3b166fe874c2729848bf3c2b2a5171b4c3b0220055bcd46efe4592da975c8423e3f20068e44ea0448e2c94ad5e3ec353b64f1bd81",
+        "ts": 1790000000
+      },
+      "parent_tx_hex": "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0151ffffffff01a0860100000000001976a91479b000887626b294a914501a4cd226b58b23598388ac00000000",
+      "template_tx_hex": "020000000200000000000000000000000000000000000000000000000000000000000000000000000000feffffff3600c60cbe1b86b639bbb0873d6a83309792a8d7b98c7d582470194a0a7540890000000000ffffffff03a0860100000000001976a914090909090909090909090909090909090909090988aca0860100000000001976a914090909090909090909090909090909090909090988ac00ca9a3b000000001976a914070707070707070707070707070707070707070788ac00000000",
+      "sighash": "1d8c7366ce86e332e16939cd849cf9332cd4c984bdca47a6c669ec6d9d148b11",
+      "psdt_hex": "70736274ff0100c2020000000200000000000000000000000000000000000000000000000000000000000000000000000000feffffff3600c60cbe1b86b639bbb0873d6a83309792a8d7b98c7d582470194a0a7540890000000000ffffffff03a0860100000000001976a914090909090909090909090909090909090909090988aca0860100000000001976a914090909090909090909090909090909090909090988ac00ca9a3b000000001976a914070707070707070707070707070707070707070788ac00000000000001005601000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0151ffffffff01a0860100000000001976a91479b000887626b294a914501a4cd226b58b23598388ac000000002202031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f4830450221009b2194e6a16b68cb80fa0f917c49c3b166fe874c2729848bf3c2b2a5171b4c3b0220055bcd46efe4592da975c8423e3f20068e44ea0448e2c94ad5e3ec353b64f1bd810103048100000000000000",
+      "split": {
+        "royalty": "0",
+        "market": "0",
+        "listing": "0",
+        "settlement": "0",
+        "net": "1000000000"
+      }
+    },
+    {
+      "name": "directed-royalty-and-listing",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgLjCZefJ6DZGQ4LX25Wz6hrpBsFHXVnWS",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb22381",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "500",
+          "royalty_to": "mfyVgnHh5ckyiVaTibb1agi4qSC7km4XBF",
+          "market_bps": "200",
+          "listing_to": "mg4oZj8S8jd86yCRvCi8w3D1q87Q8HET9d",
+          "listing_share_bps": "10000"
+        }
+      },
+      "parent_tx_hex": "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0151ffffffff01a0860100000000001976a91479b000887626b294a914501a4cd226b58b23598388ac00000000",
+      "template_tx_hex": "020000000200000000000000000000000000000000000000000000000000000000000000000000000000feffffff3600c60cbe1b86b639bbb0873d6a83309792a8d7b98c7d582470194a0a7540890000000000ffffffff05a0860100000000001976a914090909090909090909090909090909090909090988aca0860100000000001976a914090909090909090909090909090909090909090988ac80ac6e37000000001976a914070707070707070707070707070707070707070788ac80f0fa02000000001976a914050505050505050505050505050505050505050588ac002d3101000000001976a914060606060606060606060606060606060606060688ac00000000",
+      "sighash": "bbb6288eb7fb0cb9b56c2104d7b6be075e48b3a78f693825db431efb55ed8182",
+      "psdt_hex": "70736274ff0100fd0601020000000200000000000000000000000000000000000000000000000000000000000000000000000000feffffff3600c60cbe1b86b639bbb0873d6a83309792a8d7b98c7d582470194a0a7540890000000000ffffffff05a0860100000000001976a914090909090909090909090909090909090909090988aca0860100000000001976a914090909090909090909090909090909090909090988ac80ac6e37000000001976a914070707070707070707070707070707070707070788ac80f0fa02000000001976a914050505050505050505050505050505050505050588ac002d3101000000001976a914060606060606060606060606060606060606060688ac00000000000001005601000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0151ffffffff01a0860100000000001976a91479b000887626b294a914501a4cd226b58b23598388ac000000002202031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f47304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb2238101030481000000000000000000",
+      "split": {
+        "royalty": "50000000",
+        "market": "20000000",
+        "listing": "20000000",
+        "settlement": "0",
+        "net": "930000000"
+      }
+    },
+    {
+      "name": "directed-with-expiry",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgLjCZefJ6DZGQ4LX25Wz6hrpBsFHXVnWS",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "3045022100cc49a2e13984db933668944ef55f9a01e8c51c7d6b55d30182dcaa18869c048c022008cec520347e4203cb073d811becd62c5a3fc7996868f02a8b87e3c062189e7b81",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "250",
+          "royalty_to": "mfyVgnHh5ckyiVaTibb1agi4qSC7km4XBF"
+        },
+        "expiry": 1790086400
+      },
+      "parent_tx_hex": "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0151ffffffff01a0860100000000001976a91479b000887626b294a914501a4cd226b58b23598388ac00000000",
+      "template_tx_hex": "020000000200000000000000000000000000000000000000000000000000000000000000000000000000feffffff3600c60cbe1b86b639bbb0873d6a83309792a8d7b98c7d582470194a0a7540890000000000ffffffff04a0860100000000001976a914090909090909090909090909090909090909090988aca0860100000000001976a914090909090909090909090909090909090909090988acc0511d3a000000001976a914070707070707070707070707070707070707070788ac40787d01000000001976a914050505050505050505050505050505050505050588ac00000000",
+      "sighash": "c7dd2c3e9235910311b94a3db6fd2e2e0a7e7012c28e52f4848dbad5cd31ebec",
+      "psdt_hex": "70736274ff0100e4020000000200000000000000000000000000000000000000000000000000000000000000000000000000feffffff3600c60cbe1b86b639bbb0873d6a83309792a8d7b98c7d582470194a0a7540890000000000ffffffff04a0860100000000001976a914090909090909090909090909090909090909090988aca0860100000000001976a914090909090909090909090909090909090909090988acc0511d3a000000001976a914070707070707070707070707070707070707070788ac40787d01000000001976a914050505050505050505050505050505050505050588ac00000000000001005601000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0151ffffffff01a0860100000000001976a91479b000887626b294a914501a4cd226b58b23598388ac000000002202031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f483045022100cc49a2e13984db933668944ef55f9a01e8c51c7d6b55d30182dcaa18869c048c022008cec520347e4203cb073d811becd62c5a3fc7996868f02a8b87e3c062189e7b81010304810000000000000000",
+      "split": {
+        "royalty": "25000000",
+        "market": "0",
+        "listing": "0",
+        "settlement": "0",
+        "net": "975000000"
+      }
+    }
+  ],
+  "directed_invalid": [
+    {
+      "name": "hashtype-83-on-directed",
+      "reason": "directed sig hashtype must be 0x81",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgLjCZefJ6DZGQ4LX25Wz6hrpBsFHXVnWS",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb22383",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "500",
+          "royalty_to": "mfyVgnHh5ckyiVaTibb1agi4qSC7km4XBF",
+          "market_bps": "200",
+          "listing_to": "mg4oZj8S8jd86yCRvCi8w3D1q87Q8HET9d",
+          "listing_share_bps": "10000"
+        }
+      }
+    },
+    {
+      "name": "missing-buyer",
+      "reason": "buyer required",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb22381",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "500",
+          "royalty_to": "mfyVgnHh5ckyiVaTibb1agi4qSC7km4XBF",
+          "market_bps": "200",
+          "listing_to": "mg4oZj8S8jd86yCRvCi8w3D1q87Q8HET9d",
+          "listing_share_bps": "10000"
+        }
+      }
+    },
+    {
+      "name": "listing-share-not-10000",
+      "reason": "directed market fee goes wholly to listing_to",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgLjCZefJ6DZGQ4LX25Wz6hrpBsFHXVnWS",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb22381",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "500",
+          "royalty_to": "mfyVgnHh5ckyiVaTibb1agi4qSC7km4XBF",
+          "market_bps": "200",
+          "listing_to": "mg4oZj8S8jd86yCRvCi8w3D1q87Q8HET9d",
+          "listing_share_bps": "5000"
+        }
+      }
+    },
+    {
+      "name": "royalty-output-below-dust",
+      "reason": "directed fee output below dust",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "900000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgLjCZefJ6DZGQ4LX25Wz6hrpBsFHXVnWS",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb22381",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "1",
+          "royalty_to": "mfyVgnHh5ckyiVaTibb1agi4qSC7km4XBF"
+        }
+      }
+    },
+    {
+      "name": "postage-below-dust",
+      "reason": "postage below dust",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgLjCZefJ6DZGQ4LX25Wz6hrpBsFHXVnWS",
+        "postage": "99999",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb22381",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "500",
+          "royalty_to": "mfyVgnHh5ckyiVaTibb1agi4qSC7km4XBF",
+          "market_bps": "200",
+          "listing_to": "mg4oZj8S8jd86yCRvCi8w3D1q87Q8HET9d",
+          "listing_share_bps": "10000"
+        }
+      }
+    },
+    {
+      "name": "buyer-swapped-after-signing",
+      "reason": "seller signature does not verify",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgS35WVQMD5hesgJidCeLTCoosnXbmynN7",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb22381",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "500",
+          "royalty_to": "mfyVgnHh5ckyiVaTibb1agi4qSC7km4XBF",
+          "market_bps": "200",
+          "listing_to": "mg4oZj8S8jd86yCRvCi8w3D1q87Q8HET9d",
+          "listing_share_bps": "10000"
+        }
+      },
+      "parent_tx_hex": "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0151ffffffff01a0860100000000001976a91479b000887626b294a914501a4cd226b58b23598388ac00000000"
+    },
+    {
+      "name": "signed-by-non-owner",
+      "reason": "seller signature does not verify",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgLjCZefJ6DZGQ4LX25Wz6hrpBsFHXVnWS",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "304402205cf19776182ea94d1296d3ceb1f6dd7a088626588db4c94d20834f1f25f3573f0220594cc782c0e15df31fadb37a6ed9def51d161cb0907dea5a6daae3d2e5e6fd4181",
+        "ts": 1790000000
+      },
+      "parent_tx_hex": "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0151ffffffff01a0860100000000001976a91479b000887626b294a914501a4cd226b58b23598388ac00000000"
+    }
+  ],
+  "directed_fill": [
+    {
+      "name": "exact-pinned-outputs",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgLjCZefJ6DZGQ4LX25Wz6hrpBsFHXVnWS",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb22381",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "500",
+          "royalty_to": "mfyVgnHh5ckyiVaTibb1agi4qSC7km4XBF",
+          "market_bps": "200",
+          "listing_to": "mg4oZj8S8jd86yCRvCi8w3D1q87Q8HET9d",
+          "listing_share_bps": "10000"
+        }
+      },
+      "fill_tx_hex": "0200000003e3456bc1f4d270f4a97933758645fdc21e39642b31ca343c1818f7972ac279060000000000ffffffff3600c60cbe1b86b639bbb0873d6a83309792a8d7b98c7d582470194a0a754089000000006a47304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb2238121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff639f78fb7729d09dc6066a6dd81997572d2413c50b703edd5b378166b5466b2d0100000000ffffffff05a0860100000000001976a914090909090909090909090909090909090909090988aca0860100000000001976a914090909090909090909090909090909090909090988ac80ac6e37000000001976a914070707070707070707070707070707070707070788ac80f0fa02000000001976a914050505050505050505050505050505050505050588ac002d3101000000001976a914060606060606060606060606060606060606060688ac00000000",
+      "fill_txid": "66f7c7f1a29dc86a559acd177b469485664f12b0f8613285fcf3f605c4b02be8",
+      "dog_script_sig_hex": "47304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb2238121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "expect": {
+        "is_fill": true
+      }
+    },
+    {
+      "name": "dog-at-input-2",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgLjCZefJ6DZGQ4LX25Wz6hrpBsFHXVnWS",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb22381",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "500",
+          "royalty_to": "mfyVgnHh5ckyiVaTibb1agi4qSC7km4XBF",
+          "market_bps": "200",
+          "listing_to": "mg4oZj8S8jd86yCRvCi8w3D1q87Q8HET9d",
+          "listing_share_bps": "10000"
+        }
+      },
+      "fill_tx_hex": "0200000003e3456bc1f4d270f4a97933758645fdc21e39642b31ca343c1818f7972ac279060000000000ffffffff639f78fb7729d09dc6066a6dd81997572d2413c50b703edd5b378166b5466b2d0100000000ffffffff3600c60cbe1b86b639bbb0873d6a83309792a8d7b98c7d582470194a0a754089000000006a47304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb2238121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff05a0860100000000001976a914090909090909090909090909090909090909090988aca0860100000000001976a914090909090909090909090909090909090909090988ac80ac6e37000000001976a914070707070707070707070707070707070707070788ac80f0fa02000000001976a914050505050505050505050505050505050505050588ac002d3101000000001976a914060606060606060606060606060606060606060688ac00000000",
+      "fill_txid": "776a736f7648c0dbf773ef6ffe349cfb56606e4ed061875b95796fd32cc618ce",
+      "dog_script_sig_hex": "47304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb2238121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "expect": {
+        "is_fill": true
+      }
+    },
+    {
+      "name": "extra-change-output",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgLjCZefJ6DZGQ4LX25Wz6hrpBsFHXVnWS",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb22381",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "500",
+          "royalty_to": "mfyVgnHh5ckyiVaTibb1agi4qSC7km4XBF",
+          "market_bps": "200",
+          "listing_to": "mg4oZj8S8jd86yCRvCi8w3D1q87Q8HET9d",
+          "listing_share_bps": "10000"
+        }
+      },
+      "fill_tx_hex": "0200000003e3456bc1f4d270f4a97933758645fdc21e39642b31ca343c1818f7972ac279060000000000ffffffff3600c60cbe1b86b639bbb0873d6a83309792a8d7b98c7d582470194a0a754089000000006a47304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb2238121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff639f78fb7729d09dc6066a6dd81997572d2413c50b703edd5b378166b5466b2d0100000000ffffffff06a0860100000000001976a914090909090909090909090909090909090909090988aca0860100000000001976a914090909090909090909090909090909090909090988ac80ac6e37000000001976a914070707070707070707070707070707070707070788ac80f0fa02000000001976a914050505050505050505050505050505050505050588ac002d3101000000001976a914060606060606060606060606060606060606060688ac404b4c00000000001976a914090909090909090909090909090909090909090988ac00000000",
+      "fill_txid": "6365ae0f5a5500fac321a50f7c74a960f79eb6094f93af3081ffe0baa024e834",
+      "dog_script_sig_hex": "47304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb2238121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "expect": {
+        "is_fill": false
+      }
+    },
+    {
+      "name": "royalty-dropped",
+      "order": {
+        "p": "dmp",
+        "v": "2",
+        "op": "list",
+        "mode": "directed",
+        "chain": "dogecoin-regtest",
+        "inscription_id": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036i0",
+        "utxo": "8940750a4a197024587d8cb9d7a8929730836a3d87b0bb39b6861bbe0cc60036:0",
+        "price": "1000000000",
+        "pay_to": "mgA7SfyBBrVGVSpQ7oqGHPhxpp2gUZWtfc",
+        "buyer": "mgLjCZefJ6DZGQ4LX25Wz6hrpBsFHXVnWS",
+        "postage": "100000",
+        "pubkey": "031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+        "sig": "304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb22381",
+        "ts": 1790000000,
+        "fees": {
+          "royalty_bps": "500",
+          "royalty_to": "mfyVgnHh5ckyiVaTibb1agi4qSC7km4XBF",
+          "market_bps": "200",
+          "listing_to": "mg4oZj8S8jd86yCRvCi8w3D1q87Q8HET9d",
+          "listing_share_bps": "10000"
+        }
+      },
+      "fill_tx_hex": "0200000003e3456bc1f4d270f4a97933758645fdc21e39642b31ca343c1818f7972ac279060000000000ffffffff3600c60cbe1b86b639bbb0873d6a83309792a8d7b98c7d582470194a0a754089000000006a47304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb2238121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff639f78fb7729d09dc6066a6dd81997572d2413c50b703edd5b378166b5466b2d0100000000ffffffff04a0860100000000001976a914090909090909090909090909090909090909090988aca0860100000000001976a914090909090909090909090909090909090909090988ac80ac6e37000000001976a914070707070707070707070707070707070707070788ac002d3101000000001976a914060606060606060606060606060606060606060688ac00000000",
+      "fill_txid": "e5c040959411f2e12ca8fefa3d2d8127e1bbfc104f4d9a957710d02eee2e393e",
+      "dog_script_sig_hex": "47304402205d3b4d204399c2d89984f0ffbe9efea16bee02264b60b43e53a202a9f21721e6022046f9670a9bec9d358064e4d02e57a66a2061e1eb368e1b5e548fe942e31cb2238121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f",
+      "expect": {
+        "is_fill": false
+      }
+    }
+  ],
+  "book_digest": [
+    {
+      "name": "empty-book",
+      "height": 5900000,
+      "block_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "rows": [],
+      "digest": "b448c44b2a943ccec0ec79bbb2b8c543ad3f168a3eb2cf3c44cd85ad34fd2520"
+    },
+    {
+      "name": "two-orders-any-input-order",
+      "height": 5900001,
+      "block_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "rows": [
+        {
+          "listed_inscription_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbi0",
+          "list_inscription_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccci0",
+          "utxo": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd:1",
+          "price": "1000000000",
+          "net": "930000000",
+          "mode": "public"
+        },
+        {
+          "listed_inscription_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaai3",
+          "list_inscription_id": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeei0",
+          "utxo": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff:0",
+          "price": "250000000",
+          "net": "250000000",
+          "mode": "directed"
+        }
+      ],
+      "digest": "04103623fd33dab09dfc60acd7259f8f3f27e2e18d545c5ac11b14584d33039a"
+    }
+  ]
+}

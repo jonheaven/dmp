@@ -74,3 +74,15 @@ python3 reference/dmp_v2_batch.py check vectors/dmp_v2_batch_vectors.json       
 python3 reference/dmp_v2_reconstruct.py order order.json --parent-hex <raw parent tx hex>
 python3 reference/dmp_v2_reconstruct.py order order.json --rpc http://127.0.0.1:18332 --rpc-auth user:pass   # regtest node
 ```
+
+## ÐMP 1.0 hardening: `dmp_hardening.py`
+
+Checks [vectors/dmp_hardening_vectors.json](../vectors/dmp_hardening_vectors.json): exact fee math
+(compact-orders §4.1), Dogetags (§8.5), directed orders (§17: template, `0x81` sighash, PSDT, invalid
+shapes, fills), the `0xD2` carrier framing (§18) and the order-book digest (§19). It reuses the tx and
+DER helpers of `dmp_v2_reconstruct.py` and needs `pip install ecdsa`. `gen` rebuilds the vector file
+deterministically from the public test scalars `0x01…01` and `0x02…02`.
+
+```bash
+python3 reference/dmp_hardening.py check vectors/dmp_hardening_vectors.json   # expect "ALL MATCH"
+```

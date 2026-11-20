@@ -84,6 +84,8 @@ docs, UIs and marketing.
 | Cancel inscription | Venue policy / indexer | Advisory (§9). The signature stays valid until the dog moves | `cancelled`, `cancel_kind:"inscription"`. A later fill is still recorded, flagged `after_cancel` |
 | Expiry | Venue policy / indexer | Advisory (§9) | `expired`. A later fill is still recorded, flagged `after_expiry` |
 | Finality | Verified | 6 confirmations; reorgs roll back (§10) | `settled` only at depth 6 |
+| Directed order (§17): royalty and listing fee, buyer outputs | Enforced | The seller signs `SIGHASH_ALL\|ANYONECANPAY` (`0x81`) over every output. A spend that drops or changes any output fails script validation. Only the named `buyer` receives the lead and the dog outputs | `royalty_ok`, `listing_fee_ok`, `fee_split_ok` all `true` on any fill |
+| Expiry timing near the deadline | Venue policy | Venues stop serving 7200 s before `expiry` (§9.1), because block `nTime` may run up to 2 h ahead | No state change; a late fill is still flagged `after_expiry` |
 
 Indexers derive expected fee amounts from the **order they indexed** (compact-orders.md §4.1), never from
 amounts claimed in a `settle` inscription or by a venue API. Section numbers in this table refer to

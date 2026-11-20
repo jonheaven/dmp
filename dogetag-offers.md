@@ -61,6 +61,19 @@ DogeTag replacement merely for readability; decoded JSON belongs in APIs, indexe
 - Because only 16 bytes are carried in the DogeTag, wallets **SHOULD** match candidates from their indexed
   wallet inventory. Ambiguous matches **MUST** be shown as ambiguous or ignored.
 
+### 3.1a What is a Dogetag
+
+A **Dogetag** is any OP_RETURN output with non-empty pushed data, the rule the dogex Dogetag archive
+applies to every OP_RETURN from genesis (all data pushes concatenated; see
+[compact-orders.md §8.5](compact-orders.md#85-dogetags-normative)). It needs no marker and no special
+encoding, and it stays a Dogetag whatever else the transaction does: a plain DOGE send with a note, a
+ÐMP fill, an inscription reveal, any wallet's push layout.
+
+The `Ð:𝕏` / `Ð:X` marker in §3 does **not** decide Dogetag status. It only marks that a Dogetag also
+carries a DogeTag Offer. An OP_RETURN without the marker is still a Dogetag. An OP_RETURN with the
+marker whose body fails §5 (unknown version or kind, wrong length) is still a Dogetag; it is just not an
+offer. Vectors: `dogetag[]` in [vectors/dmp_hardening_vectors.json](vectors/dmp_hardening_vectors.json).
+
 ### 3.2 Flags
 
 | Bit | Meaning |
@@ -199,3 +212,5 @@ contains richer encrypted context. The DogeTag itself carries no plaintext messa
 
 - **v0.1 (2026-04-24):** Initial DogeTag Offers draft: binary OP_RETURN signal, attention amount, expiry,
   ÐMP offer link, optional Ðignal flag.
+- **2026-11-20:** §3.1a: every non-empty OP_RETURN is a Dogetag; the marker only identifies the offer layer.
+  Wire format unchanged.

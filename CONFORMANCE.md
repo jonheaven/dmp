@@ -22,8 +22,13 @@ differs from a vector, you are wrong or the vector is, and either way please ope
       The same chain gives the same state after a reindex from scratch and after any reorg (§10).
 - [ ] The index covers inscriptions from the era-1 floor, or reports dogs it cannot place as unknown.
 - [ ] A fill is accepted in any output layout, and the sale is decided by where the dog lands (§8.2).
-- [ ] The first OP_RETURN is classified as `dmp2`, `json:<key>`, `other` or none, and a
+- [ ] The first OP_RETURN is classified as `dmp2`, `json:<key>`, `dmp-d2`, `other` or none, and a
       non-`dmp2` OP_RETURN never invalidates a fill (§8.3).
+- [ ] All of `vectors/dmp_hardening_vectors.json` matches: exact fee math at `price` = 2^64−1 (§4.1),
+      directed orders (template, sighash, PSDT, invalid shapes, fills; §17), `0xD2` carrier framing (§18)
+      and the order-book digest (§19).
+- [ ] Every non-empty OP_RETURN stays a Dogetag whatever else the transaction does, and no ÐMP
+      classification changes that (§8.5, `dogetag[]` vectors).
 
 ## Seller wallet
 
@@ -33,6 +38,9 @@ differs from a vector, you are wrong or the vector is, and either way please ope
       `ts` within ±7200 s of the inscribing block's time, and net ≥ 100000 koinu (≥ 1 DOGE recommended, §8.4).
 - [ ] It inscribes with the order key, or includes a valid `asig` (§7).
 - [ ] It never creates a draft (pre-1.0) list, and never signs a PSDT with the dog at input 0.
+- [ ] Directed orders (§17): signs `0x81` over the exact §17.2 outputs, names one `buyer`, and pays the
+      whole market fee to `listing_to`.
+- [ ] It warns when `expiry` is less than 4 hours away (§9.1).
 
 ## Buyer wallet / venue
 
@@ -40,7 +48,10 @@ differs from a vector, you are wrong or the vector is, and either way please ope
 - [ ] The dog lands, by §8.1, on an output the buyer controls. Check this before signing.
 - [ ] Declared fees are paid. Outputs are at or above dust and the fee rate is at or above the §8.4
       guidance.
-- [ ] At most one OP_RETURN.
+- [ ] At most one OP_RETURN. A note in it is fine: it is a Dogetag and the fill is still a fill (§8.5).
+- [ ] Directed orders (§17): only the named buyer fills, with exactly the pinned outputs, a
+      100000-koinu lead coin at `in[0]` and no change.
+- [ ] It does not serve or build a fill within 7200 s of `expiry` (§9.1).
 - [ ] It does not serve `cancelled`, `expired` or `postage_unsafe` orders.
 
 ## Conformance levels
