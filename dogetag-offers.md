@@ -34,7 +34,7 @@ recipient wallet whether or not the recipient responds.
 
 ## 3. Wire Format
 
-DogeTag Offers use an `OP_RETURN` output with the Dogenals Era 2 DXD marker. The branded marker is `Ð:𝕏`;
+DogeTag Offers use an `OP_RETURN` output with the Doginals DXD marker. The branded marker is `Ð:𝕏`;
 senders MUST fall back to `Ð:X` when the stylized marker would push the total payload above 76 bytes.
 
 | Offset | Size | Field | Description |
@@ -203,7 +203,7 @@ contains richer encrypted context. The DogeTag itself carries no plaintext messa
 - Sound hints are untrusted; wallets must let users disable them.
 - Dust and standardness policy may change; wallets should use configurable thresholds.
 - If a Ðignal link exists, wallets **MUST** treat it as encrypted negotiation context only; it is not an offer acceptance, escrow, or settlement.
-- Wallet notification behavior **SHOULD** follow the Dogenals wallet-notifications guide.
+- Wallet notification behavior **SHOULD** follow the Doginals wallet-notifications guide.
 - Decoded payloads **SHOULD** validate against [schemas/dmp-offer-signal-decoded.json](schemas/dmp-offer-signal-decoded.json); binary fixtures are in [vectors/dmp-offer-signal-vectors.json](vectors/dmp-offer-signal-vectors.json).
 
 ---

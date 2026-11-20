@@ -777,8 +777,8 @@ no sale is recorded. An indexer of draft lists that settles on "the spend pays t
 MUST-112) would record a false sale here, so such indexers MUST also require the §8.2 sale condition:
 the dog lands with an owner other than the seller. The seller retires them by moving the dog or by
 listing it as a compact order. Moving the dog also stops a buyer from being misled by an off-index copy of the
-PSDT. These two dogs are Doginals era-1 inscriptions, so judging their current owner requires an index
-built from the era-1 floor. The vectors are in `vectors/dmp_v1_psdt_vectors.json`
+PSDT. These two dogs are historical Doginals inscriptions, so judging their current owner requires an index
+built from the Doginals floor. The vectors are in `vectors/dmp_v1_psdt_vectors.json`
 (`dmp_v2_reconstruct.py v1`).
 
 ## 16. Batch list orders
@@ -835,7 +835,7 @@ awkward. Dropping `inscription_id` (66 B per item, about 21%) would force the in
 inscription on an outpoint is meant. That is ambiguous when a UTXO holds several, and it differs from a
 single order. Both can be added later as an optional compact item form (§16.14) without changing what is defined here.
 
-**Why not D alone.** Era-1 Doginals index only `vin[0].scriptSig` (§8.1), so N inscriptions need N reveals.
+**Why not D alone.** legacy Doginals index only `vin[0].scriptSig` (§8.1), so N inscriptions need N reveals.
 D leaves N bodies of about 800 B, N reveals of about 236 B fixed overhead, and N `asig`s. It saves only
 the N commit transactions. It is complementary: a wallet that lists singles SHOULD still use one
 commit with N outputs. It is not what a user means by "list these 10 in one action".
@@ -1121,8 +1121,8 @@ overhead for chained reveals is an estimate to confirm on regtest.
 
 1. **Wallet signing.** N PSBT-style signatures plus one message of up to 27 KB. Can wallets present one prompt? What
    do browser wallets' `signMessage` limits allow?
-2. **Multi-part parser.** Do the era-1 envelope parsers (indexers and wallets) handle a body of about 24 chained
-   parts? Does every era-1 indexer reassemble multi-part bodies (a batch above 1,390 B is invisible on one that does
+2. **Multi-part parser.** Do the historical envelope parsers (indexers and wallets) handle a body of about 24 chained
+   parts? Does every historical indexer reassemble multi-part bodies (a batch above 1,390 B is invisible on one that does
    not)? Confirm the 236 B per-part overhead and the 1,390 B per-part cap.
 3. **Ancestor limit.** Is the default mempool ancestor limit 25 in the node versions in use, so that a 24-part body
    plus its commit relays as one chain (§16.11)?

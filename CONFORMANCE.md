@@ -20,7 +20,7 @@ differs from a vector, you are wrong or the vector is, and either way please ope
 - [ ] Duplicate keys at any depth are rejected (§4.2).
 - [ ] Validity uses only your own node's chain data. External owner lookups never change a state.
       The same chain gives the same state after a reindex from scratch and after any reorg (§10).
-- [ ] The index covers inscriptions from the era-1 floor, or reports dogs it cannot place as unknown.
+- [ ] The index covers inscriptions from the Doginals floor, or reports dogs it cannot place as unknown.
 - [ ] A fill is accepted in any output layout, and the sale is decided by where the dog lands (§8.2).
 - [ ] The first OP_RETURN is classified as `dmp2`, `json:<key>`, `dmp-d2`, `other` or none, and a
       non-`dmp2` OP_RETURN never invalidates a fill (§8.3).

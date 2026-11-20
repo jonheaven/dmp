@@ -10,20 +10,20 @@ Status: Canonical project philosophy and product architecture reference
 
 ### 1.1 Canonical Name
 
-The canonical name of this ecosystem and protocol direction is Dogenals.
+The canonical name of this ecosystem and protocol direction is Doginals.
 
 ### 1.2 I vs E Framing
 
 This project intentionally draws a line between two cultural models:
 
 - The pre-Dogenals legacy model (I for I): centralized control, gatekeeping, and extraction.
-- Dogenals (this project): E for Everyone, open source, permissionless participation, and transparent rules.
+- Doginals (this project): E for Everyone, open source, permissionless participation, and transparent rules.
 
 The point is not cosmetic branding. The point is governance philosophy encoded into protocol and product behavior.
 
 ### 1.3 Ethos
 
-Dogenals follows a Doge-native, Robin Hood style ethos:
+Doginals follows a Doge-native, Robin Hood style ethos:
 
 - open tools over closed platforms
 - protocol guarantees over private dashboards
@@ -124,7 +124,7 @@ In this model, Marketplace A gains visibility and Marketplace B earns the fee. B
 
 This approach creates a healthy, open, capitalistic environment where multiple teams can build successful businesses on top of the same public standard. It favors user choice and collective growth while allowing honest operators to thrive on their own terms.
 
-This reflects the core Dogenals philosophy of “E” for Everyone: an open infrastructure layer that lets builders and operators succeed together.
+This reflects the core Doginals philosophy of “E” for Everyone: an open infrastructure layer that lets builders and operators succeed together.
 
 ---
 
@@ -193,9 +193,9 @@ This option should include plain-language trade-off messaging:
 
 ## 7. Long-Term Vision
 
-Dogenals is not framed as a war to erase other ecosystems.
+Doginals is not framed as a war to erase other ecosystems.
 
-The legacy centralized model and Dogenals can coexist, similar to how different tools can coexist for different jobs.
+The legacy centralized model and Doginals can coexist, similar to how different tools can coexist for different jobs.
 
 Our strategy is to win mindshare by shipping better values and better tech:
 
@@ -204,7 +204,7 @@ Our strategy is to win mindshare by shipping better values and better tech:
 - user choice over control
 - transparent provenance over black-box claims
 
-If we execute well, developers, collectors, and marketplaces choose Dogenals because it is more honest, more composable, and more aligned with the spirit of Dogecoin.
+If we execute well, developers, collectors, and marketplaces choose Doginals because it is more honest, more composable, and more aligned with the spirit of Dogecoin.
 
 ---
 
@@ -212,7 +212,7 @@ If we execute well, developers, collectors, and marketplaces choose Dogenals bec
 
 Contributors should preserve these invariants in all future proposals:
 
-- Dogenals naming remains canonical
+- Doginals naming remains canonical
 - ÐMP remains first-class and encouraged
 - raw/off-protocol support remains available
 - provenance-gap detection remains mandatory behavior for indexers

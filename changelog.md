@@ -125,7 +125,7 @@ inscriptions exist on mainnet (compact-orders §15).
 - UTXO-native ownership verification by address-match against indexed inscription state.
 - Settlement verification against real Dogecoin transaction outputs.
 - Optional `parent_inscription_id` on root `collection`, aligned with DRC-721 native parent tags.
-- ÐMP DogeTag Offers as the Era 2 OP_RETURN signaling extension.
+- ÐMP DogeTag Offers as the OP_RETURN signaling extension.
 
 Future changes after public launch should be tracked here with clear versioning and migration guidance.
 
@@ -171,7 +171,7 @@ the sale: dog moved, locked output paid. Auction `settle` is only a pointer at a
 ### 2026-10-14 — Canonical wire marker `p:"dmp"` + Doginals naming
 
 - Emitters MUST set `p` to ASCII `"dmp"`.
-- Expansion is **Doginals Marketplace Protocol** (not “Dogenals”).
+- Expansion is **Doginals Marketplace Protocol**.
 - Branding in docs/UI remains **ÐMP**.
 - `dog` marker is out of scope for ÐMP — reserved for GDR / eternal.dog lab.
 

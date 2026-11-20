@@ -11,7 +11,7 @@ Read SPEC.md first. This guide focuses on implementation behavior and compliance
 A ÐMP indexer must:
 
 1. Consume Dogecoin blocks in order via RPC (`getblock`, `getrawtransaction`).
-2. For each transaction, parse all Dogenals inscriptions from `script_sig` of the first input.
+2. For each transaction, parse all Doginals inscriptions from `script_sig` of the first input.
 3. Filter `p = "dmp"` and supported `v` (`"1.0"`, or omit → `"1.0"`). Any other `p` is not ÐMP.
 4. **Process inputs before outputs** in every transaction: apply UTXO-spend invalidations before
    ingesting new ÐMP intents from outputs in the same tx.
@@ -71,7 +71,7 @@ function verify_seller_authorization(op, block_height):
 Where `get_inscription_utxo_owner` looks up the inscription's current satpoint in the indexer's
 UTXO state and resolves the controlling address from the output's `script_pubkey`.
 
-This is the same address-match model used by wonky-dogeord and other Dogenals indexers for
+This is the same address-match model used by wonky-dogeord and other Doginals indexers for
 ownership tracking.
 
 ### 3.1 Listing PSDT size (Dogecoin P2PKH)
@@ -609,7 +609,7 @@ Show **Provenance Broken** when ANY is true:
 ## 15. Common Implementation Pitfalls
 
 - **Wrong UTXO verification**: Checking if "list tx spends inscription UTXO" — this is incorrect
-  for Dogenals. ÐMP list ops are new inscriptions. Use address-match.
+  for Doginals. ÐMP list ops are new inscriptions. Use address-match.
 - **Accepting mempool settlements as final**: Always wait for >= 6 confirmations.
 - **Not checking expiry at settle time**: Expiry must be checked at the settle op's block time,
   not the bid inscription time.

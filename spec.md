@@ -217,7 +217,7 @@ for unique pieces. Do not answer L1-scale critiques by pretending Runes-style ed
 
 ## 2. Terminology
 
-- **Inscription**: Dogenals payload stored on-chain via OP_FALSE OP_IF "ord" script in the first input's
+- **Inscription**: Doginals payload stored on-chain via OP_FALSE OP_IF "ord" script in the first input's
   scriptSig, spread across one or more chained transactions.
 - **Inscription ID**: `<txid>i<n>` where txid is the 64-char lowercase hex transaction ID of the **first**
   transaction in the inscription chain and `n` is the inscription's index within that reveal, in
@@ -1622,7 +1622,7 @@ general intent — they do not force the seller to honor old terms.
 
 ## 8. Ownership Verification Model
 
-Dogenals inscriptions are stored in the first input's `script_sig` of the inscription transaction. Ownership
+Doginals inscriptions are stored in the first input's `script_sig` of the inscription transaction. Ownership
 is tracked by the indexer via satpoint-to-inscription mapping. The current owner of an inscription is the
 address controlling the UTXO at the current satpoint of that inscription.
 
@@ -2078,7 +2078,7 @@ See EXAMPLES directory for canonical operation payloads, including:
 
 ## 17. Launch Draft Summary
 
-ÐMP v1.0 is the first Dogenals marketplace launch draft. It includes:
+ÐMP v1.0 is the first Doginals marketplace launch draft. It includes:
 
 - Marketplace intents for `list`, `bid`, `auction`, `offer`, seller responses, `settle`, `cancel`, and `transfer`.
 - Collection manifests and `collection-update` rules.

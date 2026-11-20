@@ -39,8 +39,8 @@ flagged, never enforced: [what is guaranteed vs verified](security.md#21-what-is
 4. **One OP_RETURN.** Standard relay allows one. The `dmp2` venue tag is optional. When a
    venue's own OP_RETURN is present instead (no brand tags are part of ÐMP), it wins and
    `settlement_fee_ok` is `null` (§8.3). Only the first OP_RETURN is read.
-5. **Cover era 1.** Many dogs were inscribed before the Doginals era-2 floor. An index that starts
-   later cannot place them, and will mark live orders `invalid`. Index from the era-1 floor, or
+5. **Cover historical inscriptions.** Many dogs were inscribed before the launch floor. An index that starts
+   later cannot place them, and will mark live orders `invalid`. Index from the Doginals floor, or
    report the dog as unknown instead of guessing.
 
 ## Reference and vectors

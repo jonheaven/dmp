@@ -82,7 +82,7 @@ These use cases will drive real adoption:
 - ÐMP-indexed listings from ALL venues in one feed = unified underpriced detection.
 - Provenance quality signal: filter by `provenance_gap = false` for stronger trust signals.
 
-**2. Doginals Aggregator ("Dexscreener of Dogenals")**
+**2. Doginals Aggregator ("Dexscreener of metaprotocol")**
 - Power the price discovery dashboard from ÐMP settle records (verified on-chain sales).
 - Collection-level volume, average price, floor price — all derived from ÐMP data.
 - No dependence on any single marketplace's database.
