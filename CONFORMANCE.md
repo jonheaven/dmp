@@ -65,6 +65,16 @@ differs from a vector, you are wrong or the vector is, and either way please ope
 - [ ] Venue: shows `verified` / `community` and `verified_by`, and never presents a community manifest's
       royalty as the creator's.
 
+## Drop rules (draft registry revision 1.2)
+
+- [ ] Indexer: all of `vectors/drop_rules_vectors.json` matches (`reference/drop_rules.py check`):
+      `mint` validation and reasons, studio fee, seed, membership scenarios.
+- [ ] Indexer: a drop with invalid mint rules has no members; it never falls back to plain parent mode.
+- [ ] Indexer: serves ord recursion `/r/inscription/<id>` (with `height`), `/r/blockheight`,
+      `/r/blockhash/<height>` on its content origin.
+- [ ] Wallet: puts the price and the studio fee in the commit transaction of a single-transaction child.
+- [ ] Venue: shows the drop's terms and `not_member` reasons, and never lists a non-member as part of the drop.
+
 ## Conformance levels
 
 A claim names a level and the **exact dmp commit** (full 40-hex SHA) it was tested against, for

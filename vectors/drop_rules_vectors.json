@@ -1,0 +1,1696 @@
+{
+  "spec": "drop-rules.md (draft registry revision 1.2)",
+  "addresses": {
+    "creator": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+    "studio": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+    "minter_a": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+    "minter_b": "D69VCfBotiQsoF1FwFLxQef2phqQQp6E2H",
+    "studio_p2sh": "9sXyCjeFGPa1eFWXwVoXszygnMh91YWrWU"
+  },
+  "manifest": [
+    {
+      "name": "valid paid drop with studio fee",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": null,
+      "rules": {
+        "supply": 3,
+        "seed_delay": 6,
+        "opens": 1000,
+        "closes": null,
+        "price": 6900000000,
+        "pay_to": "p2pkh:79b000887626b294a914501a4cd226b58b235983",
+        "fee_to": "p2pkh:ebc0ee0b2ab9e8277a600c251475e22a3241a1c1",
+        "fee_bps": 200,
+        "fee_min": 50000000,
+        "cap": null
+      }
+    },
+    {
+      "name": "valid, all optional fields",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+          "seed_delay": "3",
+          "closes_at_height": "2000",
+          "max_per_inscriber": "2",
+          "brain": "d72d3fdf06cb96385f90168345aed9a562b6e2bc878b449548a87f7fad7c1b5ci0",
+          "recipe": "fd73cfe315d0c3196584d528e0325a7a063bbb1e28396197b238091ff31cd77bi0",
+          "signer": null
+        }
+      },
+      "reason": null,
+      "rules": {
+        "supply": 3,
+        "seed_delay": 3,
+        "opens": 1000,
+        "closes": 2000,
+        "price": 6900000000,
+        "pay_to": "p2pkh:79b000887626b294a914501a4cd226b58b235983",
+        "fee_to": "p2pkh:ebc0ee0b2ab9e8277a600c251475e22a3241a1c1",
+        "fee_bps": 200,
+        "fee_min": 50000000,
+        "cap": 2
+      }
+    },
+    {
+      "name": "valid free drop, no fee",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "0"
+        }
+      },
+      "reason": null,
+      "rules": {
+        "supply": 3,
+        "seed_delay": 6,
+        "opens": 1000,
+        "closes": null,
+        "price": 0,
+        "pay_to": null,
+        "fee_to": null,
+        "fee_bps": 0,
+        "fee_min": 0,
+        "cap": null
+      }
+    },
+    {
+      "name": "valid, fee to a P2SH address",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "9sXyCjeFGPa1eFWXwVoXszygnMh91YWrWU"
+        }
+      },
+      "reason": null,
+      "rules": {
+        "supply": 3,
+        "seed_delay": 6,
+        "opens": 1000,
+        "closes": null,
+        "price": 6900000000,
+        "pay_to": "p2pkh:79b000887626b294a914501a4cd226b58b235983",
+        "fee_to": "p2sh:0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+        "fee_bps": 200,
+        "fee_min": 50000000,
+        "cap": null
+      }
+    },
+    {
+      "name": "mint not an object",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": "yes"
+      },
+      "reason": "mint_shape",
+      "rules": null
+    },
+    {
+      "name": "not parent mode",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "explicit"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_shape",
+      "rules": null
+    },
+    {
+      "name": "supply not locked",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": false,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_shape",
+      "rules": null
+    },
+    {
+      "name": "supply zero",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "0",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_supply",
+      "rules": null
+    },
+    {
+      "name": "supply over 100000",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "100001",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_supply",
+      "rules": null
+    },
+    {
+      "name": "unknown version",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "2",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_version",
+      "rules": null
+    },
+    {
+      "name": "unknown seed rule",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "txid",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_seed",
+      "rules": null
+    },
+    {
+      "name": "seed delay below 3",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+          "seed_delay": "2"
+        }
+      },
+      "reason": "mint_seed_delay",
+      "rules": null
+    },
+    {
+      "name": "seed delay above 144",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+          "seed_delay": "145"
+        }
+      },
+      "reason": "mint_seed_delay",
+      "rules": null
+    },
+    {
+      "name": "seed delay not canonical",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+          "seed_delay": "06"
+        }
+      },
+      "reason": "mint_seed_delay",
+      "rules": null
+    },
+    {
+      "name": "opens at manifest height",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "900",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_opens",
+      "rules": null
+    },
+    {
+      "name": "opens missing",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_opens",
+      "rules": null
+    },
+    {
+      "name": "closes not after opens",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+          "closes_at_height": "1000"
+        }
+      },
+      "reason": "mint_closes",
+      "rules": null
+    },
+    {
+      "name": "price negative",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "-1",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_price",
+      "rules": null
+    },
+    {
+      "name": "price as number",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": 6900000000,
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_price",
+      "rules": null
+    },
+    {
+      "name": "paid without pay_to",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_pay_to",
+      "rules": null
+    },
+    {
+      "name": "pay_to bad checksum",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Eu",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_pay_to",
+      "rules": null
+    },
+    {
+      "name": "fee address without terms",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_studio_fee",
+      "rules": null
+    },
+    {
+      "name": "fee terms without address",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000"
+        }
+      },
+      "reason": "mint_studio_fee",
+      "rules": null
+    },
+    {
+      "name": "fee bps over 2500",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "2501",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+        }
+      },
+      "reason": "mint_studio_fee",
+      "rules": null
+    },
+    {
+      "name": "cap zero",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+          "max_per_inscriber": "0"
+        }
+      },
+      "reason": "mint_cap",
+      "rules": null
+    },
+    {
+      "name": "brain not canonical",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+          "brain": "abc"
+        }
+      },
+      "reason": "mint_ref",
+      "rules": null
+    },
+    {
+      "name": "signer set",
+      "M": 900,
+      "manifest": {
+        "p": "dmp",
+        "v": "1.0",
+        "op": "collection",
+        "chain": "dogecoin",
+        "slug": "drop-test",
+        "name": "Drop Test",
+        "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+        "royalty_bps": "500",
+        "type": "fixed",
+        "supply": "3",
+        "supply_locked": true,
+        "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+        "criteria": {
+          "mode": "parent"
+        },
+        "mint": {
+          "v": "1",
+          "seed": "child-blockhash-v1",
+          "opens_at_height": "1000",
+          "price_koinu": "6900000000",
+          "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+          "studio_fee_bps": "200",
+          "studio_fee_min_koinu": "50000000",
+          "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+          "signer": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et"
+        }
+      },
+      "reason": "mint_signer",
+      "rules": null
+    }
+  ],
+  "fee": [
+    {
+      "price_koinu": 6900000000,
+      "bps": 200,
+      "min_koinu": 50000000,
+      "fee": 138000000
+    },
+    {
+      "price_koinu": 1000000000,
+      "bps": 200,
+      "min_koinu": 50000000,
+      "fee": 50000000
+    },
+    {
+      "price_koinu": 0,
+      "bps": 200,
+      "min_koinu": 50000000,
+      "fee": 50000000
+    },
+    {
+      "price_koinu": 100000000,
+      "bps": 200,
+      "min_koinu": 50000000,
+      "fee": 50000000
+    },
+    {
+      "price_koinu": 12345678901,
+      "bps": 250,
+      "min_koinu": 0,
+      "fee": 308641972
+    },
+    {
+      "price_koinu": 5000000000,
+      "bps": 0,
+      "min_koinu": 0,
+      "fee": 0
+    }
+  ],
+  "seed": [
+    {
+      "child_id": "176ea20840f8c0b268ccd9cf5decf5b3311f6cdb4ae36749729036f2e596ee86i0",
+      "block_hash": "b8c6f33f1780d30977c5e964f62e7959102a3694f1c28ae0834ab12f98a3dcb0",
+      "seed": "64a75dbf00f529b31d11b61519fe3815dcdcaaa4cec241dc6a935e843ab5ef7e"
+    },
+    {
+      "child_id": "54b4e1ba63a9ec6e70e417f2977107a241f9233d1b6b7ca4f1da928b67180c5ai1",
+      "block_hash": "89a1a98e709fa672374b463bbd8d5946ff4f530c5e65be07bf17ef8473ec96e9",
+      "seed": "61ff7a65597845ae9894d3a9751764564b1314ed9ce6ffcef63be50d1d87bdc6"
+    },
+    {
+      "child_id": "c261705b0e40cfddcd887a31506482d8efc41ad403a12c0731feab5c1282704fi2",
+      "block_hash": "2453695514ac2ba4f06e40a20e20cbc76b7a6c6d9a438c4a30e2acea3be39f57",
+      "seed": "e7f98f70a74071582e58c69f4a0038ede6642e1fd54c99bd27998723c84fa679"
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "paid drop: window, payment, cap, supply",
+      "drops": {
+        "140f14dcbf84b67b1fef6a649940ed22e43baae8565fed020ff94a224bc8c5b1i0": {
+          "M": 900,
+          "manifest": {
+            "p": "dmp",
+            "v": "1.0",
+            "op": "collection",
+            "chain": "dogecoin",
+            "slug": "drop-test",
+            "name": "Drop Test",
+            "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+            "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+            "royalty_bps": "500",
+            "type": "fixed",
+            "supply": "3",
+            "supply_locked": true,
+            "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+            "criteria": {
+              "mode": "parent"
+            },
+            "mint": {
+              "v": "1",
+              "seed": "child-blockhash-v1",
+              "opens_at_height": "1000",
+              "price_koinu": "6900000000",
+              "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+              "studio_fee_bps": "200",
+              "studio_fee_min_koinu": "50000000",
+              "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+              "max_per_inscriber": "2"
+            }
+          }
+        }
+      },
+      "children": [
+        {
+          "drop": "140f14dcbf84b67b1fef6a649940ed22e43baae8565fed020ff94a224bc8c5b1i0",
+          "child": "ab33d65e732fd2babe71082165a0479068ef687e4c341f9307b00e85733df124i0",
+          "hc": 999,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "184c693a2179909ff48468f0e58324b77e47d3b4081bca87cf2ce6a0c73787c9",
+            "height": 999,
+            "outputs": [
+              {
+                "address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+                "koinu": 6900000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 138000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "140f14dcbf84b67b1fef6a649940ed22e43baae8565fed020ff94a224bc8c5b1i0",
+          "child": "4925b8e2bced3cea8602b21956092a51feb8289b686ed65929eea16808412cebi0",
+          "hc": 1000,
+          "single_tx": false,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "9a4391015607e215f08de07942cc73e26b7906550a7e9ba8c9bfa08ebcbe632d",
+            "height": 1000,
+            "outputs": [
+              {
+                "address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+                "koinu": 6900000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 138000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "140f14dcbf84b67b1fef6a649940ed22e43baae8565fed020ff94a224bc8c5b1i0",
+          "child": "52f1ef63a2b90109bce9bbf4ab49373376c4ae8fd4e3bb9a86a2e13371c43c38i0",
+          "hc": 1000,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "826ac1b86f30fe070de7ce33702d3653038798a556130e274cf4d07b9b8057c6",
+            "height": 1000,
+            "outputs": [
+              {
+                "address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+                "koinu": 6900000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 137999999
+              }
+            ]
+          }
+        },
+        {
+          "drop": "140f14dcbf84b67b1fef6a649940ed22e43baae8565fed020ff94a224bc8c5b1i0",
+          "child": "8a19c1a4483eac7d7f534e36674bb358fc9c3767d6f44ff01e8f1cd07d2525a5i0",
+          "hc": 1001,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "58702206b7384bd995bbbd811d194949ab7652595a01a18bdb9124ea71bc8039",
+            "height": 1000,
+            "outputs": [
+              {
+                "address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+                "koinu": 6900000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 138000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "140f14dcbf84b67b1fef6a649940ed22e43baae8565fed020ff94a224bc8c5b1i0",
+          "child": "6ce5490fea5943da3f2eb35fe447e7eadc1ae177f765b5c12b24ed3b1cb84fc1i0",
+          "hc": 1001,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "58702206b7384bd995bbbd811d194949ab7652595a01a18bdb9124ea71bc8039",
+            "height": 1000,
+            "outputs": [
+              {
+                "address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+                "koinu": 6900000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 138000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "140f14dcbf84b67b1fef6a649940ed22e43baae8565fed020ff94a224bc8c5b1i0",
+          "child": "661cf14728c7bf42c1a1388da0f0430d9c724422d83bb81a272121cd6b882756i0",
+          "hc": 1040,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "f46b7c0ef711bfa21dea8a3bd6404147f7f96d51da8b6014501460c669acd610",
+            "height": 1009,
+            "outputs": [
+              {
+                "address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+                "koinu": 6900000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 138000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "140f14dcbf84b67b1fef6a649940ed22e43baae8565fed020ff94a224bc8c5b1i0",
+          "child": "57b14548cd743ccb9c5cf90332d5efae893710aa253d378b126a41d2443de484i0",
+          "hc": 1040,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "dfca0428d1c4dfa73c01da18ff7cbfa00d54163618332ed77e81fcd79cf32d6f",
+            "height": 1010,
+            "outputs": [
+              {
+                "address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+                "koinu": 13800000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 276000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "140f14dcbf84b67b1fef6a649940ed22e43baae8565fed020ff94a224bc8c5b1i0",
+          "child": "8faf0b5d917a084bde2da2746269fd400bfd785874aea0ed886e7c325f976d17i0",
+          "hc": 1040,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "dfca0428d1c4dfa73c01da18ff7cbfa00d54163618332ed77e81fcd79cf32d6f",
+            "height": 1010,
+            "outputs": [
+              {
+                "address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+                "koinu": 13800000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 276000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "140f14dcbf84b67b1fef6a649940ed22e43baae8565fed020ff94a224bc8c5b1i0",
+          "child": "2cea11678cd7c7bafa2fc2e1638e2b3a3f1abda61c68f986047ca49e5ec6b2aei0",
+          "hc": 1040,
+          "single_tx": true,
+          "inscriber": "D69VCfBotiQsoF1FwFLxQef2phqQQp6E2H",
+          "funding": {
+            "txid": "dfca0428d1c4dfa73c01da18ff7cbfa00d54163618332ed77e81fcd79cf32d6f",
+            "height": 1010,
+            "outputs": [
+              {
+                "address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+                "koinu": 13800000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 276000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "140f14dcbf84b67b1fef6a649940ed22e43baae8565fed020ff94a224bc8c5b1i0",
+          "child": "f12a83d014ab162305776223b8bf7812cba43362ea9a463d9e3f8ea5adaf9fd5i0",
+          "hc": 1042,
+          "single_tx": true,
+          "inscriber": "D69VCfBotiQsoF1FwFLxQef2phqQQp6E2H",
+          "funding": {
+            "txid": "85f7636862956910b15aa0fc8f6e1e27348833961662eefed0cb01807a11362c",
+            "height": 1042,
+            "outputs": [
+              {
+                "address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+                "koinu": 6900000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 138000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "140f14dcbf84b67b1fef6a649940ed22e43baae8565fed020ff94a224bc8c5b1i0",
+          "child": "c688b0b4ec8023f8f323920c3e62903639bd5074a1da4a83df63316c0065aaf4i0",
+          "hc": 1042,
+          "single_tx": true,
+          "inscriber": null,
+          "funding": {
+            "txid": "670b912a1b2321b64f6e944a15c98f58f7d6a988cd998b77ba12936e59517b96",
+            "height": 1042,
+            "outputs": [
+              {
+                "address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+                "koinu": 6900000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 138000000
+              }
+            ]
+          }
+        }
+      ],
+      "want": [
+        {
+          "member": false,
+          "reason": "not_open"
+        },
+        {
+          "member": false,
+          "reason": "multi_tx"
+        },
+        {
+          "member": false,
+          "reason": "unpaid"
+        },
+        {
+          "member": true,
+          "member_no": 1
+        },
+        {
+          "member": false,
+          "reason": "unpaid"
+        },
+        {
+          "member": false,
+          "reason": "unpaid"
+        },
+        {
+          "member": true,
+          "member_no": 2
+        },
+        {
+          "member": false,
+          "reason": "inscriber_cap"
+        },
+        {
+          "member": true,
+          "member_no": 3
+        },
+        {
+          "member": false,
+          "reason": "sold_out"
+        },
+        {
+          "member": false,
+          "reason": "no_inscriber"
+        }
+      ]
+    },
+    {
+      "name": "pay_to equals studio_fee_to: amounts add; close height",
+      "drops": {
+        "a566f6cf770d3fb6594ee7a72706eb4d8c858b46b7e226c526992a59ba34ea2bi0": {
+          "M": 900,
+          "manifest": {
+            "p": "dmp",
+            "v": "1.0",
+            "op": "collection",
+            "chain": "dogecoin",
+            "slug": "drop-test",
+            "name": "Drop Test",
+            "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+            "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+            "royalty_bps": "500",
+            "type": "fixed",
+            "supply": "10",
+            "supply_locked": true,
+            "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+            "criteria": {
+              "mode": "parent"
+            },
+            "mint": {
+              "v": "1",
+              "seed": "child-blockhash-v1",
+              "opens_at_height": "1000",
+              "price_koinu": "6900000000",
+              "pay_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+              "studio_fee_bps": "200",
+              "studio_fee_min_koinu": "50000000",
+              "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+              "closes_at_height": "1100"
+            }
+          }
+        }
+      },
+      "children": [
+        {
+          "drop": "a566f6cf770d3fb6594ee7a72706eb4d8c858b46b7e226c526992a59ba34ea2bi0",
+          "child": "49e017c18ec146474d5272f936b2dd4e55fab37f1edf0d269e879783d688ddb5i0",
+          "hc": 1050,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "bc2f1a897140cb2bf6aba6ddc0cf35879ded5306483d30d7ded12538426baac3",
+            "height": 1050,
+            "outputs": [
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 6900000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "a566f6cf770d3fb6594ee7a72706eb4d8c858b46b7e226c526992a59ba34ea2bi0",
+          "child": "55df74562d57fc2b972dae57775d19e0155fc4f62426c96653c89bb2cc0cf1e7i0",
+          "hc": 1050,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "b1f50fd9610dda399fe51e1bfab82ece90442d4e7fbbb341d296e6284150d687",
+            "height": 1050,
+            "outputs": [
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 6900000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 138000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "a566f6cf770d3fb6594ee7a72706eb4d8c858b46b7e226c526992a59ba34ea2bi0",
+          "child": "2ee4a349a2332233be2581fbd695cd3bfa8addba9e5427d86795b4990169fc70i0",
+          "hc": 1100,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "453e5cfb8e8fc9a8a8eb5cff85eb1661a340b586c9271bdeebaa7cf7a00a87c0",
+            "height": 1100,
+            "outputs": [
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 7038000000
+              }
+            ]
+          }
+        }
+      ],
+      "want": [
+        {
+          "member": false,
+          "reason": "unpaid"
+        },
+        {
+          "member": true,
+          "member_no": 1
+        },
+        {
+          "member": false,
+          "reason": "closed"
+        }
+      ]
+    },
+    {
+      "name": "shared studio address across drops: each koinu pays once",
+      "drops": {
+        "a95b9f46a0bbdbdb3cd513be3e99ff829babd08e4139616e4befda31473f5fd8i0": {
+          "M": 900,
+          "manifest": {
+            "p": "dmp",
+            "v": "1.0",
+            "op": "collection",
+            "chain": "dogecoin",
+            "slug": "drop-test",
+            "name": "Drop Test",
+            "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+            "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+            "royalty_bps": "500",
+            "type": "fixed",
+            "supply": "3",
+            "supply_locked": true,
+            "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+            "criteria": {
+              "mode": "parent"
+            },
+            "mint": {
+              "v": "1",
+              "seed": "child-blockhash-v1",
+              "opens_at_height": "1000",
+              "price_koinu": "0",
+              "studio_fee_bps": "200",
+              "studio_fee_min_koinu": "50000000",
+              "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+            }
+          }
+        },
+        "020be1547d7bdc456df6af4cb1b8ca6ab8cc01f3dbd0291872399c7b2eda0f98i0": {
+          "M": 900,
+          "manifest": {
+            "p": "dmp",
+            "v": "1.0",
+            "op": "collection",
+            "chain": "dogecoin",
+            "slug": "drop-test-b",
+            "name": "Drop Test",
+            "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+            "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+            "royalty_bps": "500",
+            "type": "fixed",
+            "supply": "3",
+            "supply_locked": true,
+            "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+            "criteria": {
+              "mode": "parent"
+            },
+            "mint": {
+              "v": "1",
+              "seed": "child-blockhash-v1",
+              "opens_at_height": "1000",
+              "price_koinu": "0",
+              "studio_fee_bps": "200",
+              "studio_fee_min_koinu": "50000000",
+              "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+            }
+          }
+        }
+      },
+      "children": [
+        {
+          "drop": "a95b9f46a0bbdbdb3cd513be3e99ff829babd08e4139616e4befda31473f5fd8i0",
+          "child": "08e0d8cce2b5f6e6b56bac630d2ad3025af5329cb11a99e4ba30b53cbcab1c2fi0",
+          "hc": 1001,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "bc8adf0d1059f23f790ecea036d2bd0d16a4d6f4280938c381e41f8053bdc00e",
+            "height": 1001,
+            "outputs": [
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 50000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "020be1547d7bdc456df6af4cb1b8ca6ab8cc01f3dbd0291872399c7b2eda0f98i0",
+          "child": "1484f2887778e405a3329ff3974c820238d2ece4582b6b9d690bdc5171cfbd3ci0",
+          "hc": 1001,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "bc8adf0d1059f23f790ecea036d2bd0d16a4d6f4280938c381e41f8053bdc00e",
+            "height": 1001,
+            "outputs": [
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 50000000
+              }
+            ]
+          }
+        },
+        {
+          "drop": "020be1547d7bdc456df6af4cb1b8ca6ab8cc01f3dbd0291872399c7b2eda0f98i0",
+          "child": "c08cf1222d6e48d98b8995ba634d4117625127cf560f4561258bc33ed2efe306i0",
+          "hc": 1002,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "c077cc7a73dc35390f8e00d2c336bc2491bb23ba0fc7a451535cc6dc2f235966",
+            "height": 900,
+            "outputs": [
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 50000000
+              }
+            ]
+          }
+        }
+      ],
+      "want": [
+        {
+          "member": true,
+          "member_no": 1
+        },
+        {
+          "member": false,
+          "reason": "unpaid"
+        },
+        {
+          "member": false,
+          "reason": "unpaid"
+        }
+      ]
+    },
+    {
+      "name": "invalid mint rules: no members, no reasons",
+      "drops": {
+        "13d3fc1c4c9b7ec10b9c7f14bc8a8a70cf7e291640b9a8a2ddcea4e5d013e84di0": {
+          "M": 900,
+          "manifest": {
+            "p": "dmp",
+            "v": "1.0",
+            "op": "collection",
+            "chain": "dogecoin",
+            "slug": "drop-test",
+            "name": "Drop Test",
+            "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+            "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+            "royalty_bps": "500",
+            "type": "fixed",
+            "supply": "3",
+            "supply_locked": true,
+            "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+            "criteria": {
+              "mode": "parent"
+            },
+            "mint": {
+              "v": "1",
+              "seed": "txid",
+              "opens_at_height": "1000",
+              "price_koinu": "6900000000",
+              "pay_to": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+              "studio_fee_bps": "200",
+              "studio_fee_min_koinu": "50000000",
+              "studio_fee_to": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq"
+            }
+          }
+        }
+      },
+      "children": [
+        {
+          "drop": "13d3fc1c4c9b7ec10b9c7f14bc8a8a70cf7e291640b9a8a2ddcea4e5d013e84di0",
+          "child": "b939704731c4d219398934a68d70f7dd60edf059bc1e9c75fd63487112753084i0",
+          "hc": 1001,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": {
+            "txid": "737835d1df60a203a99f4e64146ed1a026778db4c33640ec8d87c21350bb52f7",
+            "height": 1001,
+            "outputs": [
+              {
+                "address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+                "koinu": 6900000000
+              },
+              {
+                "address": "DSdeTLgR9ZChn46U89HyK4Quaj91EU2Zuq",
+                "koinu": 138000000
+              }
+            ]
+          }
+        }
+      ],
+      "want": [
+        {
+          "member": false,
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "nothing owed: no funding needed",
+      "drops": {
+        "22e593933308f793725efb2edc45e3289e04c629697aecab7099d37badbf230bi0": {
+          "M": 900,
+          "manifest": {
+            "p": "dmp",
+            "v": "1.0",
+            "op": "collection",
+            "chain": "dogecoin",
+            "slug": "drop-test",
+            "name": "Drop Test",
+            "creator_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+            "royalty_address": "DGEX9JsfNuCCA3ovxAmUSM1GCea1BpY4Et",
+            "royalty_bps": "500",
+            "type": "fixed",
+            "supply": "3",
+            "supply_locked": true,
+            "parent_inscription_id": "62a1b167407a123fb6cac8a6536a21db71cdc15c0cc60cca1de70dcfe5a1d1dbi0",
+            "criteria": {
+              "mode": "parent"
+            },
+            "mint": {
+              "v": "1",
+              "seed": "child-blockhash-v1",
+              "opens_at_height": "1000",
+              "price_koinu": "0"
+            }
+          }
+        }
+      },
+      "children": [
+        {
+          "drop": "22e593933308f793725efb2edc45e3289e04c629697aecab7099d37badbf230bi0",
+          "child": "722e293d5930fb5c5bb4c1af0caff01c89d7e9d20c1ac20ab1d3e18a0d2997d7i0",
+          "hc": 1001,
+          "single_tx": true,
+          "inscriber": "DB7NZUwffx4NMgCDnmAgVeh8fKBrWwg6f4",
+          "funding": null
+        }
+      ],
+      "want": [
+        {
+          "member": true,
+          "member_no": 1
+        }
+      ]
+    }
+  ]
+}

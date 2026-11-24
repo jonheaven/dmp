@@ -1,5 +1,22 @@
 # Launch Draft Summary
 
+## Draft registry revision 1.2: drop rules (2026-11-21)
+
+Draft, not frozen; it is frozen after the first live drop that uses it. Backward compatible: a
+manifest without `mint` resolves as in 1.1. New document: [drop-rules.md](drop-rules.md). New vectors:
+`vectors/drop_rules_vectors.json`, checked by `reference/drop_rules.py`.
+
+- **`mint` object** on a `fixed` + `parent` + `supply_locked` manifest: `opens_at_height`,
+  `closes_at_height`, `price_koinu` + `pay_to`, `studio_fee_bps` / `studio_fee_min_koinu` /
+  `studio_fee_to`, `max_per_inscriber`, `seed: "child-blockhash-v1"`, `seed_delay` (default 6, 3–144).
+  Invalid mint rules leave the manifest valid but with no members (fail closed).
+- **Membership** in position order: single-transaction children only, inside the open window, paid in
+  the funding (commit) transaction within 30 blocks, under the inscriber cap and the supply. Each koinu
+  of a funding output pays for one child across all drops.
+- **Seed** = SHA-256 of `dmp-drop-seed|1|<child id>|<blockhash(Hc + seed_delay)>`: nobody can pick traits.
+- Brains use ord's `/r/inscription/<id>`, `/r/blockheight`, `/r/blockhash/<h>` and show "unrevealed"
+  where those are missing.
+
 ## Spec revision 1.1: on-chain collection registry (2026-11-20)
 
 Backward compatible. Wire `v` stays `"1.0"`; every op that was valid before keeps its outcome, and the

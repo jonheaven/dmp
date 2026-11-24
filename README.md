@@ -104,6 +104,7 @@ python3 reference/dmp_v2_reconstruct.py v1      vectors/dmp_v1_psdt_vectors.json
 | [CONFORMANCE.md](CONFORMANCE.md) | Conformance checklist |
 | [spec.md](spec.md) | ÐMP 1.0 protocol specification (all other ops) |
 | [collection-registry.md](collection-registry.md) | On-chain collection registry: committed member lists, verified vs community tiers, precedence, handover (spec revision 1.1) |
+| [drop-rules.md](drop-rules.md) | Draft registry 1.2: public mints written into the manifest (open/close heights, price, venue fee, supply, block-hash trait seed), enforced by indexers as membership |
 | [dogetag-offers.md](dogetag-offers.md) | Lightweight OP_RETURN offer signaling extension |
 | [implementation-guide.md](implementation-guide.md) | How to build a compliant indexer |
 | [security.md](security.md) | Threat model, mitigations, and [what is guaranteed vs verified](security.md#21-what-is-guaranteed-vs-verified) |
@@ -126,6 +127,7 @@ python3 reference/dmp_v2_reconstruct.py v1      vectors/dmp_v1_psdt_vectors.json
 python reference/dmp_reference.py validate EXAMPLES/list-op.json
 python reference/dmp_reference.py test-vectors
 python3 reference/collection_registry.py check vectors/collection_registry_vectors.json
+python3 reference/drop_rules.py check vectors/drop_rules_vectors.json
 ```
 
 ---
