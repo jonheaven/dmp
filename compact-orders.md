@@ -557,7 +557,7 @@ These are Dogecoin Core relay defaults, not ÐMP validity rules. A mined fill is
 
 - Hard dust limit 0.001 DOGE (100000 koinu): outputs below it are not relayed. `net ≥ 100000` is
   already a §6 rule.
-- Soft dust 0.01 DOGE (1000000 koinu): each output below it adds 0.01 DOGE to the required fee.
+- Soft dust 0.01 DOGE (1000000 koinu): each spendable output below it adds 0.01 DOGE to the required fee. An `OP_RETURN` is unspendable, so a zero-value one does not add that fee.
   Venues SHOULD keep royalty, listing and settlement outputs ≥ 0.01 DOGE or merge them into change.
 - Fee: Dogecoin Core 1.14.4+ recommends at least 0.01 DOGE/kB. dogex and the reference fills pay
   1 DOGE/kB for margin. A typical canonical fill is 400–700 bytes.
